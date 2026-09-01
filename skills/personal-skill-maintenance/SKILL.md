@@ -37,7 +37,8 @@ Do not write a skill for a one-off result, transient status, speculation, or inf
    - Create a new skill only when no existing Luke-authored skill is a natural home.
 4. Apply the safety filter below.
 5. Verify frontmatter, relative links, commands, and consistency with the observed system.
-6. Before the final response, review the repository diff and report that the skill learned or corrected itself.
+6. Run the canonical repository's public-safety check and treat any finding as blocking.
+7. Review the repository diff, commit and push the safe verified change to `luckycold/agent-skills`, then report the resulting commit.
 
 ## Safety filter
 
@@ -55,7 +56,7 @@ Do not write a skill for a one-off result, transient status, speculation, or inf
 - Include `name`, a specific trigger-oriented `description`, and `author: Luke`.
 - Keep `SKILL.md` concise and place detailed material in directly linked `references/`, `scripts/`, `templates/`, or `assets/`.
 - Include a `Self-maintenance` section pointing back to this skill.
-- Do not commit or push the resulting changes unless Luke explicitly requests it.
+- Luke has authorized safe personal-skill changes to be committed and pushed to `luckycold/agent-skills` without asking each time. Never push when validation or the public-safety scan fails.
 
 ## Curation
 
@@ -67,4 +68,4 @@ Ordinary Agent Skills have no portable usage counter, background review fork, ar
 
 ## Self-maintenance
 
-This skill may update itself when a verified change to agent discovery, skill portability, or the shared maintenance policy makes these instructions inaccurate. Apply the same evidence, safety, verification, and no-auto-commit rules above.
+This skill may update itself when a verified change to agent discovery, skill portability, or the shared maintenance policy makes these instructions inaccurate. Apply the same evidence, safety, validation, and authorized-push rules above.
