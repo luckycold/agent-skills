@@ -1,8 +1,7 @@
 ---
 name: personal-skill-maintenance
 description: Create and self-maintain Luke-authored personal Agent Skills after verified reusable workflows or corrections. Use when an agent learns a repeatable procedure, finds a skill is wrong or incomplete, or is asked to capture personal procedural knowledge.
-metadata:
-  author: Luke
+author: Luke
 ---
 
 # Personal Skill Maintenance

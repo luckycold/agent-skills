@@ -1,9 +1,8 @@
 ---
 name: direct-action-preferences
 description: Proactive, low-confirmation execution and autonomous research on infrastructure, auth, OAuth/OIDC, networking, and configuration tasks.
-metadata:
-  author: Luke
-  category: agent-behavior
+author: Luke
+category: agent-behavior
 ---
 
 # Direct Action Preferences

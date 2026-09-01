@@ -7,7 +7,7 @@ Use this when exposing a TrueNAS App through Luke's Traefik TrueNAS app.
 - Traefik dynamic file provider directory: `/mnt/Apps/Applications/traefik/dynamic/`
 - Traefik cert mount source: `/mnt/Apps/Applications/traefik/certs/`
 - TrueNAS-managed certificates: `/etc/certificates/`
-- Traefik entrypoints are bound to `192.168.0.2:80` and `192.168.0.2:443`.
+- Traefik entrypoints are bound to `${REVERSE_PROXY_IP}:80` and `${REVERSE_PROXY_IP}:443`.
 
 ## Add a route
 
@@ -27,7 +27,7 @@ http:
     immich:
       loadBalancer:
         servers:
-          - url: "http://192.168.1.157:30041"
+          - url: "http://${NAS_IP}:30041"
 ```
 
 Validate YAML on the NAS before relying on Traefik to load it.

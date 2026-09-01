@@ -1,9 +1,8 @@
 ---
 name: truenas-custom-apps
+author: Luke
+category: devops
 description: Class-level procedures for registering, updating, and managing custom Docker apps on TrueNAS SCALE as first-class entries in the Apps list. Covers the ix-apps/app_configs directory structure, midclt usage, direct YAML edits, and workarounds when app.create is restricted. Focuses on local-only services, data preservation under /mnt/Apps/Applications, and enabling integrations for self-hosted projects such as PewDiePie's Odysseus. Complements broader infrastructure-hygiene patterns.
-metadata:
-  author: Luke
-  category: devops
 ---
 
 # TrueNAS Custom App Management via CLI and ix-apps Structure
@@ -52,7 +51,7 @@ See `references/ix-apps-custom-app-structure.md` for the exact layout, file purp
 Core conventions observed:
 - Compose project prefix is always "ix-" (ix-ninerouter, ix-proton-bridge).
 - Data volume target: `/mnt/Apps/Applications/<name>/data` mapped to the container's config path.
-- Ports: `127.0.0.1:` for container-only consumers (IMAP/SMTP bridge); `192.168.1.157:<port>` (or match an existing app) when Traefik or LAN hits the backend — see port table in `references/upstream-compose-multi-service-apps.md`.
+- Ports: `127.0.0.1:` for container-only consumers (IMAP/SMTP bridge); `${NAS_IP}:<port>` (or match an existing app) when Traefik or LAN hits the backend — see port table in `references/upstream-compose-multi-service-apps.md`.
 - Active compose path on this stack is often `versions/1.0.0/templates/rendered/docker-compose.yaml` (keep in sync with `user_config.yaml`).
 - Version is typically "1.0.0" for these manual custom apps.
 - After file creation, `app.metadata.generate` + `app.query` confirms `custom_app: true`.
@@ -108,7 +107,7 @@ Core conventions observed:
 
 ### RomM multi-file folder ingestion
 - For archive-backed folder-format games, discover the live RomM host-path mount first and publish the completed game directory atomically. For PS3 JB folders, the destination shape is `<Title>.ps3/{PS3_DISC.SFB,PS3_GAME,PS3_UPDATE}` with no extra serial/release directory.
-- Normalize the **entire extracted tree** to the RomM runtime ownership/modes before scanning (on Luke's current deployment: `568:568`, directories `0755`, files `0644`). Archive extractors can preserve nested directories as `0700`; fixing only the title directory lets RomM see `PS3_DISC.SFB` while silently skipping `PS3_GAME` and `PS3_UPDATE`.
+- Normalize the **entire extracted tree** to the live RomM runtime ownership/modes before scanning; discover the runtime UID/GID rather than recording a host-specific value. Archive extractors can preserve nested directories as `0700`; fixing only the title directory lets RomM see `PS3_DISC.SFB` while silently skipping `PS3_GAME` and `PS3_UPDATE`.
 - Treat metadata identification as insufficient verification. From inside the RomM container, recursively compare file count and byte total with the host extraction, then after a complete platform scan require the RomM `RomFile` inventory and `fs_size_bytes` to match and explicitly require payload markers such as `PARAM.SFO` and `EBOOT.BIN`.
 - Replace formats conservatively: validate and publish the new folder before removing a superseded ISO; remove only that stale missing RomM record, and retain the qBittorrent payload for seeding unless deletion was explicitly requested.
 - See `references/romm-multifile-folder-ingest.md` for the safe staging sequence, deterministic permission repair, container-side red/green probe, partial-scan failure signature, and verification checklist.
@@ -124,7 +123,7 @@ Core conventions observed:
 - Storage: set `storage.config.type` to `host_path` → `/mnt/Apps/Applications/glance/config` (maps to `/app/config`). Add `additional_storage` host_path → `/mnt/Apps/Applications/glance/assets` at `/app/assets` to match [docker-compose-template](https://github.com/glanceapp/docker-compose-template) (`config/glance.yml`, `config/home.yml`, `assets/user.css`).
 - Seed those files from upstream **before** `midclt call app.create` (job returns immediately; poll `core.get_jobs` until SUCCESS). `run_as` **568:568**; `chown -R 568:568` on the host tree first.
 - CLI install shape: `app.create` with `custom_app: false`, `version: "1.0.3"`, and `values` matching `questions.yaml` (see catalog `trains/community/glance/1.0.3/questions.yaml`).
-- Default web port in catalog: **30426** (published). Verify: `curl http://192.168.1.157:30426/` → 200; `app.query` volumes should show both host paths, `custom_app: false`.
+- Default web port in catalog: **30426** (published). Verify: `curl http://${NAS_IP}:30426/` → 200; `app.query` volumes should show both host paths, `custom_app: false`.
 - Original: oven/bun:1.3.2-alpine image + custom command.
 - Updated to: decolua/9router:latest (official), removed command/working_dir, simplified volumes to data mount only.
 - Process: Backup user_config.yaml with timestamped .bak, python yaml edit, trigger update.
@@ -185,7 +184,7 @@ Typical block to target:
 network:
   dns_port:
     bind_mode: published
-    host_ips: ["192.168.1.157"]   # the value to change
+    host_ips: ["${NAS_IP}"]   # the value to change
     port_number: 53
 ```
 
@@ -196,7 +195,7 @@ Process:
 When the user explicitly wants a particular alias to be the *client DNS server* (the one DHCP distributes and clients actually query for internal rewrites), do not wait for the app binding. Add a host-level iptables DNAT bridge right away:
 
 ```bash
-iptables -t nat -A PREROUTING -d 192.168.0.2 -p udp --dport 53 -j DNAT --to-destination 192.168.1.157:53
+iptables -t nat -A PREROUTING -d ${REVERSE_PROXY_IP} -p udp --dport 53 -j DNAT --to-destination ${NAS_IP}:53
 # same for tcp + the OUTPUT chain for local-origin tests
 ```
 

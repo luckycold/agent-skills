@@ -1,17 +1,17 @@
 # TrueNAS AdGuard DNS binding vs Traefik app routing
 
-Session-derived note for Luke's TrueNAS SCALE host (`192.168.1.157`) where the same host also carries the legacy/secondary service IP `192.168.0.2`.
+Session-derived note for Luke's TrueNAS SCALE host (`${NAS_IP}`) where the same host also carries the legacy/secondary service IP `${REVERSE_PROXY_IP}`.
 
 ## Topology observed
 
-- Host bridge `br0` has both `192.168.1.157/23` and `192.168.0.2/23`.
-- TrueNAS UI/nginx listens on `192.168.1.157:80/443`.
-- Traefik app listens on `192.168.0.2:80/443`.
-- AdGuard Home web UI listens on `192.168.1.157:30069`.
-- **DNS:** Luke also uses **`192.168.0.2` as an alternate DNS IP** on the NAS (same `br0` host). Verify live with `dig @192.168.0.2` and `dig @192.168.1.157` — publish/bind may differ by app config over time. Do not tell Luke ".0.2 is not DNS" from Traefik notes alone.
-- AdGuard DNS is often published on `192.168.1.157` when DHCP should hand clients that IP first.
+- Host bridge `br0` has both `${NAS_IP}/23` and `${REVERSE_PROXY_IP}/23`.
+- TrueNAS UI/nginx listens on `${NAS_IP}:80/443`.
+- Traefik app listens on `${REVERSE_PROXY_IP}:80/443`.
+- AdGuard Home web UI listens on `${NAS_IP}:30069`.
+- **DNS:** Luke also uses **`${REVERSE_PROXY_IP}` as an alternate DNS IP** on the NAS (same `br0` host). Verify live with `dig @${REVERSE_PROXY_IP}` and `dig @${NAS_IP}` — publish/bind may differ by app config over time. Do not tell Luke ".0.2 is not DNS" from Traefik notes alone.
+- AdGuard DNS is often published on `${NAS_IP}` when DHCP should hand clients that IP first.
 - AdGuard rewrites for the private app wildcard intentionally send HTTPS app hostnames to Traefik, not to the TrueNAS UI. Resolve exact names and addresses from `~/.agents/private-context.md`.
-- Hosts that must **not** land on Traefik need an **exact** rewrite that wins over `*.lan.1al.cc` → `192.168.0.2`. Verified: `pbs.lan.1al.cc` → hypervisor PBS and `pbs-nas.lan.1al.cc` → the TrueNAS PBS VM. Edit `/mnt/Apps/Applications/adguard-home/config/AdGuardHome.yaml` `filtering.rewrites`, then **restart** `ix-adguard-home-adguard-1`. `SIGHUP` does not reload that YAML.
+- Hosts that must **not** land on Traefik need an **exact** rewrite that wins over `${PRIVATE_APP_WILDCARD}` → `${REVERSE_PROXY_IP}`. Verified: `${PRIMARY_BACKUP_HOSTNAME}` → hypervisor PBS and `${SECONDARY_BACKUP_HOSTNAME}` → the TrueNAS PBS VM. Edit `/mnt/Apps/Applications/adguard-home/config/AdGuardHome.yaml` `filtering.rewrites`, then **restart** `ix-adguard-home-adguard-1`. `SIGHUP` does not reload that YAML.
 
 ## Important pitfall
 
@@ -30,7 +30,7 @@ Do **not** blindly rewrite private app hostnames from the Traefik address to the
    import json, subprocess
    app = 'adguard-home'
    cfg = json.loads(subprocess.check_output(['midclt', 'call', 'app.config', app]))
-   cfg['network']['dns_port']['host_ips'] = ['192.168.1.157']
+   cfg['network']['dns_port']['host_ips'] = ['${NAS_IP}']
    cfg.pop('ix_context', None)
    open('/tmp/adguard-update-values.json', 'w').write(json.dumps({'values': cfg}))
    PY
@@ -45,6 +45,6 @@ Do **not** blindly rewrite private app hostnames from the Traefik address to the
 
 ## Verification distinction
 
-- `dig @192.168.1.157 <host> A` verifies the DNS service is reachable at the requested DNS IP.
+- `dig @${NAS_IP} <host> A` verifies the DNS service is reachable at the requested DNS IP.
 - `curl --resolve "$PRIVATE_APP_HOST:443:$TRAEFIK_IP" "https://$PRIVATE_APP_HOST/"` verifies Traefik app routing.
 - Resolving the same host to the NAS UI address will likely hit TrueNAS nginx/UI instead of Traefik; that is evidence **not** to change DNS rewrites without moving Traefik.

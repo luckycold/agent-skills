@@ -30,7 +30,7 @@ for h in "$PRIVATE_INTERNAL_ORIGIN" "$PRIVATE_PUBLIC_HOST"; do dig +short @"$ADG
 Also verify the app path independently:
 
 ```bash
-curl -kIsS http://192.168.1.157:30041/ | sed -n '1,8p'
+curl -kIsS http://${NAS_IP}:30041/ | sed -n '1,8p'
 curl -kIsS --resolve "$PRIVATE_PUBLIC_HOST:443:$TRAEFIK_IP" "https://$PRIVATE_PUBLIC_HOST/" | sed -n '1,8p'
 ```
 
@@ -45,10 +45,10 @@ docker ps --filter name=adguard --format '{{.Names}} {{.Ports}}'
 ss -tulpen | grep ':53\b'
 ```
 
-2. Point TrueNAS host DNS at that active listener. On Luke's NAS, the known-good state after the July 2026 outage was AdGuard DNS on `192.168.0.2:53`:
+2. Point TrueNAS host DNS at that active listener. On Luke's NAS, the known-good state after the July 2026 outage was AdGuard DNS on `${REVERSE_PROXY_IP}:53`:
 
 ```bash
-midclt call network.configuration.update '{"nameserver1":"192.168.0.2","nameserver2":"1.1.1.1","nameserver3":"9.9.9.9"}'
+midclt call network.configuration.update '{"nameserver1":"${REVERSE_PROXY_IP}","nameserver2":"1.1.1.1","nameserver3":"9.9.9.9"}'
 ```
 
 3. Ensure AdGuard rewrites return local origins:
@@ -72,7 +72,7 @@ midclt call -j app.start cloudflared
 5. Verify cloudflared's resolver now contains the active AdGuard listener:
 
 ```text
-ExtServers: [host(192.168.0.2) host(1.1.1.1) host(9.9.9.9)]
+ExtServers: [host(${REVERSE_PROXY_IP}) host(1.1.1.1) host(9.9.9.9)]
 ```
 
 6. Verify externally and locally:
@@ -80,7 +80,7 @@ ExtServers: [host(192.168.0.2) host(1.1.1.1) host(9.9.9.9)]
 ```bash
 curl -kIsS "https://$PRIVATE_PUBLIC_HOST/api/server/ping" | sed -n '1,12p'
 for h in "$PRIVATE_PUBLIC_HOST" "$PRIVATE_ADGUARD_HOST" "$PRIVATE_ADGUARD_LAN_HOST"; do
-  curl -kIsS --resolve "$h:443:192.168.0.2" "https://$h/" | sed -n '1,8p'
+  curl -kIsS --resolve "$h:443:${REVERSE_PROXY_IP}" "https://$h/" | sed -n '1,8p'
 done
 ```
 
@@ -102,7 +102,7 @@ http:
     adguard:
       loadBalancer:
         servers:
-          - url: "http://192.168.1.157:30069"
+          - url: "http://${NAS_IP}:30069"
 ```
 
 A nested private AdGuard hostname may still fail at Cloudflare TLS if the edge certificate does not cover that wildcard depth; local Traefik success proves the NAS route is correct.

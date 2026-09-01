@@ -22,7 +22,7 @@ dial tcp 172.67.x.x:30041: i/o timeout
 
 ## Root cause pattern
 
-On Luke's TrueNAS host, `192.168.0.2` is Traefik HTTP/HTTPS and **often also** AdGuard's DNS publish IP — verify live with `ss`/`docker ps`, do not assume DNS is always on `192.168.1.157`. Docker containers inherit host resolvers as ExtServers:
+On Luke's TrueNAS host, `${REVERSE_PROXY_IP}` is Traefik HTTP/HTTPS and **often also** AdGuard's DNS publish IP — verify live with `ss`/`docker ps`, do not assume DNS is always on `${NAS_IP}`. Docker containers inherit host resolvers as ExtServers:
 
 ```text
 # in container /etc/resolv.conf
@@ -42,8 +42,8 @@ midclt call network.configuration.config | jq '{nameserver1,nameserver2,nameserv
 cat /etc/resolv.conf
 ss -H -tuln 'sport = :53'
 
-dig +time=2 +tries=1 @192.168.0.2 smtp.protonmail.ch A +short || true
-dig +time=2 +tries=1 @192.168.1.157 smtp.protonmail.ch A +short || true
+dig +time=2 +tries=1 @${REVERSE_PROXY_IP} smtp.protonmail.ch A +short || true
+dig +time=2 +tries=1 @${NAS_IP} smtp.protonmail.ch A +short || true
 dig +time=2 +tries=1 @"$ADGUARD_IP" "$PRIVATE_INTERNAL_ORIGIN" A +short
 
 docker ps --format '{{.Names}}\t{{.Status}}' | egrep -i 'traefik|authelia|cloudflared|ldap|auth'
@@ -62,9 +62,9 @@ Update the TrueNAS host resolver to the **live AdGuard listener**, then redeploy
 
 ```bash
 # Example when AdGuard publishes on .0.2 (verify with ss/docker first):
-midclt call network.configuration.update '{"nameserver1":"192.168.0.2","nameserver2":"1.1.1.1","nameserver3":"9.9.9.9"}' \
+midclt call network.configuration.update '{"nameserver1":"${REVERSE_PROXY_IP}","nameserver2":"1.1.1.1","nameserver3":"9.9.9.9"}' \
   | jq '{nameserver1,nameserver2,nameserver3,domains}'
-# When AdGuard publishes on .157 instead, use nameserver1: 192.168.1.157
+# When AdGuard publishes on .157 instead, use nameserver1: ${NAS_IP}
 
 for app in authelia traefik cloudflared; do
   midclt call -j app.redeploy "$app" || true
@@ -106,7 +106,7 @@ for line in subprocess.check_output(['docker','ps','--format','{{.ID}}\t{{.Names
     continue
   # Flag containers whose ExtServers still point only at the wrong host IP.
   # Adjust the "wrong" check to whatever is NOT the live AdGuard listener.
-  if 'ExtServers' in resolv and '192.168.0.2' not in resolv and '192.168.1.157' in resolv:
+  if 'ExtServers' in resolv and '${REVERSE_PROXY_IP}' not in resolv and '${NAS_IP}' in resolv:
     stale.add(app)
 print('\n'.join(sorted(stale)))
 PY
@@ -133,7 +133,7 @@ Luke-specific route check: the private route host should return HTTP 200 from ni
 Expected (example when AdGuard DNS is on `.0.2`):
 
 ```text
-# ExtServers: [host(192.168.0.2) host(1.1.1.1) host(9.9.9.9)]
+# ExtServers: [host(${REVERSE_PROXY_IP}) host(1.1.1.1) host(9.9.9.9)]
 authelia RUNNING ... authelia:running
 traefik RUNNING ... traefik:running
 cloudflared RUNNING ... cloudflared:running
@@ -152,7 +152,7 @@ curl -skI --max-time 15 "https://$PRIVATE_PHOTO_HOST/api/server/ping" | sed -n '
 ## Pitfalls
 
 - Do not treat `127.0.0.11` itself as the broken service; it is Docker's embedded resolver. Inspect the `ExtServers` comment in container `/etc/resolv.conf` to see the bad upstream.
-- Do not repoint wildcard/app host rewrites from `192.168.0.2` to `192.168.1.157`; Traefik HTTP/HTTPS still belongs on `192.168.0.2`.
+- Do not repoint wildcard/app host rewrites from `${REVERSE_PROXY_IP}` to `${NAS_IP}`; Traefik HTTP/HTTPS still belongs on `${REVERSE_PROXY_IP}`.
 - Restarting only the failed app may leave Traefik or other long-lived containers with stale `ExtServers`; redeploy the reverse proxy/auth/tunnel layer after host DNS changes.
 - Cloudflared images may not include `sh`; use logs and app state for verification rather than assuming `docker exec ... sh` works.
 - Cloudflared precheck can log regional QUIC/TCP warnings even while tunnel connections register successfully; distinguish those from DNS-resolution failures and actual tunnel registration failure.

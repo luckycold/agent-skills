@@ -4,7 +4,7 @@ Use when the Apps pool / “apps folder” is near full, TrueNAS UI shows low fr
 
 ## Live facts (verify, don’t assume)
 
-- Pool: **Apps** on `192.168.1.157` (typical ~464 G vdev).
+- Pool: **Apps** on `${NAS_IP}` (typical ~464 G vdev).
 - Hot paths:
   - App host data: `/mnt/Apps/Applications/<app>/`
   - Catalog ix-volumes: `/mnt/.ix-apps/app_mounts/<app>/`

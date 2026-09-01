@@ -9,8 +9,8 @@ Use this when Plex is reachable on the LAN port but appears unavailable in Plex/
 - Inside the Plex container, DNS lookups for `plex.tv` fail.
 - `/etc/resolv.conf` inside the container shows Docker embedded DNS with stale external server metadata, for example:
   - `nameserver 127.0.0.11`
-  - `# ExtServers: [host(192.168.0.2)]`
-- On Luke's TrueNAS host, `192.168.0.2` is the Traefik app IP, not the DNS service. The desired host DNS is `192.168.1.157`.
+  - `# ExtServers: [host(${REVERSE_PROXY_IP})]`
+- On Luke's TrueNAS host, `${REVERSE_PROXY_IP}` is the Traefik app IP, not the DNS service. The desired host DNS is `${NAS_IP}`.
 
 ## Root cause
 

@@ -1,9 +1,8 @@
 ---
 name: infrastructure-hygiene
 description: Class-level devops hygiene for Luke's Hermes/TrueNAS/Home Assistant stack — harness boundaries, update/stash audit, read-only recon, TrueNAS Traefik/ACME/apps; cross-links proton-pass and web-search skills.
-metadata:
-  author: Luke
-  category: devops
+author: Luke
+category: devops
 ---
 
 # Infrastructure Hygiene
@@ -123,11 +122,11 @@ When Luke asks you to "learn" an infrastructure host so you can help later, do a
 - In the Home Assistant add-on/container, expect network vantage to differ from the LAN. Use HA/UniFi device trackers for host/IP/MAC/name, then pivot through an already-trusted LAN host such as Proxmox for ARP, DNS, nmap, and port checks when container routing or mDNS is incomplete.
 - For OS identification, prefer authenticated commands (`uname`, `/etc/os-release`, `sw_vers`) when SSH works. If SSH is filtered, use read-only network fingerprinting (`nmap -O -sV -Pn`) from a same-LAN host and label it as a confidence estimate rather than exact truth.
 - Identify exactly what is still inaccessible because credentials are missing, host firewall blocks access, or the service is not enabled; recommend the cleanest future access path, such as enabling SSH for the known user or installing an authorized key.
-- **Verify before blaming NAS/DNS:** Luke may use `192.168.0.2` as alternate DNS on TrueNAS; confirm with `dig`, not stale "Traefik-only" assumptions.
+- **Verify before blaming NAS/DNS:** Luke may use `${REVERSE_PROXY_IP}` as alternate DNS on TrueNAS; confirm with `dig`, not stale "Traefik-only" assumptions.
 - **Work-from-home NetBird:** unstable private routed networks on home LAN with fine hotspot behavior → check dual-homed Wi‑Fi + Ethernet on the workstation; resolve private values from `~/.agents/private-context.md` and see `references/netbird-bmc-work-pc-dual-homed.md`.
 - Save durable topology facts, but not raw credentials, private keys, cookies, or transient outage/error claims.
 
-For Proxmox hosts, see `references/proxmox-readonly-recon.md` for the reusable checklist and Luke's current PVE snapshot, and `references/proxmox-cluster-ceph.md` for join/upgrade/Ceph recovery. For workstation/laptop discovery from the HA add-on, see `references/laptop-lan-recon.md`. For NetBird → work BMC from home, see `references/netbird-bmc-work-pc-dual-homed.md`. For idempotent UniFi WAN port-forward creation with an API key, exact legacy endpoint/schema, credential hygiene, and external verification, see `references/unifi-port-forwarding-via-api.md`.
+For Proxmox hosts, see `references/proxmox-readonly-recon.md` for the reusable inventory checklist and `references/proxmox-cluster-ceph.md` for generic quorum, upgrade, storage, replication, and PBS recovery patterns. Resolve Luke's current topology from private context. For workstation/laptop discovery from the HA add-on, see `references/laptop-lan-recon.md`. For NetBird → work BMC from home, see `references/netbird-bmc-work-pc-dual-homed.md`. For idempotent UniFi WAN port-forward creation with an API key, exact legacy endpoint/schema, credential hygiene, and external verification, see `references/unifi-port-forwarding-via-api.md`.
 
 ## Proton Pass CLI for audited agent secrets
 
@@ -185,10 +184,10 @@ When deploying apps on Luke's TrueNAS SCALE host, prefer approaches in this orde
 ### TrueNAS AdGuard DNS IP vs Traefik App IP
 On Luke's TrueNAS host, distinguish the DNS service IP from the Traefik app-routing IP before changing DNS/app records:
 
-- If Luke asks for the DNS server to be `192.168.1.157`, update the TrueNAS-managed `adguard-home` app `network.dns_port.host_ips` via `midclt call -j app.update`, not rendered compose files.
+- If Luke asks for the DNS server to be `${NAS_IP}`, update the TrueNAS-managed `adguard-home` app `network.dns_port.host_ips` via `midclt call -j app.update`, not rendered compose files.
 - Do **not** blindly change app hostname rewrites from the private app wildcard/route host to the NAS UI address: on this host, the private context distinguishes Traefik's address from the TrueNAS nginx/UI address.
 - If TrueNAS Apps show Docker DNS failures such as `lookup ... on 127.0.0.11:53: server misbehaving` or cloudflared resolves a private internal origin to public Cloudflare IPs, check the **TrueNAS host** resolver and the actual AdGuard published listener together. The safe invariant is: `midclt call network.configuration.config.nameserver1` must point at the IP where the `adguard-home` app actually publishes port 53. Resolve exact domains and addresses from `~/.agents/private-context.md`. After changing host DNS or app DNS binding, redeploy/restart affected apps so containers regenerate `/etc/resolv.conf`.
-- Verify separately: `dig @192.168.1.157 <host> A` for DNS reachability, and `curl --resolve <host>:443:192.168.0.2 https://<host>/` for Traefik routing.
+- Verify separately: `dig @${NAS_IP} <host> A` for DNS reachability, and `curl --resolve <host>:443:${REVERSE_PROXY_IP} https://<host>/` for Traefik routing.
 - See `references/truenas-adguard-dns-and-traefik-ips.md` for the safe update command pattern and verification checklist.
 - See `references/truenas-docker-dns-recovery.md` for the Authelia/Cloudflared/Traefik outage recovery pattern when bad host DNS propagates into Docker's embedded resolver.
 - See `references/truenas-cloudflared-adguard-dns-origin-resolution.md` for the private photo-service class: a cloudflared internal origin resolves publicly because TrueNAS/Docker DNS points at the wrong AdGuard listener.
@@ -225,7 +224,7 @@ For custom or self-hosted multi-container services on TrueNAS SCALE:
 - Target the dedicated Apps pool at `/mnt/Apps/Applications/<service>` for app files and persistent data unless the TrueNAS app's UI-generated storage paths dictate otherwise.
 - Use bind mounts on ZFS datasets/directories instead of Docker named volumes where possible. This ensures native TrueNAS storage management, snapshots, and permissions.
 - Expose only the necessary app ports; keep internal services such as Postgres and Redis private to the app network or bound to localhost when possible.
-- Luke's current exposure pattern is Traefik as a TrueNAS app bound to `192.168.0.2:80/443`, Docker provider with `exposedByDefault=false`, external network `traefik_proxy`, app-level Traefik labels plus dynamic config files in `/mnt/Apps/Applications/traefik/dynamic/*.yml`.
+- A supported exposure pattern is Traefik as a TrueNAS app bound to `${REVERSE_PROXY_IP}:80/443`, Docker provider with `exposedByDefault=false`, an external proxy network, app-level labels, and narrowly scoped dynamic configuration files.
 - Use `authelia@file` / Authelia forwardAuth for private routes unless an app intentionally handles public auth itself; Authelia is backed by LLDAP. Cloudflared provides tunnel ingress without publishing app ports directly.
 - Fix common container permission issues immediately (e.g. mounted entrypoint/init scripts must be readable/executable by the container user).
 - Ensure passwords in app environment blocks exactly match connection URIs used by dependent services.
@@ -262,7 +261,7 @@ Luke's explicit preference is to keep the **SSH & Web Terminal add-on disabled b
 See `references/ha-ssh-addon-temporary-access.md` for the detailed workflow and the key limitation discovered in this session: the tokens available to Hermes (long-lived HASS_TOKEN and SUPERVISOR_TOKEN/HASSIO_TOKEN) only allow regular HA API access. Supervisor/hassio addon management endpoints return 401 Unauthorized or 403 Forbidden. `ha_call_service` for the hassio domain is blocked. Therefore the agent cannot self-enable the add-on via API — the user must perform the UI toggle when file work is needed, then disable it afterward.
 
 Additional notes:
-- HA itself is not running as a TrueNAS app (no entry in `midclt call app.query` on 192.168.1.157; resolves to 192.168.1.98 from the Hermes container).
+- HA itself is not running as a TrueNAS app (no entry in `midclt call app.query` on ${NAS_IP}; resolves to ${HOME_ASSISTANT_IP} from the Hermes container).
 - Prefer the temporary manual enable pattern over persistent authorized keys or always-on SSH.
 
 This is a hygiene rule for the HA portion of the stack.
@@ -271,8 +270,8 @@ This is a hygiene rule for the HA portion of the stack.
 - `references/hermes-container-weekly-maintenance.md` — concrete execution log + recipes from cron runs on the HAOS Hermes container (inspection commands, npm prefix update, **kagi-cli glibc pin**, Kagi MCP wrapper+HOME + auth sync, summarize MCP vs subscriber CLI, smoke tests, caches, hermes-update/gateway approval behavior, git dirty handling, no-sudo observation, final report template). **2026-07-05 follow-up execution:** Luke-directed fix of cron report items (jobs.json paths, linuxbrew tmp reclaim, update+cherry-pick, MCP adapter, add-on gateway restart). **2026-07-05 cron run:** 0.14.1 glibc break → pin 0.11.0; `hermes mcp add` for config.yaml. **2026-06-21:** native typed schemas; `file_safety.py` conflict fix.
 - `references/kagi-mcp-schema-probe.py` — Tirith-safe schema probe script (no shell pipes); exit 1 if the five required tools lack typed properties.
 - See `references/hermes-harness-boundary.md` for the specific incident that established the Hermes harness rule.
-- See `references/proxmox-readonly-recon.md` for read-only Proxmox reconnaissance steps and Luke's current PVE topology snapshot.
-- See `references/proxmox-cluster-ceph.md` for cluster join, PVE 8→9 reboot ordering, JetKVM ISO Range mounts, Ceph removal, HAOS `pvesr` ZFS replication, and dual PBS (pve CT + TrueNAS `pbsnas` remote sync).
+- See `references/proxmox-readonly-recon.md` for read-only Proxmox reconnaissance without persisting live topology.
+- See `references/proxmox-cluster-ceph.md` for generic cluster join, major-version upgrade, Ceph retirement, local-ZFS replication, HAOS placement, and PBS recovery patterns.
 - `references/agent-clis-lan-hosts.md` — Cursor/Grok/Codex/Pass on Proxmox, TrueNAS, PBS, and Hermes; `common`+`personal` Stow; vendored Stow when `apt` is disabled.
 - `references/truenas-backrest-restic-path-health.md` — Backrest/restic: empty `_backrest-view` ix-app-mounts stub; Immich Media mount failure (top-level `additional_storage` ignored; use `storage.additional_storage`); host-eval secrets + `docker exec restic` (no python3 in image); midclt app.update Extra inputs pitfall; plan gaps (odysseus, HA); FUTO restore drill; NFSv4 ACL for uid 568.
 - `references/truenas-apps-pool-space-reclaim.md` — Apps pool near full: Docker image prune first; karakeep/plex-stage leftovers; legacy Immich `app_mounts` destroy only after live mounts verified; snapshot holdback.

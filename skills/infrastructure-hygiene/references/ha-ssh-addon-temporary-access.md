@@ -28,8 +28,8 @@ Tested endpoints (2026-06):
 **Conclusion**: Cannot use the API to read current add-on options or toggle the SSH feature programmatically. Manual UI action by the user is required for any enable/disable.
 
 ## Additional Context from Recon
-- Home Assistant is **not** one of the TrueNAS Apps on 192.168.1.157 (absent from `midclt call app.query` results; earlier `docker ps` on the NAS showed no matching containers).
-- From the Hermes container, `homeassistant` resolves to 192.168.1.98 (internal DNS).
+- Home Assistant is **not** one of the TrueNAS Apps on ${NAS_IP} (absent from `midclt call app.query` results; earlier `docker ps` on the NAS showed no matching containers).
+- From the Hermes container, `homeassistant` resolves to ${HOME_ASSISTANT_IP} (internal DNS).
 - The add-on is the documented, supported path for direct config file access on most HA installs. Direct SSH to the underlying host/VM/LXC (if separately enabled) is an alternative only if the user has set it up outside the add-on.
 
 ## Verification Commands (for diagnosing token scope)

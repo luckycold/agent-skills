@@ -1,8 +1,7 @@
 ---
 name: proton-pass-cli
 description: Set up and use the official Proton Pass CLI for scoped, audited agent access to secrets in headless/container Hermes environments.
-metadata:
-  author: Luke
+author: Luke
 ---
 
 # Proton Pass CLI

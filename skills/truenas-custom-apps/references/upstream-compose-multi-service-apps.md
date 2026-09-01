@@ -8,7 +8,7 @@ Pattern for projects that ship `docker-compose.production.yml` (or similar) and 
 - One or more services with `depends_on` and healthchecks (e.g. app + Postgres)
 - Luke wants it in **Apps** as `custom_app`, data under `/mnt/Apps/Applications/<name>/`, and exposed through the private app domain resolved from `~/.agents/private-context.md`
 
-## Workflow (SSH on 192.168.1.157)
+## Workflow (SSH on ${NAS_IP})
 
 1. **Discover** — `curl` raw `docker-compose.production.yml` and `.env.*.example` from upstream (GitLab/GitHub raw URLs). Note required env vars and image registry.
 2. **Pull image on NAS** — `docker pull <image:tag>` before registering (surfaces registry/auth issues early).
@@ -30,7 +30,7 @@ Pattern for projects that ship `docker-compose.production.yml` (or similar) and 
    midclt call app.start <name>
    ```
    Poll again; expect `DEPLOYING` → `RUNNING`.
-8. **Traefik** — see `references/traefik-exposure-for-custom-apps.md`. Pick an unused host port (e.g. `ss -tuln`), bind `192.168.1.157:<port>:<container>` for Traefik backend URL.
+8. **Traefik** — see `references/traefik-exposure-for-custom-apps.md`. Pick an unused host port (e.g. `ss -tuln`), bind `${NAS_IP}:<port>:<container>` for Traefik backend URL.
 9. **Verify** — `docker ps`, `curl` LAN port, `curl -I https://<private-app-host>`, and app-specific login/API if documented.
 
 ## Port binding on this NAS
@@ -38,7 +38,7 @@ Pattern for projects that ship `docker-compose.production.yml` (or similar) and 
 | Use case | Host bind |
 |----------|-----------|
 | Container-to-container only (bridge, internal API) | `127.0.0.1:<port>` |
-| Traefik / LAN backend (odysseus, apprise, sync APIs) | `192.168.1.157:<port>` or `0.0.0.0:<port>` per existing app |
+| Traefik / LAN backend (odysseus, apprise, sync APIs) | `${NAS_IP}:<port>` or `0.0.0.0:<port>` per existing app |
 
 Do not assume every service is `127.0.0.1` — match the consumer (Traefik hits NAS IP).
 

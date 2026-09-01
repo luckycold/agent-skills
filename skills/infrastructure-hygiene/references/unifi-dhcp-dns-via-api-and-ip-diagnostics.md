@@ -6,14 +6,14 @@ This reference captures the concrete commands, failure modes, and verification t
 
 Current live state as of 2026-07-09:
 
-- 192.168.1.157/23 — TrueNAS primary / NAS UI. **Not currently listening on DNS :53** after the AdGuard bind move; queries to `192.168.1.157:53` refuse.
-- 192.168.0.2/23 — secondary alias on the same interface. This is the Traefik/web-service target for the private app wildcard and the **current AdGuard DNS listener**.
+- ${NAS_IP}/23 — TrueNAS primary / NAS UI. **Not currently listening on DNS :53** after the AdGuard bind move; queries to `${NAS_IP}:53` refuse.
+- ${REVERSE_PROXY_IP}/23 — secondary alias on the same interface. This is the Traefik/web-service target for the private app wildcard and the **current AdGuard DNS listener**.
 
 AdGuard (Docker app `ix-adguard-home-adguard-1`) inside binds to 0.0.0.0:53, but the container's current port publish is explicit:
-`53/tcp -> 192.168.0.2:53`
-`53/udp -> 192.168.0.2:53`
+`53/tcp -> ${REVERSE_PROXY_IP}:53`
+`53/udp -> ${REVERSE_PROXY_IP}:53`
 
-Historical note: the original phone DNS incident was diagnosed when AdGuard only answered on `192.168.1.157` and `192.168.0.2:53` refused. Later the stack was intentionally moved/forwarded so LAN DHCP can hand out `192.168.0.2` as DNS. Always verify with `ss -tulpen | grep :53` and `docker inspect ix-adguard-home-adguard-1` before changing DHCP.
+Historical note: the original phone DNS incident was diagnosed when AdGuard only answered on `${NAS_IP}` and `${REVERSE_PROXY_IP}:53` refused. Later the stack was intentionally moved/forwarded so LAN DHCP can hand out `${REVERSE_PROXY_IP}` as DNS. Always verify with `ss -tulpen | grep :53` and `docker inspect ix-adguard-home-adguard-1` before changing DHCP.
 
 ## Client Symptoms
 
@@ -31,15 +31,15 @@ ssh -i "$NAS_SSH_KEY" -o StrictHostKeyChecking=yes \
   'docker inspect ix-adguard-home-adguard-1 --format "{{json .NetworkSettings.Ports}}"'
 
 # Current positive controls
-nslookup tr 192.168.0.2
-nslookup "$PRIVATE_NAS_HOST" 192.168.0.2
+nslookup tr ${REVERSE_PROXY_IP}
+nslookup "$PRIVATE_NAS_HOST" ${REVERSE_PROXY_IP}
 
 # Current failing search-domain FQDN, unless a rewrite/zone was added
-nslookup "$PRIVATE_SEARCH_HOST" 192.168.0.2
-nslookup "$PRIVATE_SEARCH_HOST" 192.168.0.1
+nslookup "$PRIVATE_SEARCH_HOST" ${REVERSE_PROXY_IP}
+nslookup "$PRIVATE_SEARCH_HOST" ${GATEWAY_IP}
 
 # Confirm the service itself works if DNS is forced to the target
-curl -kI --resolve "$PRIVATE_SEARCH_HOST:443:192.168.1.157" "https://$PRIVATE_SEARCH_HOST/"
+curl -kI --resolve "$PRIVATE_SEARCH_HOST:443:${NAS_IP}" "https://$PRIVATE_SEARCH_HOST/"
 ```
 
 ## Fixing the Router (UniFi Controller REST API)
@@ -56,7 +56,7 @@ No SSH to the router (connection refused on 22). Use the controller API directly
    ```bash
    export KEY="[REDACTED]"
    curl -s -k -H "X-API-Key: $KEY" \
-     "https://192.168.0.1/proxy/network/api/s/default/rest/networkconf" \
+     "https://${GATEWAY_IP}/proxy/network/api/s/default/rest/networkconf" \
      | python3 -c '...'   # parse and print the Default network object
    ```
 
@@ -65,7 +65,7 @@ No SSH to the router (connection refused on 22). Use the controller API directly
 ### SSO/MFA fallback path (worked July 2026)
 If no UniFi API key is saved, resolve the approved controller-login item from the private context and use it only in memory; never print password, TOTP, cookies, or CSRF tokens.
 
-- `POST https://192.168.0.1/api/auth/login` with JSON `{username,password,rememberMe:false,token:<totp>}` returns a `TOKEN` cookie and CSRF headers.
+- `POST https://${GATEWAY_IP}/api/auth/login` with JSON `{username,password,rememberMe:false,token:<totp>}` returns a `TOKEN` cookie and CSRF headers.
 - UniFi writes require the CSRF header **exactly as `X-Csrf-Token`** (case observed in headers); carrying no/empty token returns `403 Forbidden` even if reads work.
 - DHCP config read endpoint: `/proxy/network/api/s/default/rest/networkconf`.
 - Local DNS records endpoint: `/proxy/network/v2/api/site/default/static-dns`.
@@ -75,7 +75,7 @@ If no UniFi API key is saved, resolve the approved controller-login item from th
   ```
 - After creating a record, poll DNS until propagation:
   ```bash
-  dig +time=3 +tries=1 +short @192.168.0.1 "$PRIVATE_SEARCH_HOST" A
+  dig +time=3 +tries=1 +short @${GATEWAY_IP} "$PRIVATE_SEARCH_HOST" A
   ```
 
 ## Post-Fix Client Action
@@ -91,7 +91,7 @@ For current state, clients should receive the intended primary DNS, and AdGuard 
 If a private search-domain FQDN fails while an older private namespace still works, check three separate layers:
 
 1. **UniFi DHCP handoff:** inspect the advertised `domain_name` and DNS addresses.
-2. **Active DNS listener:** verify `192.168.0.2:53` vs `192.168.1.157:53`; as of 2026-07-09 AdGuard answers on `.0.2`, while `.1.157:53` refuses.
+2. **Active DNS listener:** verify `${REVERSE_PROXY_IP}:53` vs `${NAS_IP}:53`; as of 2026-07-09 AdGuard answers on `.0.2`, while `.1.157:53` refuses.
 3. **AdGuard rewrites/forwarding:** verify that the current private search domain is forwarded or has the required exact records, not only records for an older namespace.
 
 Preferred fixes depend on the namespace intent:

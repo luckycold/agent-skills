@@ -1,0 +1,26 @@
+# Local private context and rendered templates
+private-context.md
+private-context.template.md
+*.private-context.md
+
+# Credentials, sessions, and exports
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.kdbx
+*.zip
+*.tar
+*.tar.gz
+*.jsonl
+*auth.json
+*session*
+*credential*
+*secret*
+
+# Generated files
+__pycache__/
+*.py[cod]
+.DS_Store

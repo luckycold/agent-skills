@@ -1,10 +1,10 @@
 ---
 name: tasker-automation
 description: Build, edit, verify, and troubleshoot Android Tasker automations, including Tasker WebUI task editing, notification-listener workflows, Java Code actions, and event-driven testing.
+author: Luke
+version: 1.0.0
+platforms: [android, linux, macos, windows]
 metadata:
-  author: Luke
-  version: 1.0.0
-  platforms: [android, linux, macos, windows]
   hermes:
     tags: [tasker, android, automation, notifications, webui]
     category: productivity
