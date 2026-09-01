@@ -38,7 +38,8 @@ Do not write a skill for a one-off result, transient status, speculation, or inf
 4. Apply the safety filter below.
 5. Verify frontmatter, relative links, commands, and consistency with the observed system.
 6. Run the canonical repository's public-safety check and treat any finding as blocking.
-7. Review the repository diff, commit and push the safe verified change to `luckycold/agent-skills`, then report the resulting commit.
+7. Review the repository diff, commit and push the safe verified change to `luckycold/agent-skills`.
+8. In the user-facing final response, explicitly name every skill created or updated and include the resulting pushed commit. Never leave a skill change implicit.
 
 ## Safety filter
 

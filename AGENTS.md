@@ -39,4 +39,4 @@ This repository is public. It must contain portable procedures, not Luke's live 
 - Review the full diff and validate every changed skill before committing.
 - Luke has authorized this agent to commit and push safe personal-skill updates to `luckycold/agent-skills` without asking each time.
 - Never push when the safety scan or validation fails. Do not rewrite published history unless Luke explicitly authorizes it for incident response.
-- Report pushed skill changes and the resulting commit.
+- Always state in the user-facing final response when a skill was created or updated. Name every changed skill and include the resulting pushed commit; never leave a skill change implicit.
