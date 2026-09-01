@@ -10,6 +10,19 @@ This repository is the canonical, public, cross-agent library for Luke-authored 
 - Inspect current state before acting. Ask only when required information is external, destructive, sensitive, or depends on a material user choice.
 - Prefer supported first-class configuration over custom wrappers or bespoke glue unless Luke explicitly requests that implementation.
 
+## Skill freshness
+
+At the start of each new run — once per session, not every turn — refresh installed portable skills with the skills.sh CLI before other work.
+
+Non-interactive shells do not load Luke's bash functions. In the same command:
+
+```bash
+source "${DOTFILES_DIR:-$HOME/dotfiles}/common/.bashrc.d/dotfiles_management.bash"
+update-agent-skills
+```
+
+That is the skills.sh (`skills`) CLI: `add luckycold/agent-skills --skill '*' --global --yes` for Codex, Claude Code, Cursor, and OpenCode. If this session already ran it, skip. If Node.js or npm is missing, report that and continue with on-disk skills. After a refresh that changed files, re-read `~/.agents/AGENTS.md` and the skills this task needs.
+
 ## Personal skills
 
 Luke-authored personal skills are canonical under `~/.agents/skills/` and have top-level `author: Luke` frontmatter.
