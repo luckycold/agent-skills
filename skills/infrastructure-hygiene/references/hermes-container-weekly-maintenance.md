@@ -287,3 +287,32 @@ HAOS container, root, HOME=/config, Debian 12/glibc 2.36, Hermes **v0.20.1** at 
 ### Gateway status pitfall
 - In this HA add-on layout, `hermes gateway status` can falsely report “not running” because the live gateway is wrapped by `/usr/local/lib/hermes-gateway-supervisor.py` / `hermes-gateway-launcher.py`. Verify with the supervised process tree and gateway log.
 - This run found the gateway runtime alive with Telegram's last lifecycle event `✓ telegram connected`, but the Home Assistant platform was unhealthy and retrying `Cannot connect to host homeassistant:8123 ... [Connect call failed ('${CONTAINER_GATEWAY_IP}', 8123)]`. Do not call that fully healthy. Avoid restarting from the cron job itself; use a controlled HA add-on restart after the core update/config reload.
+
+---
+
+## Hermes Container Weekly Maintenance — 2026-09-06 run
+
+HAOS container, root, HOME=/config, Debian 12/glibc 2.36, Hermes **v0.21.0 (2026.8.31)** at local `9dd6634c`, **behind 15**, dirty HA dashboard files (`web/src/lib/api.ts`, `web/vite.config.ts`). Disk **84%** (~20G free). Gateway PID **172865** (s6 supervisor + launcher). MCP is **mcporter** only (kagi nested).
+
+### Updates
+- `sudo` absent; apt ran as root: Chromium 151→152, gh 2.98→2.100, libexpat/libpcre2/libass/librabbitmq/libssh2. Check clean, zero pending.
+- `npm --prefix … update -g mcporter obsidian-headless` **downgraded mcporter 0.13.8 → 0.9.0**. Restored 0.13.8. 0.13.10 lists but Node 22 + engines≥24 + live legacy daemon → `0 healthy; 3 errors`. Do **not** `npm update -g`; pin **mcporter@0.13.8** until Node 24. kagi-cli latest **0.19.0** still needs glibc 2.39; safe script restored **0.12.0** (stale probe path missed; script now searches agent-skills first).
+- Config already v40; migrate no-op. `hermes update` deferred (dirty HA files + behind 15 + in-gateway restart).
+
+### Kagi / MCP
+- Native 0.12.0 schemas still typed. Active route: mcporter → `/config/.local/bin/kagi-mcp`. `hermes mcp test mcporter` ✓ 9 tools. `hermes mcp test kagi` “not found” is expected.
+- CLI search/quick/news + subscriber summarize (IANA) ✓. MCP search/quick/news/news_search ✓. Native MCP summarize still needs `KAGI_API_TOKEN`. Adapter kept as documented fallback only.
+- `web.search_backend: kagi` still has **no first-class provider** (`web_search` errors “no registered web search provider has that name”). Search works via MCP/CLI, not `web_search`.
+
+### Tidy
+- uv prune ~489M; pip purge; npm caches/`_npx`/`_cacache`; rotated `agent.log.1`. `/config/.cache` 1014M→508M; `/config/.npm` 428M→1.3M. Sessions/backups/auth/skills/repos untouched. 263M `state.db.malformed-backup-*` retained.
+
+### Gateway
+- No restart (in-process blocked). Telegram + Home Assistant connected at last add-on start (2026-09-05 14:53). Config warns mixed modules until HA add-on restart.
+
+### Pitfalls added this run
+- `npm update -g` can **downgrade**; use `npm install -g pkg@ver --prefix …`.
+- mcporter 0.13.10+ needs Node 24; do not daemon-migrate from unattended cron.
+- Kagi MCP is **mcporter-nested**; test `mcporter` not `kagi`.
+- Schema probe lives under `/config/agent-skills/skills/infrastructure-hygiene/references/`.
+- Tirith blocks `cmd | python3`; use `python3 -c`/`subprocess`.
