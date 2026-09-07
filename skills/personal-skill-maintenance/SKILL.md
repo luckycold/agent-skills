@@ -1,6 +1,6 @@
 ---
-name: personal-skill-maintenance
-description: Create and self-maintain Luke-authored personal Agent Skills after verified reusable workflows or corrections. Use when an agent learns a repeatable procedure, finds a skill is wrong or incomplete, or is asked to capture personal procedural knowledge.
+name: "personal-skill-maintenance"
+description: "Maintain personal Agent Skills after verified workflows, corrections, or requests to capture reusable procedures; validate and publish safe library updates."
 author: Luke
 ---
 
@@ -18,7 +18,9 @@ Treat Luke-authored personal skills as writable procedural memory shared across 
 
 ## Session start
 
-At the start of each new run, refresh installed copies of this library with `update-agent-skills` (the skills.sh CLI) before other work. In non-interactive shells, source `${DOTFILES_DIR:-$HOME/dotfiles}/common/.bashrc.d/dotfiles_management.bash` in the same command first. Skip if this session already ran it. If Node.js or npm is missing, report that and continue with on-disk skills.
+For a writable OpenClaw Git checkout, inspect `git status --short` and fetch through `gateway_exec` once per session; fast-forward only a clean checkout with `git pull --ff-only`. Preserve uncommitted work and resolve divergence before publishing. Do not run a copy-based installer over the shared checkout.
+
+For separately installed copies on other hosts, at the start of each new run, refresh installed copies of this library with `update-agent-skills` (the skills.sh CLI) before other work. In non-interactive shells, source `${DOTFILES_DIR:-$HOME/dotfiles}/common/.bashrc.d/dotfiles_management.bash` in the same command first. Skip if this session already ran it. If Node.js or npm is missing, report that and continue with on-disk skills.
 
 ## When to learn
 
@@ -33,7 +35,7 @@ Do not write a skill for a one-off result, transient status, speculation, or inf
 
 ## Workflow
 
-1. Inspect the loaded skill and its directly referenced support files.
+1. Inspect the loaded skill and its directly referenced support files. For OpenClaw, follow the integration and publication steps below.
 2. Identify the smallest reusable lesson and the evidence supporting it.
 3. Prefer a targeted edit:
    - Patch `SKILL.md` for a concise rule or procedure.
@@ -44,6 +46,15 @@ Do not write a skill for a one-off result, transient status, speculation, or inf
 6. Run the canonical repository's public-safety check and treat any finding as blocking.
 7. Review the repository diff, commit and push the safe verified change to `luckycold/agent-skills`.
 8. In the user-facing final response, explicitly name every skill created or updated and include the resulting pushed commit. Never leave a skill change implicit.
+
+## OpenClaw integration and publication
+
+1. Keep one Git checkout. Point `~/.agents/skills` and a workspace `skills/` entry to its skills directory; trust only that target with `skills.load.allowSymlinkTargets`, enable `skills.workshop.allowSymlinkTargetWrites`, and keep watching enabled. Avoid loading the same checkout again through `extraDirs`. Link `~/.agents/AGENTS.md` to the checkout's working agreement.
+2. Verify OpenClaw discovery with `openclaw skills info <skill> --json` and native Codex discovery with app-server `skills/list` using the actual workspace and `forceReload: true`. Directory eligibility alone does not prove native catalog visibility; recheck in a new turn if the active catalog is stale.
+3. Read and update through Skill Workshop. Pass the intended full `description` explicitly when changing it: Workshop proposal metadata controls the applied frontmatter. Preserve supporting files and inspect the complete proposed result.
+4. Keep imported skills user-authored. They lack Workshop-create provenance, so agent-tool apply can reject ownership. For an operator-authorized update, including Luke's standing safe-maintenance authorization, use the supported `openclaw skills workshop apply <proposal-id> --agent <agent-id> --json` route; verify applied status and the scanner result. Do not fabricate ownership records, bypass scanning, or edit live skills directly. Without applicable authorization, leave the proposal pending and report the restriction.
+5. Check `github_identity_status`, then run `gh api user --jq .login` through `gateway_exec`. Managed login does not install a Git credential helper. Inspect existing repository credential configuration; where none exists, set the repository-local `credential.https://github.com.helper` to `!gh auth git-credential`. Verify with `git push --dry-run origin HEAD:main`.
+6. Run authenticated Git commands through `gateway_exec`, which binds managed credentials privately at process launch. Native Codex shell does not provide that guarantee. Commit and push only after the public-safety check and diff validation; verify the remote commit and clean working tree. If login is unavailable, use Settings → Profile → GitHub connections → System GitHub; keep credentials and device codes out of chat.
 
 ## Safety filter
 
