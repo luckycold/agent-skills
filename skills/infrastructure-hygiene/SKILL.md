@@ -269,6 +269,7 @@ This is a hygiene rule for the HA portion of the stack.
 - `references/truenas-apps-pool-space-reclaim.md` — Apps pool near full: Docker image prune first; karakeep/plex-stage leftovers; legacy Immich `app_mounts` destroy only after live mounts verified; snapshot holdback.
 - `references/netbird-bmc-work-pc-dual-homed.md` — generic diagnosis for NetBird routed-network instability when Wi‑Fi and Ethernet are both active.
 - `references/hermes-cron-creation.md` — correct `hermes cron create` usage, flags, deliver=local pattern, skill attachment, self-contained prompts, and the generic-cronjob-tool pitfall (for hygiene/monitoring/maintenance jobs). Cross-references the himalaya email-scan example.
+- `references/rpi-otbr-docker-appliance.md` — standalone Raspberry Pi OTBR Docker appliance for Home Assistant (host-network REST on 8081, Trixie docker-cli split, ghcr IPv4 pull pitfall). Resolve host/IP from private context.
 
 ## Self-maintenance
 
