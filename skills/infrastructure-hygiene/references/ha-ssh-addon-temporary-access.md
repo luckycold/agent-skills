@@ -43,6 +43,21 @@ import sys, json; d = json.load(sys.stdin); print("version:", d.get("version"))
 curl -s -w "\nHTTPSTATUS:%{http_code}\n" -H "Authorization: Bearer $SUPERVISOR_TOKEN" "http://homeassistant:8123/api/hassio/addons" | head -c 100
 ```
 
+## NFS backup mount DNS diagnosis and recovery
+
+- Check whether the SSH add-on is already running before asking the user to enable it. Existing authorized SSH access can run `ha mounts info`, `ha dns info`, and `ha network info` without disabling protection mode or using Docker. A denied API token in another add-on does not imply that this supported CLI path is unavailable.
+- Inspect both A and AAAA responses for the exact configured server. A gateway may override A to the NAS while forwarding AAAA to a public wildcard; successful IPv4 lookup alone does not prove the hostname is safe for NFS.
+- When DNS is the failing dependency and the NAS has a stable LAN address, update only the mount through `ha mounts update <name> --type nfs --usage backup --server <nas-ip> --path <existing-export> --read-only=false`. Preserve the original export, usage, and permissions. Do not disable IPv6 globally.
+- A CLI timeout is not proof that the Supervisor operation failed. Read `ha mounts info` and recent `ha supervisor logs` before retrying; stopping the old hung mount can outlive the client timeout while the update still completes.
+- Require the exact mount to report `active` and host journal evidence of a successful mount. Existing backup archive-format errors are separate from connectivity; do not delete those archives during network repair.
+- Use `ha backups --raw-json` for inventory; `ha backups info <slug>` requires a specific backup identifier.
+
+## Public-DNS watchdog false positives
+
+- Compare plaintext DNS with DNS-over-HTTPS before treating a private answer from an explicitly selected public resolver as a public DNS failure. Router DNS interception can redirect even queries addressed to a public resolver.
+- Use a validated HTTPS DNS response for public-record checks, enforce DNS status and record type, and compare the resulting A records with the current WAN address. Keep local service DNS and authenticated IMAP/SMTP checks separate.
+- After correcting a watchdog, execute the real script and read its persisted health state. Silent output alone may mean duplicate-error suppression, not health.
+
 ## Related Skills and References
 - `proton-pass-cli` (if the add-on config itself stores secrets or keys).
 - `truenas-custom-apps` and the broader infrastructure-hygiene stack (for when HA storage paths or related services on TrueNAS are involved).
