@@ -88,6 +88,16 @@ sudo docker logs -f otbr
 journalctl -u otbr-update.service -n 50
 ```
 
+## Dedicated Ubuntu/Proxmox appliance variant
+
+- Prefer the official `openthread/border-router` image and current upstream Docker documentation for a new generic Linux appliance; its `OT_RCP_DEVICE`, `OT_INFRA_IF`, and `/data` configuration differs from the community image above. Pin a verified image digest and confirm the running image ID.
+- Identify USB vendor/product, physical port, and serial before exact-port Proxmox passthrough. Bind the guest `/dev/otbr-rcp` alias with a serial-specific udev rule; add the systemd tag and `SYSTEMD_WANTS=otbr.service` for late device arrival. Never pass all matching USB radios through.
+- If USB enumeration succeeds but no serial port exists, test `modprobe cp210x`. Ubuntu minimal guests can lack the running kernel's `linux-modules-extra` package; install that guest package rather than changing hypervisor drivers.
+- Probe the confirmed spare with official NabuCasa `universal-silabs-flasher` while OTBR is stopped. Working Spinel firmware needs no reflash. Verify actual RCP version and baud rate again through `ot-ctl rcp version` after starting OTBR.
+- Read HA `thread/list_datasets`, then `thread/get_dataset_tlv` for the existing preferred dataset. Transfer credentials only in memory over encrypted stdin (Proxmox `qm guest exec --pass-stdin` supports this), PUT the complete TLV to local `/node/dataset/active` as `text/plain` while disabled, and compare every supplied TLV against readback without printing secrets. Enable via `/node/state` only after equality succeeds; never initialize a new dataset. Restrict the persistent state directory to root.
+- Verify attachment to the existing extended PAN ID, neighbor connectivity, `ot-ctl br state`, and HA Core's own REST client reads. Discover HA's actual source interface before allowing its exact address through the guest REST firewall; do not assume the add-on namespace or main HA IP is the source for a dual-homed host.
+- Exercise both service restart and guest reboot. Wait for Docker startup and mesh attachment before declaring failure; confirm restored router/child state, matching network identity, border routing, and HA REST reads after reboot. This does not prove physical unplug/replug recovery or full mesh failover.
+
 ## Related
 
 - Private host/IP inventory: `~/.agents/private-context.md`
