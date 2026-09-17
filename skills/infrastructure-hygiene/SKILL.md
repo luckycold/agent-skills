@@ -49,6 +49,7 @@ See `references/hermes-harness-boundary.md` for the incident that established th
 - Local modifications to protected harnesses
 - Leaving behind temporary or `tmp/.cellar` style installations
 - Explaining what you will do instead of doing it when the user has already approved
+- **Do not reintroduce `wg-home-auto`.** Luke retired the periodic Proton/home WireGuard SSID auto-switcher (30s systemd timer plus `/usr/local/bin/wg-home-auto`) as more trouble than help. It is gone from the dotfiles repo; if leftovers remain on a host, disable the timer and delete the unit/script rather than restoring them from git history. Leave existing `/etc/wireguard/*.conf` tunnels unless he asks to remove those too.
 
 ## Kagi search/MCP in Luke's Hermes container
 
