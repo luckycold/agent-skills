@@ -66,6 +66,10 @@ Do not repeatedly ask for redirect URIs or authorization endpoint paths when dis
 - Treating every unknown as requiring user confirmation before acting.
 - Asking for endpoint paths when `.well-known/openid-configuration` or service docs are reachable.
 
+### TPM disk unlocking and hibernation
+
+For Linux TPM/LUKS unlocking failures, distinguish normal boot from hibernation resume and compare the bound PCR measurements before replacing keys. A successful live unlock does not prove resume-time unlocking. See [TPM unlocking across hibernation](references/tpm-unlock-hibernation.md) for the verified PCR 1 versus PCR 7 failure pattern, safe binding replacement, and separate resume-freeze diagnosis.
+
 ## Related skills
 
 - `hermes-agent` — Hermes-specific configuration
