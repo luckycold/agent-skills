@@ -169,3 +169,6 @@ The manual registration pattern above is not needed for it, but the same inspect
 - General TrueNAS custom app hygiene lives here; specific app maintenance lives in per-app reference files.
 
 This pattern keeps the infrastructure conventional, UI-manageable, and recoverable.
+### Bridge credential inspection caveat
+
+For the shenxn image, inspect the live entrypoint before sending CLI commands. Its normal mode pipes `cat faketty` into `protonmail-bridge --cli`. Sending `info` through that FIFO prints the configured IMAP/SMTP credentials to container stdout, but closing the sole writer also delivers EOF and can restart the container. Do not treat a short-lived FIFO write as a disruption-free read. If this occurs, verify that the container and Bridge processes recover. Credential output is sensitive; never copy it into skill documentation or tracked files.
