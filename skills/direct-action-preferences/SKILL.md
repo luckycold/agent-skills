@@ -43,7 +43,7 @@ This preference takes precedence over verbose "here is why the tool refused" exp
 - Adding custom paths, environment variables, wrappers, or services when the documented default already fits the deployment. Check the default first and use it unless a concrete requirement makes it unsuitable; do not turn an ordinary setup into bespoke infrastructure merely for explicitness.
 - Installing any AUR package without first completing the malware review in [package-source-order.md](references/package-source-order.md).
 - Compiling from the AUR or source when a prebuilt package or official upstream binary exists. Source builds make later updates slow.
-- Using mise or a raw downloaded binary when a pacman, Flatpak, or reviewed **prebuilt** AUR package exists, unless the tool is high-churn and Luke wants it kept current.
+- Using mise or a raw downloaded binary when a pacman, Flatpak, reviewed **prebuilt** AUR, or official AppImage exists, unless the tool is high-churn and Luke wants it kept current.
 - Suggesting generic SSH tunneling for Home Assistant add-on/container workflows without first verifying that an SSH server is actually available inside the relevant environment. Prefer direct inspection and manual callback-paste flows when the add-on/container cannot expose loopback callbacks cleanly.
 
 ## Package sources
@@ -53,8 +53,9 @@ When installing software on Luke's machines, use this order. Do not skip a highe
 1. Official distro or Omarchy repo packages (`omarchy pkg add` / `pacman`).
 2. Flatpak.
 3. AUR **prebuilt** packages only (`*-bin` or an official binary install), after the malware review in [package-source-order.md](references/package-source-order.md). Skip source-compile AUR packages.
-4. mise.
-5. The official upstream prebuilt binary.
+4. Official AppImage.
+5. mise.
+6. The official upstream prebuilt binary.
 
 **Exception:** if the tool is high-churn and Luke wants it kept current, mise comes first.
 
