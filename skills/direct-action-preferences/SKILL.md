@@ -41,7 +41,23 @@ This preference takes precedence over verbose "here is why the tool refused" exp
 - Ending a required user-action prompt with vague wording such as "What happened?" after giving setup instructions; this can sound like the agent believes an error occurred. State the exact action, then ask for a literal low-effort acknowledgement such as **"Reply `installed` when complete"** or provide choices that describe observable outcomes.
 - Presenting a multi-step user handoff before clearly saying why the agent cannot perform that step itself. Lead with the concrete boundary (for example, Supervisor returned 401/403), then one link/command, one or two settings, and the exact reply needed to resume.
 - Adding custom paths, environment variables, wrappers, or services when the documented default already fits the deployment. Check the default first and use it unless a concrete requirement makes it unsuitable; do not turn an ordinary setup into bespoke infrastructure merely for explicitness.
+- Installing any AUR package without first completing the malware review in [package-source-order.md](references/package-source-order.md).
+- Using mise or a raw downloaded binary when a pacman, Flatpak, or reviewed AUR package exists, unless the tool is high-churn and Luke wants it kept current.
 - Suggesting generic SSH tunneling for Home Assistant add-on/container workflows without first verifying that an SSH server is actually available inside the relevant environment. Prefer direct inspection and manual callback-paste flows when the add-on/container cannot expose loopback callbacks cleanly.
+
+## Package sources
+
+When installing software on Luke's machines, use this order. Do not skip a higher option because a lower one is familiar.
+
+1. Official distro or Omarchy repo packages (`omarchy pkg add` / `pacman`).
+2. Flatpak.
+3. AUR, and only after the malware review in [package-source-order.md](references/package-source-order.md).
+4. mise.
+5. A raw upstream binary.
+
+**Exception:** if the tool is high-churn and Luke wants it kept current, mise comes first.
+
+Do not run `yay`/`omarchy pkg aur add` until that review is written and the package is clearly not malicious. If the review is inconclusive, stop and tell Luke.
 
 ## Home Assistant Add-on / Container OAuth Callbacks
 - When Hermes runs as a Home Assistant add-on, assume the user's browser may not be able to reach the container's `127.0.0.1` OAuth callback.
