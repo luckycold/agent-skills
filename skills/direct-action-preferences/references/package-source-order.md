@@ -6,11 +6,13 @@ Use this whenever software needs to be installed on Luke's Arch/Omarchy machines
 
 1. Official `core` / `extra` / `multilib` / `omarchy` repos (`omarchy pkg add` / `pacman`).
 2. Flatpak.
-3. AUR, and only after the review below.
+3. AUR **prebuilt** packages only (`*-bin` or a PKGBUILD that installs an official upstream binary and checksum). Never compile an AUR source package.
 4. mise.
-5. A raw upstream binary downloaded by hand.
+5. The official upstream prebuilt binary.
 
 **Exception:** if the tool is high-churn and Luke wants it kept current, mise comes first.
+
+If AUR only offers a source build, skip it and continue to the next step.
 
 ## Required AUR review
 
