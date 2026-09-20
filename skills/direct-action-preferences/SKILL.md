@@ -43,7 +43,7 @@ This preference takes precedence over verbose "here is why the tool refused" exp
 - Adding custom paths, environment variables, wrappers, or services when the documented default already fits the deployment. Check the default first and use it unless a concrete requirement makes it unsuitable; do not turn an ordinary setup into bespoke infrastructure merely for explicitness.
 - Installing any AUR package without first completing the malware review in [package-source-order.md](references/package-source-order.md).
 - Compiling from the AUR or source when a prebuilt package or official upstream binary exists. Source builds make later updates slow.
-- Using mise or a raw downloaded binary when a pacman, Flatpak, reviewed **prebuilt** AUR, or official AppImage exists, unless the tool is high-churn and Luke wants it kept current.
+- Hand-placing an official binary in `~/.local/bin` when mise can install that same prebuilt.
 - Suggesting generic SSH tunneling for Home Assistant add-on/container workflows without first verifying that an SSH server is actually available inside the relevant environment. Prefer direct inspection and manual callback-paste flows when the add-on/container cannot expose loopback callbacks cleanly.
 
 ## Package sources
@@ -54,10 +54,12 @@ When installing software on Luke's machines, use this order. Do not skip a highe
 2. Flatpak.
 3. AUR **prebuilt** packages only (`*-bin` or an official binary install), after the malware review in [package-source-order.md](references/package-source-order.md). Skip source-compile AUR packages.
 4. Official AppImage.
-5. mise.
-6. The official upstream prebuilt binary.
+5. mise, when it can install a prebuilt (for example the `github:` backend). This is preferred over a hand-placed binary.
+6. A hand-placed official upstream binary, only if mise cannot install it.
 
 **Exception:** if the tool is high-churn and Luke wants it kept current, mise comes first.
+
+Use mise rather than compiling, even when AUR only has a source package.
 
 Do not run `yay`/`omarchy pkg aur add` until that review is written and the package is clearly not malicious. If the review is inconclusive, stop and tell Luke.
 
