@@ -90,7 +90,7 @@ Do not repeatedly ask for redirect URIs or authorization endpoint paths when dis
 
 For Linux TPM/LUKS unlocking failures, distinguish normal boot from hibernation resume and compare the bound PCR measurements before replacing keys. A successful live unlock does not prove resume-time unlocking. See [TPM unlocking across hibernation](references/tpm-unlock-hibernation.md) for the verified PCR 1 versus PCR 7 failure pattern, safe binding replacement, and separate resume-freeze diagnosis.
 
-On the dual Omarchy laptop, follow `omarchy-dual-boot-secure-boot` before changing firmware keys, BootOrder, Limine enrollment, or Clevis slots. Personal owns firmware enrollment; Work only signs its own ESP. The working unlock policy there is PCR 7.
+On the dual Omarchy laptop, follow `omarchy-dual-boot-secure-boot` before changing firmware keys, BootOrder, Limine enrollment, or Clevis slots. Personal owns firmware enrollment; Work only signs its own ESP. The working unlock policy there is PCR 7. Appending a peer `db` certificate is enough when Personal already owns firmware `db`; that write still changes PCR 7.
 
 ## Related skills
 

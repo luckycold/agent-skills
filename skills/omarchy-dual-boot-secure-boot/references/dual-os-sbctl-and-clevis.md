@@ -53,19 +53,31 @@ recovery, not routine apply.
    or a path Personal can read. Do not copy `db.key`.
 2. Boot Personal. Install that public cert as
    `/var/lib/sbctl/keys/custom/db/<peer>-db.pem`.
-3. From Personal only:
+3. From Personal only. If Personal already owns firmware PK/KEK/`db` and
+   the Work public cert is staged under `custom/db/`, append that cert
+   instead of rebuilding the whole database:
 
 ```bash
-sudo sbctl enroll-keys --partial db --custom --microsoft --firmware-builtin
+sudo chattr -i /sys/firmware/efi/efivars/db-*
+sudo sbctl enroll-keys --partial db --append --custom --ignore-immutable
+sudo chattr +i /sys/firmware/efi/efivars/db-*
 ```
 
-If firmware `db` is immutable, the verified extra steps are
+Use the fuller `--partial db --custom --microsoft --firmware-builtin`
+form only when firmware `db` is missing vendor or Personal certs. If
+firmware `db` is immutable, the verified extra steps are
 `--ignore-immutable` and `chattr` on **db only**. Do not clear PK/KEK or
-reset the TPM.
+reset the TPM. Do not use `--yes-this-might-brick-my-machine`.
 
 4. Confirm firmware `db` lists both custom certificates plus vendor/Microsoft
    builtins. `sbctl verify` on each OS should succeed for that OS's own
-   Limine, fallback, and UKI paths.
+   Limine, fallback, and UKI paths. Export enrolled `db` certs and compare
+   public fingerprints; `list-enrolled-keys` names can collide because both
+   OS certs may be called `Database Key`.
+
+Appending a peer `db` certificate changes PCR `7`. The next boot of either
+OS will need the LUKS passphrase, then a new PCR `7` bind from inside that
+OS. Do not rebind in the same session that wrote firmware `db`.
 
 If an older peer-repair run left `/tmp/tmp.*` paths in Work's
 `/var/lib/sbctl/files.json`, remove those stale entries with
