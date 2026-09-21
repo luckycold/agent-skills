@@ -30,6 +30,7 @@ Luke-authored personal skills are canonical under `~/.agents/skills/` and have t
 - Keep each skill under `skills/<skill-name>/` with a valid `SKILL.md` entrypoint.
 - Keep `SKILL.md` focused: target about 100 lines for a simple skill and 200 lines for a complex skill, matching Hermes' default authoring guidance. If it grows beyond that, move detailed procedures, examples, and historical notes into directly linked `references/`; put deterministic helpers in `scripts/`. Do not shorten at the expense of correctness, but treat an oversized `SKILL.md` as something to refactor before committing.
 - Load the relevant personal skill before acting on Luke's infrastructure, authentication, automation, or agent-maintenance work.
+- Use `omarchy-dual-boot-secure-boot` for dual Omarchy Limine menus, SDDM after TPM unlock, and the personal/work sbctl split.
 - Use `personal-skill-maintenance` when creating, correcting, consolidating, or extending personal skills.
 - Never self-modify third-party, bundled, system, or project-owned skills.
 
