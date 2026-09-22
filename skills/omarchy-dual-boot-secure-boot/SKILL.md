@@ -3,10 +3,12 @@ name: omarchy-dual-boot-secure-boot
 description: >
   Dual Omarchy personal/work boot on one laptop: Limine GUID chainload,
   black-and-white Limine/SDDM theming, sbctl key split, firmware db trust,
-  SKIP_UEFI on the non-default OS, and Clevis PCR 7 after TPM unlock.
+  SKIP_UEFI on the non-default OS, Clevis PCR 7 after TPM unlock, and
+  installing third-party Omarchy shell plugins onto a mounted peer OS home.
   Triggers: work OS external drive, personal internal drive, Limine menu,
   Secure Boot, sbctl enroll-keys, config checksum panic, BootOrder, BootNext,
-  SDDM autologin after Clevis, where-is-my-sddm-theme.
+  SDDM autologin after Clevis, where-is-my-sddm-theme, omarchy plugins on the
+  other drive, sync plugins personal to work.
 author: Luke
 category: desktop
 ---
@@ -37,6 +39,16 @@ Apply the matching role from that repo; do not invent a second boot chain.
 
 See [dual-os-sbctl-and-clevis.md](references/dual-os-sbctl-and-clevis.md)
 for the apply sequence, firmware `db` enrollment, and recovery checks.
+
+## Third-party shell plugins
+
+Omarchy has no plugin lockfile. `omaplug` manages one live session. Do not
+write a custom installer. Stow does not own `~/.config/omarchy/plugins/`.
+
+When the peer OS home is mounted, install missing plugins with official
+`omarchy plugin add` pointed at that home. Do not pass `--enable` from the
+other OS. Details:
+[peer-os-plugin-install.md](references/peer-os-plugin-install.md).
 
 ## Theme
 
