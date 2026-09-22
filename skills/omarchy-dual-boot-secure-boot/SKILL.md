@@ -45,9 +45,8 @@ for the apply sequence, firmware `db` enrollment, and recovery checks.
 Omarchy has no plugin lockfile. `omaplug` manages one live session. Do not
 write a custom installer. Stow does not own `~/.config/omarchy/plugins/`.
 
-When the peer OS home is mounted, keep checkouts in sync with Unison or
-two-way `rsync --update` via `omarchy-peer-plugin-sync`. That path unit
-fires on peer-home mount and on local plugin-dir changes. Do not pass
+When the peer OS home is mounted, install missing plugins with official
+`omarchy plugin add`, or sync existing checkouts with Unison. Do not pass
 `--enable` from the other OS, and do not copy `shell.json`. Details:
 [peer-os-plugin-install.md](references/peer-os-plugin-install.md).
 

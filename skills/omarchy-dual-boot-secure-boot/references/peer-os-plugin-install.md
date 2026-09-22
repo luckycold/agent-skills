@@ -46,33 +46,19 @@ other OS.
 - Keep peer-specific first-party bar, clock, idle, and transparency settings.
   Do not copy the live `shell.json` wholesale.
 
-## Automatic sync while the peer home is mounted
+## Sync existing checkouts
 
-Omarchy still has no lockfile. The maintained syncers are Unison (official
-Arch `extra`) or `rsync` (already on the system). The stowed oneshot
-`omarchy-peer-plugin-sync` runs those against every
-
-`/run/media/$USER/*/@home/$USER/.config/omarchy/plugins`
-
-directory. Enable the path and timer on each OS after stow:
+Omarchy still has no lockfile. When the peer home is mounted, Unison
+(official Arch `extra`) can sync the two plugin trees:
 
 ```bash
-systemctl --user daemon-reload
-systemctl --user enable --now omarchy-peer-plugin-sync.path
-systemctl --user enable --now omarchy-peer-plugin-sync.timer
+unison -ui text -batch -auto \
+  ~/.config/omarchy/plugins \
+  <peer-os-home>/.config/omarchy/plugins
 ```
 
-The path unit watches `/run/media/$USER` for a peer-home mount. The
-timer catches plugins added while that home is already mounted. Do not
-watch either plugin directory for writes; two-way sync would retrigger
-itself.
-
-It syncs plugin git checkouts only. Prefer `omarchy pkg add unison` so
-deletes propagate; without Unison the script uses two-way `rsync --update`,
-which copies additions and newer files but does not remove a plugin the
-other OS still has.
-
-Do not point this at `shell.json`. Bar layout and idle settings stay per OS.
+Do not add a custom path unit, timer, or wrapper around this. Do not point
+Unison at `shell.json`. Bar layout and idle settings stay per OS.
 
 ## Limits
 
