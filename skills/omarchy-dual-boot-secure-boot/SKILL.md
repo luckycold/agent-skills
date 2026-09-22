@@ -32,6 +32,13 @@ Apply the matching role from that repo; do not invent a second boot chain.
 - Leave `SKIP_UEFI=yes` on Work so `limine-update` cannot create NVRAM entries.
 - Keep each disk's LUKS passphrase slot. Clevis is an extra unlock path.
 - Bind Clevis only after a successful Secure Boot boot on the intended path.
+- PCR `7` measures Secure Boot policy and the `db` certificates that
+  verified images, not image hashes. UKI rebuilds and `limine-update`
+  signed with the same key do not break a PCR `7` bind.
+- PCR `7` can differ between boots of the same entry when Thunderbolt
+  dock/eGPU/enclosure option ROMs enumerate pre-boot and add a `db`
+  authority event. Keep one Clevis PCR `7` slot per observed state
+  instead of replacing a slot that only fails in the other state.
 - Working policy is PCR `7`. Do not reintroduce PCR `1,7` unless Luke asks.
 - Keep SDDM as a password prompt after TPM disk unlock. No autologin.
 - Re-enroll `limine.conf` with that OS's `limine-update` / `limine-enroll-config`.

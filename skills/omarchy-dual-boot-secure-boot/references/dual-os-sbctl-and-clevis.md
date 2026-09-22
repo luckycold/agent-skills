@@ -98,6 +98,33 @@ sudo clevis luks bind -d <LUKS_DEVICE> tpm2 '{"pcr_bank":"sha256","pcr_ids":"7"}
 5. Prove userspace unseal without printing the key, then prove a later
    reboot auto-unlocks. Live `clevis luks unlock` is not proof by itself.
 
+`apply.sh`, mkinitcpio hooks, and `limine-update` rewrite and resign
+Limine/UKI files. That does not change PCR `7` when the same `db`
+certificate signs them; PCR `7` records policy variables and the
+verifying certificates, not image hashes (PCR `4` does). Verified: a
+UKI rebuild mid-session left PCR `7` identical.
+
+PCR `7` is not stable across boots when Thunderbolt devices (dock,
+eGPU, NVMe enclosure) are attached. Firmware logs one
+`EV_EFI_VARIABLE_AUTHORITY` per distinct `db` certificate that verified
+an image; pre-boot option ROMs add Microsoft UEFI CA entries whose
+presence varies with enumeration timing. Two PCR `7` values recurred
+across boots of the same Limine entry, and each single-slot rebind
+landed on the other state. The kernel entry was not the cause.
+
+Fix without glue: leave the existing slot and add a second PCR `7`
+slot from a boot in the other state. The initramfs `clevis-luks-unlock`
+tries every bound slot. Diagnose with:
+
+```bash
+sudo tpm2_pcrread sha256:7
+sudo tpm2_eventlog /sys/kernel/security/tpm0/binary_bios_measurements \
+  | grep -B2 -A12 'EV_EFI_VARIABLE_AUTHORITY'
+```
+
+Compare the authority count and subjects before deciding a slot is
+stale. Remove a TPM slot only when its state has not recurred.
+
 PCR `1` measures firmware boot variables. Creating, deleting, or reordering
 `Boot####` entries, or setting `BootNext`, stale a PCR `1,7` slot. Hibernation
 resume has also been observed to change PCR `1` on this hardware class while
@@ -110,9 +137,10 @@ leaving PCR `7` stable. Use PCR `7` unless Luke asks for the stricter bind.
 - Verify Personal files with Personal keys and Work files with Work keys.
 - If Limine panics on a config checksum, boot that same OS and run its
   `limine-update` so enrollment and the theme hook run together.
-- If TPM unlock fails after a boot-path change, unlock with the passphrase
-  and rebind PCR `7` from inside that OS. Do not "fix" it by changing
-  `BootOrder`.
+- If TPM unlock fails after a boot-path change, unlock with the
+  passphrase and rebind PCR `7` from inside that OS. If PCR `7`
+  alternates between boots, add a slot rather than replace one. Do
+  not "fix" it by changing `BootOrder`.
 
 ## Checks
 
