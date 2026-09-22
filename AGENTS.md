@@ -9,6 +9,7 @@ This repository is the canonical, public, cross-agent library for Luke-authored 
 - Follow each repository's existing style and architecture. Do not refactor unrelated code.
 - Inspect current state before acting. Ask only when required information is external, destructive, sensitive, or depends on a material user choice.
 - Prefer supported first-class configuration over custom wrappers or bespoke glue unless Luke explicitly requests that implementation.
+- Before writing custom wrappers, helper binaries, systemd units, or other glue, ask Luke whether a simpler maintained package can be installed instead.
 
 ## Skill freshness
 

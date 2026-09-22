@@ -1,6 +1,6 @@
 ---
 name: direct-action-preferences
-description: Proactive, low-confirmation execution and autonomous research on infrastructure, auth, OAuth/OIDC, networking, and configuration tasks.
+description: Proactive, low-confirmation execution and autonomous research on infrastructure, auth, OAuth/OIDC, networking, and configuration tasks. Ask Luke before writing custom glue if a simpler maintained package can be installed.
 author: Luke
 category: agent-behavior
 ---
@@ -20,7 +20,8 @@ When the user is working on technical infrastructure, authentication, networking
 ## Expected Behavior
 - Perform read-only investigation (logs, config inspection, version checks, discovery endpoints) without asking permission.
 - Make reversible or low-risk changes (restarting services, updating client configs, adding redirect URIs) and report the result.
-- Only ask when the action is destructive, requires user-specific secrets, or has high blast radius.
+- Only ask when the action is destructive, requires user-specific secrets, has high blast radius, or would add custom glue instead of a maintained package.
+- Before writing a wrapper, helper binary, systemd unit, hook, or other bespoke tool, **ask Luke whether a simpler maintained package can be installed instead**. Do not ship the custom path first and mention the package later. This ask is required even when the rest of this skill prefers low confirmation.
 - Never say "give me a moment" as a stall — either act or explain what you are about to do.
 
 ## One-liner and low-cognitive-load delivery (user preference)
@@ -41,6 +42,7 @@ This preference takes precedence over verbose "here is why the tool refused" exp
 - Ending a required user-action prompt with vague wording such as "What happened?" after giving setup instructions; this can sound like the agent believes an error occurred. State the exact action, then ask for a literal low-effort acknowledgement such as **"Reply `installed` when complete"** or provide choices that describe observable outcomes.
 - Presenting a multi-step user handoff before clearly saying why the agent cannot perform that step itself. Lead with the concrete boundary (for example, Supervisor returned 401/403), then one link/command, one or two settings, and the exact reply needed to resume.
 - Adding custom paths, environment variables, wrappers, or services when the documented default already fits the deployment. Check the default first and use it unless a concrete requirement makes it unsuitable; do not turn an ordinary setup into bespoke infrastructure merely for explicitness.
+- Writing a custom installer, sync script, or timer around a problem when a maintained package might do the job. Ask Luke first.
 - Installing any AUR package without first completing the malware review in [package-source-order.md](references/package-source-order.md).
 - Compiling from the AUR or source when a prebuilt package or official upstream binary exists. Source builds make later updates slow.
 - Hand-placing an official binary in `~/.local/bin` when mise can install that same prebuilt.
