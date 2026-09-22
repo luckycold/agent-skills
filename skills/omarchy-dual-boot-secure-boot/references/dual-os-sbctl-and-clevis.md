@@ -137,6 +137,17 @@ leaving PCR `7` stable. Use PCR `7` unless Luke asks for the stricter bind.
 - Verify Personal files with Personal keys and Work files with Work keys.
 - If Limine panics on a config checksum, boot that same OS and run its
   `limine-update` so enrollment and the theme hook run together.
+- If the peer chainload entry panics with
+  `efi: Failed to open image with path 'guid(...):/EFI/limine/limine_x64.efi'`,
+  triage read-only from the OS that did boot: confirm the peer ESP
+  `PARTUUID` matches the `guid(...)` in `limine.conf` and the peer-OS
+  hook, then `mount -o ro` the peer ESP and check that
+  `EFI/limine/limine_x64.efi` exists. If both hold, the config is fine
+  and firmware had not enumerated the external drive before Limine's
+  volume scan (observed with the NVMe enclosure daisy-chained behind
+  the Thunderbolt dock). Retry, or start the external drive from the
+  firmware boot menu for that boot. Do not rewrite either ESP or change
+  `BootOrder`/`BootNext` for this.
 - If TPM unlock fails after a boot-path change, unlock with the
   passphrase and rebind PCR `7` from inside that OS. If PCR `7`
   alternates between boots, add a slot rather than replace one. Do
