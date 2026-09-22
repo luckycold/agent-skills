@@ -145,8 +145,9 @@ leaving PCR `7` stable. Use PCR `7` unless Luke asks for the stricter bind.
   `EFI/limine/limine_x64.efi` exists. If both hold, the config is fine
   and firmware had not enumerated the external drive before Limine's
   volume scan (observed with the NVMe enclosure daisy-chained behind
-  the Thunderbolt dock). Retry, or start the external drive from the
-  firmware boot menu for that boot. Do not rewrite either ESP or change
+  the Thunderbolt dock: it had not powered on at boot and only appeared
+  after a replug). Replug the enclosure and retry, or start the
+  external drive from the firmware boot menu for that boot. Do not rewrite either ESP or change
   `BootOrder`/`BootNext` for this.
 - If TPM unlock fails after a boot-path change, unlock with the
   passphrase and rebind PCR `7` from inside that OS. If PCR `7`
