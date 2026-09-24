@@ -86,6 +86,12 @@ Then implement and require:
 
 A static fixture validates the cascade but is not an authenticated live-page screenshot. Report that distinction honestly.
 
+## Youlag mobile sidebar spacing after a core markup change
+
+When a mobile sidebar shows `Manage feeds` on top of the first feed row, reproduce with the live core `aside_feed.phtml` markup and the actual base/Mapco/Youlag/overlay cascade. Youlag places `.stick.configure-feeds` at `position: sticky; top: 50px` below its fixed header, but the sticky displacement does not move the following form; the first row remains underneath. Reserve `--yl-topnav-height` as mobile padding on `nav#aside_feed`, then override the sticky control's `top` to `0` **within that padded scrollport**. Changing only the padding leaves the sticky top additive and still overlaps. Give the sticky control an opaque background so scrolled rows do not show through it. Scope to `@media (max-width: 840px)` and `.youlag-sidenav--expanded` in the later-loading overlay; leave upstream Youlag untouched.
+
+Use a narrow Chromium fixture with the actual core sidebar markup: assert the Manage feeds rectangle ends before the first `.category.all .title` begins on initial load, then scroll a long sidebar and inspect that the sticky row remains below the header and masks rows beneath. A static fixture validates the CSS cascade, not an authenticated live-page screenshot. For a CSS-only change, verify the served `/ext.php?f=...` asset has the tested hash and that FreshRSS remains healthy; no restart is needed. FreshRSS's `getFileUrl()` includes a file-mtime cache buster, but an installed PWA may still need a reopen.
+
 ## Auditing extension updates
 
 Treat “update my extensions” as an inventory and source audit, not permission to reinstall everything.
