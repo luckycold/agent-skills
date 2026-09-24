@@ -5,7 +5,7 @@ Use this pattern when FreshRSS should accept a normal website URL (or a compact 
 ## Architecture
 
 - Implement a **system extension** using `Minz_HookType::CheckUrlBeforeAdd`.
-- Register before RSS-Bridge (for example priority `-20`, versus RSS-Bridge's default `0`) so RSSHub is preferred when Radar has a usable rule; return the original URL on no match or error so native FreshRSS discovery and RSS-Bridge remain fallbacks.
+- Register after RSS-Bridge (priority `20`, versus RSS-Bridge's default `0`), unwrap only the configured bridge's detection URL, preserve valid direct feeds with autodiscovery disabled, then prefer Radar and retain the incoming bridge URL as fallback.
 - Fetch rule JSON only from the administrator-configured RSSHub base URL at `/api/radar/rules`; cache it for several hours in a mode-`0600` file whose name contains only a hash, never the access secret.
 - Match the serialisable Radar subset: grouped domain/subdomain rules, static and named path segments, optional parameters, regex constraints, wildcards, and common query captures. Skip executable/function-style targets safely.
 - Support an explicit shorthand such as `rsshub://namespace/route/parameters`. This is essential when Radar offers several valid feeds for one page or uses a target that cannot be represented in JSON.
@@ -56,6 +56,16 @@ Radar often returns several legitimate routes for the same page. A generic Git r
    - one real `FreshRSS_feed_Controller::addFeed()` test followed by verified deletion of the temporary feed;
    - managed FreshRSS stop/start and repeat hook/feed verification so persistence is proven.
 7. Sanitize verification output: print only scheme, host, path, and query **key names**. FreshRSS itself may still print full fetch URLs; redirect or capture those logs securely during tests.
+
+## Private RSSHub hosts and misleading cached successes
+
+- When cURL returns valid RSS but FreshRSS says `URL is not allowed to be resolved`, inspect `FreshRSS_http_Util::getCurlResolveInfo()` and DNS from inside FreshRSS. A private DNS answer with an empty `internal_host_allowlist` blocks SimplePie even though the Radar matcher and upstream feed work.
+- The same block applies to every feed host that resolves to a private or reserved address, not only RSSHub. From inside FreshRSS, compare distinct feed hosts with `internal_host_allowlist` and add only each intentional private service as an exact `host:port`. Never use `*`, a subnet, or disabled SSRF checks.
+- For an administrator-configured private host, back up system config first. Preserve unrelated settings. `systemConf()->save()` can materialize unrelated defaults; inspect the diff and preserve the original formatting/default omission when a one-key change is required.
+- `CheckUrlBeforeAdd` does not rewrite an already stored subscription. A webpage URL, such as a YouTube `/@handle` page, fails every refresh with `A feed could not be found` even when Radar would convert a new add. Re-run the detect hook, require the expected host and path, store that URL on the existing feed id, set `clear_cache`, then actualize only that id. Print scheme, host, path, and query key names only; FreshRSS syslog may still record the full fetch URL.
+- Force a network read with a temporary `FreshRSS_Feed`, `_attribute('clear_cache', true)`, and `load(loadDetails: true, noCache: true)`. `noCache: true` alone does not bypass the underlying HTTP cache; cached success can conceal the live DNS/allowlist failure.
+- Verify a real exact-input `addFeed()` and cleanup. Pass an explicit `limit` to `EntryDAO::listWhere()` when counting stored items: its default is one, not all entries.
+- Do not publish an extension patch for a confirmed deployment allowlist problem. Read live metadata rather than trusting a hard-coded User-Agent version.
 
 ## Related cleanup signal
 
