@@ -237,6 +237,10 @@ When qbit_manage reports a large orphan set, do not raise the safety threshold o
 
 See `references/truenas-qbit-manage-retention-and-orphan-forensics.md` for the full backup/edit/reload verification flow, multi-host tracker tagging, category-enumeration pitfall, API manifest comparison procedure, hard-link proof, and concise reporting template.
 
+### Gamarr game-acquisition trials
+
+For Gamarr alongside an existing EmuDeck/RomM library, follow `references/gamarr-hardlink-emudeck-trial.md`: dedicated empty category, hardlink/error imports, startup recovery caveat, supported metadata-only scanner corrections, and full post-trial invariants. Do not assume it has Sonarr-level folder mapping or catalogue accuracy.
+
 ### qBittorrent archive → RomM PS3 library imports
 
 For completed PS3 scene archives, discover qBittorrent and RomM paths from live container mounts, validate every multipart RAR volume, distinguish a JB/folder payload from an existing ISO, and retain the source in place for seeding. Convert folder games with PS3-aware `makeps3iso` tooling rather than generic ISO utilities, publish atomically into the live `roms/ps3` directory, then run a PS3-scoped RomM scan and verify the exact database row, title match, size, metadata IDs, and artwork. RomM filesystem and scheduled rescans may both be disabled, so a successful file copy is not proof of ingestion. See `references/truenas-romm-ps3-imports.md` for the validated disposable-Docker workflow, the `makeps3iso` auto-appended-extension pitfall, internal RQ scan fallback, cleanup, and verification checklist.
