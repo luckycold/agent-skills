@@ -9,6 +9,7 @@ Use this pattern when FreshRSS should accept a normal website URL (or a compact 
 - Fetch rule JSON only from the administrator-configured RSSHub base URL at `/api/radar/rules`; cache it for several hours in a mode-`0600` file whose name contains only a hash, never the access secret.
 - Match the serialisable Radar subset: grouped domain/subdomain rules, static and named path segments, optional parameters, regex constraints, wildcards, and common query captures. Skip executable/function-style targets safely.
 - Support an explicit shorthand such as `rsshub://namespace/route/parameters`. This is essential when Radar offers several valid feeds for one page or uses a target that cannot be represented in JSON.
+- For per-route automatic-detection toggles, filter the matched Radar routes by their first path segment **after** manual `rsshub://` handling, so disabling automatic YouTube conversion does not block explicit routes or other enabled families. Populate the settings choices from route families used by live subscriptions plus any specifically requested family. Test the complete FreshRSS `CheckUrlBeforeAdd` hook chain (not isolated extension calls): a YouTube `@handle` should become the intended native YouTube Atom playlist through the enabled converter, an explicit YouTube `rsshub://` URL should still resolve to RSSHub, and an unrelated website should continue using Radar. Parse outputs and report only query **key names**, never protected query values.
 
 ## RSSHub access control
 
