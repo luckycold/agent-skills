@@ -239,6 +239,8 @@ See `references/truenas-qbit-manage-retention-and-orphan-forensics.md` for the f
 
 ### Gamarr game-acquisition trials
 
+For read-only comparison or replacement trials of RetroArr and Questarr, follow `references/game-manager-readonly-trials.md`: runtime UID alignment, native API authentication (including Authelia API-bypass traps), explicit automation gates, metadata-only samples and preserved torrent/library invariants.
+
 For Gamarr alongside an existing EmuDeck/RomM library, follow `references/gamarr-hardlink-emudeck-trial.md`: dedicated empty category, hardlink/error imports, startup recovery caveat, supported metadata-only scanner corrections, and full post-trial invariants. Do not assume it has Sonarr-level folder mapping or catalogue accuracy.
 
 ### qBittorrent archive → RomM PS3 library imports
