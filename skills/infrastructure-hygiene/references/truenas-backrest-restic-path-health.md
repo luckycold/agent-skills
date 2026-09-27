@@ -13,6 +13,14 @@ Use when Luke asks whether Backrest is healthy, why backups failed, which apps t
 - Runtime user: **568:568** (`apps`). Host paths must be readable by uid 568.
 - Backrest image has **restic**, not **python3** — parse `config.json` on the host; pass `RESTIC_*` via `docker exec -e`.
 
+## Failed catalog upgrade leaves Backrest stopped
+
+- Inspect TrueNAS audit records and the auto-updater logs before attributing an unexpected stop. A catalog render failure can stop/remove the old container yet leave its compatible app version and image available; start that existing version through middleware and verify health before attempting another upgrade.
+- Newer catalog validation can reject an existing `/mnt/.ix-apps/app_mounts` bind with `allowed_fs_host_path_or_raise` / `Path [...] is not allowed to be mounted`. Preflight the target render before downtime. Do not patch validation, swap in an empty stub, or drop backup sources merely to pass the upgrade.
+- Luke wants Backrest repairs and safe upgrades performed during the existing supervised weekly tooling-maintenance job, not only reported. Keep it excluded from the unattended updater while weekly maintenance resolves compatibility, proves source readability, and verifies a representative backup/restore. Preserve all other exclusions and update policies.
+- Before recreating an auto-updater to change `EXCLUDE_APPS`, inspect its real entrypoint and environment. Require a valid cron schedule and no run-on-start behavior so a config change cannot unexpectedly upgrade the whole fleet. TrueNAS custom `app.config` may return Compose directly, with environment as a list rather than a mapping; preserve that shape and verify only the intended exclusion changed.
+- Service recovery is not backup recovery. A healthy container/HTTP 200 plus loaded schedules does not prove every plan can read its sources. Distinguish `test -e` from runtime-user `test -r`/directory traversal, inspect snapshot recency, and explicitly report unresolved plans rather than claiming all backups are healthy.
+
 ## Failure class: empty `ix-app-mounts` bind
 
 Backrest **`storage.additional_storage`** may mount:
