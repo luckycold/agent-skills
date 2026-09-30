@@ -123,3 +123,15 @@ T3 provider caches can retain a previous unauthenticated result after the CLI lo
 Authenticator pages can fail Cloudflare Turnstile, and Pass may hold only an alias with no password for an SSO identity. If native browser approval is blocked, copy an existing same-account workstation CLI session file onto the NAS at mode `0600`; do not print it or store passwords in skills. Verify authentication rather than file presence alone.
 
 For the same CLI/Pass/skills setup on Proxmox or Home Assistant, see `agent-clis-lan-hosts.md`. Do not install T3 on those hosts.
+
+## Retirement of the host agent setup
+
+When the user asks to remove this setup, treat it as removal of the host installation, not just its Apps entry:
+
+1. Inventory user/system units, native app-server processes, TrueNAS startup tasks, user homes, credential stores, runtime directories, and container mounts. Record existing managed app states. Confirm whether a separate AI gateway should stay; retain shared mail, DNS, backup, and access services according to scope.
+2. Check worktrees and generated projects before deleting state. Preserve user project source in an ordinary directory outside the retired runtime.
+3. Use `t3 connect logout --base-dir <t3-base>` followed by `t3 service uninstall --base-dir <t3-base>`. Stop Codex with its native daemon command when managed; an unmanaged server may require SIGTERM to its verified PID. Do not stop the service carrying the only active cleanup session.
+4. Disable and remove dedicated Pass login/SSH-agent units and drop-ins. Remove only the TrueNAS startup task that enables lingering for this setup, then disable root lingering if no retained user service requires it. Delete local scoped credential copies; do not revoke an agent token shared by other hosts.
+5. If Stow was installed solely for this host setup, dry-run its uninstall, unlink the relevant packages, and restore verified original shell startup files with installer blocks removed before deleting the checkout. Remove agent binaries, histories, caches, temporary keys, imported skills, and host-local tool runtimes from every affected home. Preserve ordinary authorized SSH keys and NAS maintenance files.
+6. Remove orphan agent datasets through TrueNAS middleware after checking references. A dataset-busy error can come from bind mounts in another mount namespace; see [dataset busy cleanup](truenas-zfs-dataset-busy-delete.md). Do not recursively delete through mountpoints.
+7. Verify the NAS UI on its configured bind address, middleware/nginx/Docker health, retained app states, absence of agent processes/listeners/state, and removal of startup hooks. A loopback UI probe can fail when nginx binds only the NAS address.

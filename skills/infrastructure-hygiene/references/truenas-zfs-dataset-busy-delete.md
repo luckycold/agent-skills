@@ -52,3 +52,9 @@ Seen with leftover MinIO data (`Apps/Applications/minio` + `.../minio/data`) aft
 - Parent `Apps/Applications` mount makes naive `fuser` on child paths noisy — many unrelated app processes appear as "holders".
 - Snapshots under the dataset can keep USED high until destroyed; recursive destroy should remove them when not busy.
 - Catalog entries under `/mnt/.ix-apps/truenas_catalog/.../minio` are **catalog metadata**, not user data — leave them.
+
+## Bind mounts in other mount namespaces
+
+An orphan dataset can remain busy after the host unmounts it because a backup container or a service with a private mount namespace still holds a bind mount. Enumerate distinct `/proc/<pid>/ns/mnt` namespaces and inspect each representative `/proc/<pid>/mountinfo` for the **exact dataset source**. The target path can differ inside a container.
+
+After proving no retained backup plan or workload needs the retired dataset and no backup is running, use `nsenter -t <verified-pid> -m -- umount <exact-mount-target>` for only those matched mounts, children before parents. Recheck the namespace and mount source before each operation; shared propagation can remove another namespace's copy. Retry `pool.dataset.delete` after all scoped holders are gone. This avoids restarting backup services, renaming disposable datasets, or disturbing the pool. Do not unmount the shared parent backup view or unrelated datasets.
