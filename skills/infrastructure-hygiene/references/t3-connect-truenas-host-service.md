@@ -103,6 +103,23 @@ Install Cursor Agent, Grok, and Proton Pass CLI with their official installers i
 
 Create a narrowly scoped Pass CLI agent (viewer, vault Main) and a non-interactive wrapper session on the filesystem key provider. Render `~/.agents/private-context.md` with `pass-cli inject` at mode 600. Enable a oneshot user unit that logs the wrapper in on boot. Delete any leftover owner-bootstrap session after the scoped agent works.
 
-Headless browser login for vendor CLIs is not reliable: authenticator pages can fail Cloudflare Turnstile, and Pass may hold only an alias (no password) for some SSO identities. In that case copy the existing workstation CLI session file for the same account onto the NAS at mode 600; do not print the file or store passwords in skills. Verify with `cursor-agent status` and `grok models` (or equivalent) rather than file presence alone.
+### Native CLI login on a headless T3 host
+
+Check existing sessions before starting fresh logins. When T3 preview tools report no connected desktop browser, run the vendors' native flows in persistent interactive terminals and have the user approve the printed links in their browser:
+
+```bash
+claude auth login --claudeai
+NO_OPEN_BROWSER=1 cursor-agent login
+grok login --device-auth
+opencode --pure auth login --provider openai --method "ChatGPT Pro/Plus (headless)"
+```
+
+Claude requires its returned one-time code in the same waiting process. Cursor, Grok, and OpenCode poll for approval and finish automatically. Put clickable links and device codes directly in the thread, not only in asynchronous question inputs. Keep authorization codes, challenge URLs, account identities, and credential values out of tracked files and final summaries; redact code input echoed by a terminal. Use `--pure` to keep unrelated OpenCode plugin authentication failures out of the provider-login flow.
+
+Verify with `claude auth status`, `cursor-agent models`, `grok models`, and `opencode --pure auth list`. Cursor can report `Login successful` with `unable to fetch user details` even when a saved token is invalid; require a successful authenticated model listing. OpenCode should list OpenAI with OAuth credentials. Keep credential files at mode `0600` outside the dotfiles tree: Claude uses `~/.claude/.credentials.json`, Cursor `~/.config/cursor/auth.json`, Grok `~/.grok/auth.json`, and OpenCode `~/.local/share/opencode/auth.json`.
+
+T3 provider caches can retain a previous unauthenticated result after the CLI login succeeds. Distinguish CLI verification from a fresh T3 provider check; do not restart the active T3 service just to clear a cache. Cursor may also replace its Stow-linked `~/.cursor/cli-config.json` with a host-local file containing account metadata. Inspect and preserve that file if a later restow conflicts; never adopt it into tracked configuration blindly.
+
+Authenticator pages can fail Cloudflare Turnstile, and Pass may hold only an alias with no password for an SSO identity. If native browser approval is blocked, copy an existing same-account workstation CLI session file onto the NAS at mode `0600`; do not print it or store passwords in skills. Verify authentication rather than file presence alone.
 
 For the same CLI/Pass/skills setup on Proxmox or Home Assistant, see `agent-clis-lan-hosts.md`. Do not install T3 on those hosts.
