@@ -8,6 +8,8 @@ author: Luke
 
 Treat Luke-authored personal skills as writable procedural memory shared across agents.
 
+Luke gives standing permission to update and commit safe, verified personal-skill changes without waiting for confirmation. Report every changed skill and its commit in the final response. Push only where the active repository explicitly authorizes it; `luckycold/agent-skills` authorizes safe pushes after validation.
+
 ## Scope
 
 - The canonical cross-agent working agreement and personal-skill index is `~/.agents/AGENTS.md`; tool-specific global instruction paths resolve to it or instruct the agent to load it.

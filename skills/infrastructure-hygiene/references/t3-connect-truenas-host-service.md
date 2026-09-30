@@ -6,6 +6,12 @@ Use this when T3 Connect should expose an always-on TrueNAS coding environment t
 
 T3's supported background-service path is a user systemd unit, not a TrueNAS Custom App. Keep its runtime and mutable data under a persistent Apps-pool directory such as `<apps-pool>/Applications/t3code`, bind the local server only to loopback, and use T3's managed outbound relay for remote access.
 
+For new installations, prefer the official standalone installer at `https://t3.codes/install.sh`, followed by `t3 service install`. The standalone runtime does not require host Node.js, npm, or a compiler; the build-container procedures below apply to legacy npm installations. Do not replace a live legacy relay from inside its only connected thread.
+
+If `~/.local/bin` is a Stow directory symlink, use the installer's supported `T3CODE_INSTALL_BIN_DIR` setting for a host-local prefix. Before installing the service, unfold `~/.config/systemd` with Stow's `--no-folding` option so the generated unit and enablement link stay outside the dotfiles checkout. Recheck the checkout after installation.
+
+On a host with a relocated `CODEX_HOME`, verify authentication from the service's environment as well as the login shell. A shell reporting logged-in does not prove T3's Codex probe is authenticated. Use the provider's supported credential migration or sign-in flow, keep credentials outside tracked files, and require a fresh T3 provider check.
+
 For a root-owned installation, enable lingering so the user manager survives logout:
 
 ```bash
