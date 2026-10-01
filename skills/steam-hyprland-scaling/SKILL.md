@@ -25,10 +25,14 @@ window.
 The working control is Chromium's `--force-device-scale-factor`, set to the
 Hyprland monitor scale the Steam window occupies (2 on a 2x laptop, 1.5 on a
 1.5x 4K panel, 1 on a 1x 1440p). The personal `steam-launch` wrapper injects
-that flag into `ubuntu12_64/steamwebhelper_sniper_wrap.sh` and re-applies it
-after Steam's "Verifying installation" restores the stock script. If CEF
-starts without the flag, bounce only `./steamwebhelper`, not the wrap/bwrap
-processes.
+that flag into `ubuntu12_64/steamwebhelper_sniper_wrap.sh` only after the CEF
+browser parent is running. Restore the stock exec line before a fresh Steam
+launch: patching during update verification can cause repeated repair updates.
+Wait through updates with a bounded guard, then patch and restart only the
+browser parent. Match its NUL-delimited `argv[0]` exactly as `./steamwebhelper`;
+a substring search also matches wrapper/container command lines and can kill
+the runtime. Verify the exact scale flag in the live process, not a cached
+"applied scale" file. Release the guard lock before leaving Steam running.
 
 ## Dead ends
 
@@ -48,10 +52,19 @@ processes.
 
 ## Launch and resync
 
-Launch through `steam-launch`. `--sync` restarts the client when the window
-lands on a different monitor scale. Do not restart while `steam_app_*` game
-windows exist. After Hyprland Lua timer debounce, disable the previous timer
+Launch through `steam-launch`. `--sync` restarts only CEF when the window
+lands on a different monitor scale, and restores its previous workspace and
+monitor. Empty workspaces can disappear while CEF restarts; restoring only
+the workspace number recreates it on the focused monitor and can cause a
+scale loop. Do not restart while `steam_app_*` game windows exist. After Hyprland Lua timer debounce, disable the previous timer
 with `set_enabled(false)` — `cancel()` is not a method on 0.56 `hl.timer`.
+
+Hyprland workspace rules are static: they place newly opened windows and do
+not prevent manual moves afterward. Prefer a persistent class rule with
+`workspace = "9 silent"` over a boot-only timer: a monitor-triggered config
+reload destroys the timer and recreates a disabled rule before startup apps
+finish. Match Brave web apps by their own classes, not their shared process.
+Use Lua dispatch syntax on Lua-configured Hyprland, including from wrappers.
 
 Keep a large Steam window (monitor-relative). The 1100x700 Omarchy default is
 a 1x-era size and makes any correct scale look cramped.
