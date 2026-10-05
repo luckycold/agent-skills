@@ -104,6 +104,17 @@ Recheck current support, installed versions, and loaded plugins before choosing
 the newer route. Do not install a compositor plugin merely because this skill
 exists.
 
+## Hand off finished results
+
+For requested native browser tasks, work in the background until the result is
+ready, then deliver the completed tab to the user's main native browser window.
+Identify that window from current desktop state and use the browser's supported
+tab-transfer controls, preserving existing tabs and the completed page's state.
+This final handoff is authorized by the user's preference; do not interrupt
+their focus during preparation. Verify the result reached the intended window
+before closing any agent-created window. Read the reference's
+[finish procedure](references/background.md#finish) for transfer limits and cleanup.
+
 ## Self-maintenance
 
 Follow `personal-skill-maintenance` for verified corrections and publication.

@@ -78,6 +78,21 @@ with the user when physical modifiers, typing, or app behavior cause contention.
 
 ## Finish
 
+For a requested browser task with a finished result, transfer its tab into the
+user's main native browser window using supported browser controls. Rediscover
+the destination window; do not rely on a saved address or choose by app class
+alone when several windows exist. Preserve existing tabs, authentication/profile,
+and result state. Do not deliver unfinished work or close the source before
+verifying the transferred result. Tab transfer has not yet been verified in
+this workflow; discover and check the browser's actual controls at handoff.
+
+Opening the result URL in a new tab of the main window is an alternative only
+when it reproduces the finished result without losing unsaved or page-local
+state. If exact transfer is unavailable, bring the completed window onto the
+main browser's workspace and explain that it remains a separate window. A
+compositor window move does not merge browser tabs. Final presentation may
+change focus; preparation must continue to respect the background-work request.
+
 Disable the rule using its recorded handle:
 
 ```bash
