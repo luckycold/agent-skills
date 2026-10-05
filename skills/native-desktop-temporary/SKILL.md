@@ -6,9 +6,22 @@ author: Luke
 
 # Temporary native desktop control
 
-This is an interim workflow. Reassess it when Omarchy ships supported agent
-computer-use integration; replace verified portions rather than assuming a
-roadmap announcement means the integration is installed or usable.
+This is an interim workflow while staying on Omarchy stable. On each invocation,
+check `omarchy version` and `omarchy channel current`, then consult current
+official release notes and [upstream integration](references/upstream.md) to see
+whether normal computer use is available for the installed stable release.
+An announcement or Edge-only feature does not establish stable availability.
+
+When supported integration becomes available, migrate to its maintained install
+and normal tool workflow. Verify native browser access, background input and
+capture without disturbing the user's focus, and compatibility with the running
+compositor before retiring the workaround. Remove only this workflow's temporary
+rules and resources after successful replacement. The user authorizes deletion
+of this skill once that migration is verified: remove the entire
+`native-desktop-temporary` package from the canonical skill repository, publish
+through `personal-skill-maintenance`, and remove its installed copies and
+compatibility links so agents no longer discover it. Do not delete it merely
+because support is announced or a partial replacement exists.
 
 ## Choose the correct surface
 
