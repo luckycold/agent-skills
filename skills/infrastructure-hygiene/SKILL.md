@@ -236,6 +236,8 @@ When Luke reports the Apps pool / apps folder near full, follow `references/true
 
 When Luke asks about Immich restic, missing backups, or Backrest health, follow `references/truenas-backrest-restic-path-health.md`. **Immich usually already has a plan** — inspect container mounts and process logs before creating another. After reclaim or Backrest upgrades, re-verify `/host/Media` and real `/host/ix-app-mounts` binds.
 
+For Immich backups using the official Proton Drive CLI, see `references/immich-proton-cli-verification.md` for verified JSON formats, deletion proofs, polling tests, and maintained filesystem-backup pitfalls.
+
 ### qbit_manage tracker retention and orphan review
 
 When changing private-tracker minimum seed times, first mirror the existing tracker-tag/share-limit convention, cover alternate announce hosts, and distinguish the tracker rule's category scope from the separately enumerated `nohardlinks` categories. A universal tracker rule omits `categories:`, but qbit_manage hard-link checks still require every real qBittorrent category explicitly; preserve a manual `keep` override unless Luke directs otherwise.
