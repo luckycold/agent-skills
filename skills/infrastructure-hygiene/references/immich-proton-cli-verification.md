@@ -32,6 +32,12 @@ checks, fresh Immich identity/privacy checks, and a verified recovery copy befor
 using `DELETE /assets` with `force: false`. Hold ambiguous duplicates and failed
 proofs. Keep historical baseline deletions separate from new user actions and
 exclude the worker's own Photos trash operations from reverse propagation.
+When a complete inventory observes a restored active Photos copy, cancel its
+pending deletion and clear the upload-suppression flag. Test trash, restore, and
+trash again through full cycles: clearing only the pending record can silently
+prevent a later legitimate trash action from propagating. Document whether
+restoring in Proton after Immich is already trashed restores Immich or is
+overridden by Immich's source-of-truth state.
 
 Immich's delete endpoint needs `asset.delete` and can return an empty HTTP 204;
 do not unconditionally parse its response as JSON. Album asset membership uses
