@@ -87,6 +87,12 @@ coordinates; pointer coordinates also require that output's global offset.
 Keep screenshots local and temporary; exclude account details and screenshots
 from the public skill library.
 
+For a visible terminal that repeatedly runs a quoted shell command, use
+`watch --exec -- bash -c "$poll_command"` so argument boundaries survive.
+Default `watch` joins arguments through another shell; a misquoted command can
+execute a bare `export` and display environment data. Inspect the first output
+before capturing the terminal, and keep credentials out of command arguments.
+
 ## Background control
 
 Prefer the verified hidden-workspace workflow when the user asks to keep work
