@@ -17,6 +17,11 @@ targets and credentials locally; never put them in this reference.
   automate restore or permanent deletion of a mapped photo.
 - Download each photo UID into a separate directory and verify the actual
   original's SHA1. Same-named batch downloads can overwrite files.
+- `filesystem trash --json` can exit zero while returning a failed per-node
+  result. Require the expected UID and `ok: true` before recording success.
+  Retain recovery folders' returned UIDs for later verification; native
+  `filesystem info '/my-files/<node-uid>'` can inspect a trashed folder directly
+  without traversing a potentially large regular Trash inventory.
 
 ## Verify state transitions, not just final state
 
