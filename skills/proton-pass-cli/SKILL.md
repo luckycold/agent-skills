@@ -72,7 +72,7 @@ pass-cli vault list --output json
 pass-cli share list --output json
 ```
 
-For a rejected server session that still appears locally authenticated, see [stale PAT session recovery](references/stale-pat-session-recovery.md).
+For a rejected server session that still appears locally authenticated, see [stale PAT session recovery](references/stale-pat-recovery.md).
 
 ## Verification
 
