@@ -36,6 +36,7 @@ DISABLE_TELEMETRY=1 npx --yes skills@latest add luckycold/agent-skills \
 - `proton-pass-cli`
 - `steam-hyprland-scaling`
 - `tasker-automation`
+- `temporary-support-watcher-cleanup`
 - `truenas-custom-apps`
 
 ## Safety and validation
