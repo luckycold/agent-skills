@@ -61,6 +61,13 @@ Validated in October 2026 with the official Proton Drive CLI and the prebuilt [d
 
 Check the current [official CLI documentation](https://github.com/ProtonDriveApps/sdk/blob/main/cli/README.md) and upstream image configuration before reusing the procedure.
 
+### Immich and Proton Photos scope
+
+- The packaged backup app normalizes destinations to `/my-files`; a successful container smoke test does not prove support for the separate Proton Photos timeline. Check the [app adapter](https://github.com/traktuner/docker-proton-drive-backup/blob/main/src/server/cli.ts) before recommending it for Photos reconciliation.
+- Reconcile by normalized original-content checksums and stable asset/node IDs, with owner and linked-media relationships retained. Proton's duplicate lookup uses both name and content, so it is insufficient for differently named copies. An incomplete scan, inaccessible asset, or remote-only photo is not proof of deletion. Protect unmanaged/shared items until their scope is explicitly resolved.
+- Immich `hidden` represents Live/Motion Photo video components; `locked` is a separate privacy state. In the reviewed Immich v3.2.4 source, locked searches require an elevated owner session and sync streams reject API keys. Never promise an ordinary read-only API key supplies a complete inventory or durable deletion/visibility feed. Treat unknown classification as excluded from new Photos uploads and unresolved for destructive cleanup.
+- Check UID addressing separately for live and trashed Proton photos. The reviewed official CLI resolves live `/photos/<uid>` directly but looks up `/photos-trash/...` by name; duplicate names make unattended restoration ambiguous. Establish a supported UID-safe restore path before destructive reconciliation. Preserve an independent recoverable backup and review privacy policy before building custom integration.
+
 ## Upgrade
 
 Change image tag in `user_config.yaml` + `templates/rendered/docker-compose.yaml`, `app.stop` / `app.start`, or `docker compose pull` on project `ix-<name>` then recreate via Apps UI.
