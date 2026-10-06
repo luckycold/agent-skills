@@ -78,6 +78,19 @@ If no UniFi API key is saved, resolve the approved controller-login item from th
   dig +time=3 +tries=1 +short @${GATEWAY_IP} "$PRIVATE_SEARCH_HOST" A
   ```
 
+## Read-only VLAN and IoT firewall audit
+
+Use the authenticated controller session above; keep credentials, MFA values, and cookies in memory and log out when finished. A request to assess isolation does not authorize changing the network.
+
+1. GET `/proxy/network/api/s/default/rest/networkconf` and `/proxy/network/api/s/default/rest/wlanconf`. Resolve Wi-Fi `networkconf_id` values to networks; report `vlan_enabled`, `vlan`, `network_isolation_enabled`, `internet_access_enabled`, and Wi-Fi `l2_isolation`. A guest-named SSID can still use the main LAN, and separate VLANs alone do not prove firewall isolation.
+2. GET `/proxy/network/api/s/default/rest/firewallrule` and `/proxy/network/api/s/default/rest/firewallgroup`. Resolve source/destination group and network IDs, sort each ruleset by `rule_index`, and inspect enabled rules in order. Disabled drop rules provide no protection, and an earlier broad accept can prevent a later drop from matching.
+3. Check connection-state flags rather than rule names. A manual accept rule with `state_new`, `state_invalid`, `state_established`, and `state_related` all true also accepts new and invalid traffic. Established/related describes connection tracking, not whether an application's traffic is useful or necessary.
+4. Inspect IPv4 and IPv6 independently. Verify the actual ruleset and address-group family, and distinguish IPv6 ULA ranges from global prefixes; rule names mentioning IPv6 are insufficient evidence of IPv6 enforcement.
+5. Check additional policy surfaces supported by the installed version: `/proxy/network/v2/api/site/default/trafficrules`, `/proxy/network/v2/api/site/default/firewall-policies`, `/proxy/network/v2/api/site/default/firewall/zone`, and `/proxy/network/v2/api/site/default/acl-rules`. An unsupported endpoint or 404 is not proof that its feature is absent.
+6. Optionally GET `/proxy/network/api/s/default/stat/sta` to confirm that clients actually occupy the networks. Summarize counts by network ID or subnet without printing client identifiers or names. Report separately whether VLANs exist, inter-VLAN traffic is blocked, peers are isolated, and IoT internet access is restricted. State whether the finding comes from configuration inspection or an end-to-end traffic test.
+
+See Ubiquiti's [network/client isolation guide](https://help.ui.com/hc/en-us/articles/18965560820247-Implementing-Network-and-Client-Isolation-in-UniFi) and [firewall connection-state documentation](https://help.ui.com/hc/en-us/articles/27699646208279-UniFi-Gateway-Advanced-Firewall-Rules) for the distinct control layers.
+
 ## Post-Fix Client Action
 Router/DNS changes are instantaneous for new lookups, but existing clients may retain old DHCP options/cache until renewal:
 - Forget the WiFi network + rejoin (most reliable), or reboot / toggle airplane mode.
