@@ -49,6 +49,18 @@ Do not assume every service is `127.0.0.1` — match the consumer (Traefik hits 
 - App config: Settings → Sync → the private notes host from the private context + admin password
 - Data backup: `/mnt/Apps/Applications/futo-notes/data/` (blobs + postgres)
 
+## Proton Drive compatibility checks
+
+Validated in October 2026 with the official Proton Drive CLI and the prebuilt [docker-proton-drive-backup](https://github.com/traktuner/docker-proton-drive-backup) image:
+
+- Inspect architecture, CPU features, libc, dataset mount options, and available space before testing. TrueNAS can mount `/tmp` with `noexec`; `Permission denied` there does not establish binary incompatibility. Use an executable dataset for a temporary checksum-verified binary test, then remove the entire test directory.
+- Test the upstream image without photo/source mounts, published ports, or an account login. A read-only root, tmpfs for `/data`, `/tmp`, and `/app/.next/cache`, dropped capabilities, and `no-new-privileges` worked. Verify both `proton-drive version` and the internal `/api/health` endpoint; remove the test container and newly pulled image afterward.
+- The default `keychain` session backend requires a working Secret Service/D-Bus environment. The packaged app uses `PROTON_DRIVE_CREDENTIALS_STORE=unsafe_file`; this avoids a desktop keyring but stores session material in plaintext. Treat persistent `/data` as secret storage and assess storage-layer encryption. The official CLI also supports the separate GPG-backed `pass` password-store backend; it is not Proton Pass.
+- Startup/health tests are not authenticated backup verification. After the user selects an option and signs in, use a dedicated disposable source/destination to test upload, unchanged-file handling, restore, deletion propagation, and session persistence across container recreation before scheduling a real mirror.
+- This app's web UI has no built-in authentication. Protect the deployed route with the existing authentication proxy and mount sources read-only. Prefer TrueNAS-managed app deployment over adding host packages or custom sync glue.
+
+Check the current [official CLI documentation](https://github.com/ProtonDriveApps/sdk/blob/main/cli/README.md) and upstream image configuration before reusing the procedure.
+
 ## Upgrade
 
 Change image tag in `user_config.yaml` + `templates/rendered/docker-compose.yaml`, `app.stop` / `app.start`, or `docker compose pull` on project `ix-<name>` then recreate via Apps UI.
