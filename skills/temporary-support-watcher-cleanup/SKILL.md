@@ -44,6 +44,8 @@ Do not print `ExecStart` if an earlier implementation put credentials in its com
 ## Requirements for any replacement
 
 - Ask about a maintained package before writing custom glue unless the user has already authorized that implementation.
+- When the user requests another watcher after a reply, first verify the old watcher stopped and its copied credentials were removed. Read the full current thread and record the latest existing reply or acknowledgement as the new baseline, so the replacement cannot immediately alert on the already-seen response. A new request for the same approved temporary implementation does not require repeating the package question.
+- Anchor a follow-up reminder to the user's requested interval or the awaited party's explicit ETA. Calculate from the relevant message timestamp, announce the resulting deadline, and describe any later reply as an update unless its content confirms completion.
 - Use read-only ticket requests and the user's explicitly authorized notification destination. Alerts are not permission to reboot, test, or modify customer machines.
 - Record exact ownership, cleanup paths, deadline, and scheduler identity privately. Bound the lifetime and arrange credential deletion on stop/expiry.
 - Verify an independent scheduler/process plus a successful scheduled read before calling it persistent. State workstation/network dependencies.
