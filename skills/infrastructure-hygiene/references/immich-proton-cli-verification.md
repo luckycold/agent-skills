@@ -38,6 +38,13 @@ trash again through full cycles: clearing only the pending record can silently
 prevent a later legitimate trash action from propagating. Document whether
 restoring in Proton after Immich is already trashed restores Immich or is
 overridden by Immich's source-of-truth state.
+For authorized reverse restoration, confirm that a previously trashed mapped
+Photos UID is active again, then restore the same unique Immich ID using
+`POST /trash/restore/assets` and verify its active status. This uses `asset.delete`
+in the inspected release. Hold the restored Photos copy during confirmation so
+the normal trash planner cannot immediately undo the user's restoration. Never
+replace a permanently missing Immich item or resolve duplicate ambiguity by
+silently importing another copy; keep regular My Files Trash outside this flow.
 
 Immich's delete endpoint needs `asset.delete` and can return an empty HTTP 204;
 do not unconditionally parse its response as JSON. Album asset membership uses
