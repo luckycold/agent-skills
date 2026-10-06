@@ -56,6 +56,12 @@ Use this skill when setting up, troubleshooting, or using Proton Pass from Herme
 - Prefer viewer-scoped, item- or vault-limited access with short expiration.
 - Before granting broad vault access or editor/manager roles, confirm the intended scope with the user.
 
+## Browser sign-in and passkey-only records
+
+- Inspect whether a login contains a password, TOTP, or passkeys before attempting sign-in. A saved login can contain a passkey without a password; do not submit an empty password or treat this as a bad credential.
+- The CLI can read passkey data but does not provide browser passkey authentication. Use a browser with the configured passkey provider, or have the user complete that sign-in. Do not export passkey private material to invent an authentication workaround.
+- Keep credential values inside the current secret-injection or browser-fill operation. Report only whether each required field is present.
+
 ## Session Discipline
 
 Before any `pass-cli` command, verify the session with `pass-cli info` or the Hermes wrapper equivalent. If it fails with an authentication/session error, read the full output, run `pass-cli logout --force` if needed, re-authenticate via the secure PAT env/wrapper (not by printing or saving the token), verify `pass-cli info`, then retry the original command. During long-running tasks, check `info` periodically. After login/setup, verify access with:
