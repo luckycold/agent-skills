@@ -36,6 +36,10 @@ because support is announced or a partial replacement exists.
   Do not silently substitute a different browser or profile.
 - Native tools need access to the running Wayland session. SSH or another host's
   shell alone does not establish desktop access.
+- A browser tab handle, DOM snapshot, tab screenshot, or reported selected tab
+  does not prove that the page is visible on the user's desktop. For an explicit
+  foreground workflow, verify the compositor's active window and a native
+  screenshot after switching before claiming the user can see the result.
 
 ## Verified foreground workflow
 
