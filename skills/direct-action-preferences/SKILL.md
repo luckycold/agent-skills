@@ -22,6 +22,7 @@ When the user is working on technical infrastructure, authentication, networking
 - Make reversible or low-risk changes (restarting services, updating client configs, adding redirect URIs) and report the result.
 - Only ask when the action is destructive, requires user-specific secrets, has high blast radius, or would add custom glue instead of a maintained package.
 - Before writing a wrapper, helper binary, systemd unit, hook, or other bespoke tool, **ask Luke whether a simpler maintained package can be installed instead**. Do not ship the custom path first and mention the package later. This ask is required even when the rest of this skill prefers low confirmation.
+- Supported application configuration edits, including native command fields, are authorized ordinary configuration work. Prefer packaged services and existing applications; do not turn a configuration limitation into a locally maintained plugin fork or helper without asking. Explain what the installed applications already handle before proposing another implementation.
 - Never say "give me a moment" as a stall — either act or explain what you are about to do.
 
 ## One-liner and low-cognitive-load delivery (user preference)
