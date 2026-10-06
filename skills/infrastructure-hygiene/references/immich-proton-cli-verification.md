@@ -73,6 +73,12 @@ Back up the current and future TrueNAS app configurations without automatically
 uploading every obsolete pre-existing app version. Stage verified historical
 sidecars when long-running uploads would otherwise depend on mounted snapshots.
 
+Native `/config/backup-sets.json` import uses the exported format: a `version`
+and `backupSets` wrapper with `sources`, `target`, `targetFolder`, and `time`.
+Do not substitute live API/database field names such as `sourcePaths` or
+`scheduleHour`. Weekly `dayOfWeek` values are `Sun` through `Sat`; a full weekday
+name can silently fall back to Monday in the inspected importer.
+
 Ordinary Immich `pg_dump` backups do not create PostgreSQL roles. If a backup
 contains a custom read-only view grant, pre-create its grantee role before an
 isolated restore test. Follow the matching Immich release's restore procedure.
