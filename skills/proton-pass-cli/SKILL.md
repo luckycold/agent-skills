@@ -123,6 +123,14 @@ can perform the requested create or move while the CLI remains viewer-scoped.
 If that browser disconnects, keep the protected temporary handoff and report
 the unfinished move instead of claiming it succeeded.
 
+Agent and personal-access-token sessions cannot manage agents or PAT grants,
+even with an editor vault role. Run access grants from an owner-authenticated
+CLI. Whole-vault read/write uses `--role editor` without item flags. Preserve
+the existing agent session when arranging an owner login; a web login can
+still require human reauthentication despite an already signed-in browser.
+For authorized editor writes, use `item create login --from-template -` with
+JSON on stdin, then verify the saved vault and secret. Avoid passwords in argv.
+
 Luke's scoped agent token is usually granted only **viewer** role for least privilege. Resolve its local wrapper and approved vault scope from `~/.agents/private-context.md`. This is safe for discovery but restrictive for writes:
 
 - Successful with REASON: `info`, `vault list`, `item list "<Vault>" --output json`, `item view`.
