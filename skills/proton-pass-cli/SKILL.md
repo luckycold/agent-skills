@@ -114,6 +114,15 @@ The first status check can briefly report `degraded` while keys are loading. Wai
 
 ## Agent Role Limitations, Write Operations, and REASON Constraints
 
+Credentials created by the agent belong in the **Agents** vault, rather than
+Main or another vault containing user-created items. Verify that the configured
+agent can read the destination after saving or moving the item; the correct
+vault name does not itself grant access. Do not expand token permissions merely
+to make storage convenient. An already user-authenticated Proton Pass browser
+can perform the requested create or move while the CLI remains viewer-scoped.
+If that browser disconnects, keep the protected temporary handoff and report
+the unfinished move instead of claiming it succeeded.
+
 Luke's scoped agent token is usually granted only **viewer** role for least privilege. Resolve its local wrapper and approved vault scope from `~/.agents/private-context.md`. This is safe for discovery but restrictive for writes:
 
 - Successful with REASON: `info`, `vault list`, `item list "<Vault>" --output json`, `item view`.
