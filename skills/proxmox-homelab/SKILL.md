@@ -61,6 +61,7 @@ When backups run at inconsistent speeds, or you need to pick a PBS target disk, 
 - `pvesr status`: a job targeting an offline node fails with SSH exit 255 and keeps retrying. Confirm whether the node is intentionally retired (look for dated notes under `/root/`) before proposing removal of the job or the node.
 - `ha-manager status`: stale services pinned to an offline node, or `hastate: request_stop` on a running guest, mean leftover HA state. Report it. Clean it up only with an explicit plan, because HA can stop guests.
 - To move guests off a failing single-disk ZFS pool while keeping the storage ID and incremental replication, follow [references/zfs-disk-migration.md](references/zfs-disk-migration.md) (send -R to a temporary pool, then a short-shutdown cutover with pool renames and a GUID-checked rollback).
+- To move a VM with USB passthrough (radio sticks) to another node, or to cap ZFS ARC before adding guests, follow [references/usb-passthrough-migration.md](references/usb-passthrough-migration.md).
 - Removing a dead node (`pvecm delnode`) and fixing expected votes are cluster changes that need Luke's approval and a quorum plan (see `infrastructure-hygiene/references/proxmox-cluster-ceph.md`).
 
 ## Notifications
