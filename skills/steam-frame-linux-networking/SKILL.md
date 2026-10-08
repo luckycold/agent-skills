@@ -92,6 +92,31 @@ Valve adapter's interface is connected to the headset and reports the dedicated
 frequency. Then ask for headset-side status and an actual streaming test; host
 association alone does not prove streaming works.
 
+## Disable simultaneous streaming links
+
+SteamVR's vrlink settings schema maps **Allow multiple links** to
+`driver_vrlink.allowMultipleLinks`, which defaults to `true`. The shipped
+`bin/linux64/vrcmd` can change this through the live runtime:
+
+```bash
+"$steamvr_dir/bin/linux64/vrcmd" --background \
+  --set-settings-bool driver_vrlink.allowMultipleLinks 0
+"$steamvr_dir/bin/linux64/vrcmd" --background \
+  --settings-bool driver_vrlink.allowMultipleLinks
+```
+
+Discover `steamvr_dir` from the installed runtime. Setting names use
+`section.key`, and bool setters take `0`/`1`. Verify live readback is `false`,
+then verify the host's active user `steamvr.vrsettings` stores the same value;
+the disk write can lag briefly. Reconnect streaming to establish a single link.
+Keep global Wi-Fi enabled so the USB adapter remains usable.
+
+If `vrcmd` reports `VRInitError_Driver_WirelessHmdNotConnected`, the live setting
+has not changed. Restore a functioning SteamVR session before retrying. A file
+edit while SteamVR or its UI is active can be overwritten by cached settings;
+this was observed during restart. Prefer the supported live command and do not
+edit shipped driver defaults.
+
 ## Self-maintenance
 
 Follow `personal-skill-maintenance` for verified reusable corrections. Keep
