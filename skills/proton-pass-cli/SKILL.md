@@ -140,6 +140,8 @@ When a task requires persisting a discovered secret, use the agent **only for re
 
 Likewise, do not use account credentials readable by the viewer agent to bootstrap a broad owner/full-account CLI session merely to bypass the viewer role. If a generated operational credential must be consumed before a human can save it in Pass, use a narrowly scoped root-only local secret (`0700` parent, `0600` file), keep it out of logs and argv, clearly report the remaining manual Pass-save step, and remove the local copy after Pass-backed injection is verified. This is a temporary handoff pattern, not a replacement for Proton Pass.
 
+**Note size limit.** `item update --field "note=…"` fails with `Could not perform operation. Reason: InvalidValue` once the note body reaches about 39.9 KB. On 2026-10-08, 39,815 bytes was accepted and 39,913 bytes was rejected. The same error is easy to mistake for a role problem. Before syncing a large note such as the shared private context, check `wc -c`; compact it or split it into a second note, then read it back and confirm it matches.
+
 `PROTON_PASS_AGENT_REASON` must be short (< ~300 characters). Overly long or narrative reasons are rejected at the agent layer before the operation is attempted. Keep them concise and specific (e.g. "Locate UniFi API key for router DHCP DNS fix").
 
 **Proven one-shot pattern for API keys (observed in router DHCP work):**

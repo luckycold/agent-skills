@@ -50,6 +50,11 @@ See [references/backup-health.md](references/backup-health.md) for commands and 
 4. vzdump task history and `/var/log/vzdump/qemu-<vmid>.log`. A job that transfers data successfully and then fails with `permission check failed - missing Datastore.Modify|Datastore.Prune` is a **PBS ACL problem on the backup token**, not a data problem. Snapshots pile up unpruned.
 5. Disks with `backup=0` (Luke's HAOS VM main disk) are skipped by vzdump. That guest relies on ZFS replication and the app's own backups; say so explicitly.
 6. A secondary PBS that **pulls** from the primary only mirrors what the primary holds. A stale primary means a stale off-box copy.
+7. Data-level backups (Home Assistant's own backups, TrueNAS snapshot tasks, Backrest/restic, db-backup dumps) matter more than VM images for Luke. Audit them with section 6 of the runbook. A Backrest plan whose schedule is disabled looks healthy but has stopped running.
+
+## Backup speed and target choice
+
+When backups run at inconsistent speeds, or you need to pick a PBS target disk, follow [references/storage-speed.md](references/storage-speed.md): identify SMR, QLC, and aging disks; run the capped `scripts/fio-chunk-test.sh` (2 GiB, self-deleting, only on pools with plenty of free space); run read-only raw tests on unused disks; and run a socket throughput test for the network. PBS writes only new chunks, so speed swings track the datastore disks, not the source.
 
 ## Replication and offline nodes
 
