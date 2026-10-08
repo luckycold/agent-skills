@@ -23,6 +23,7 @@ Use this for guests that own a USB radio or serial dongle (Thread/Zigbee/Z-Wave 
 5. `qm start <vmid>` on the target. Verify: `echo 'info usb' | qm monitor <vmid>`, the guest's udev symlink and service, the app's own health/state, and the IP (same MAC keeps the DHCP lease).
 6. If the guest sees the USB device (`lsusb` in guest) but no `/dev/ttyUSB*`, the driver is missing (step 7 above): install the matching `linux-modules-extra-$(uname -r)`, `modprobe <module>`, `udevadm trigger`. No reboot needed.
 7. Update the VM description if it mentions a port.
+8. Prevent recurrence in Ubuntu guests: an APT `DPkg::Post-Invoke` hook must not run apt itself (dpkg lock is held). Have it only check that every installed `linux-image-<ver>-generic` has `linux-modules-extra-<ver>` and, if not, `systemctl start --no-block` a oneshot unit that runs `apt-get -o DPkg::Lock::Timeout=1200 install --no-install-recommends linux-modules-extra-<ver>`; enable the unit at boot too. Works with unattended-upgrades; verify with `modinfo -k <newest> -n <module>`.
 
 ## ZFS ARC cap
 
