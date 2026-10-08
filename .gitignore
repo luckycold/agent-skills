@@ -24,3 +24,6 @@ private-context.template.md
 __pycache__/
 *.py[cod]
 .DS_Store
+
+# Pass export of private context
+private-context.pass.json

@@ -29,10 +29,11 @@ That is the skills.sh (`skills`) CLI: `add luckycold/agent-skills --skill '*' --
 Luke-authored personal skills are canonical under `~/.agents/skills/` and have top-level `author: Luke` frontmatter.
 
 - Keep each skill under `skills/<skill-name>/` with a valid `SKILL.md` entrypoint.
-- Keep `SKILL.md` focused: target about 100 lines for a simple skill and 200 lines for a complex skill, matching Hermes' default authoring guidance. If it grows beyond that, move detailed procedures, examples, and historical notes into directly linked `references/`; put deterministic helpers in `scripts/`. Do not shorten at the expense of correctness, but treat an oversized `SKILL.md` as something to refactor before committing.
+- Keep `SKILL.md` focused: target about 100 lines for a simple skill and 200 lines for a complex skill (Hermes' historical authoring guidance; still a useful size target for every agent). If it grows beyond that, move detailed procedures, examples, and historical notes into directly linked `references/`; put deterministic helpers in `scripts/`. Do not shorten at the expense of correctness, but treat an oversized `SKILL.md` as something to refactor before committing.
 - Load the relevant personal skill before acting on Luke's infrastructure, authentication, automation, or agent-maintenance work.
 - Use `personal-skill-maintenance` when creating, correcting, consolidating, or extending personal skills.
 - Never self-modify third-party, bundled, system, or project-owned skills.
+- Consumers of this library are first-class peers: Labby (Luke's Cursor home-lab bot; Proxmox-primary), Codex, Cursor, Claude Code, OpenCode, OpenClaw, and Hermes (historical HA add-on agent). Prefer portable procedures over agent-specific paths. Hermes-specific layout details belong in `infrastructure-hygiene` references, not as assumptions in new skills.
 
 ## Private context and public-repository safety
 

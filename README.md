@@ -2,6 +2,8 @@
 
 Luke-authored portable skills for infrastructure, automation, authentication, and agent workflow maintenance. This is a **public** repository: procedures use placeholders, while private operational values remain in an ignored local `~/.agents/private-context.md`.
 
+First-class consumers include Labby (Cursor home-lab bot), Codex, Cursor, Claude Code, OpenCode, OpenClaw, and Hermes (historical Home Assistant add-on agent). Prefer portable skills; Hermes-specific HA-addon paths stay in `infrastructure-hygiene` references.
+
 ## Canonical checkout
 
 Clone this repository as the shared cross-agent skills area:
@@ -10,7 +12,15 @@ Clone this repository as the shared cross-agent skills area:
 git clone https://github.com/luckycold/agent-skills.git ~/.agents
 ```
 
-Hermes supports external skill directories directly. Configure the checkout as an active source:
+Install or refresh with the Agent Skills CLI (Codex, Claude Code, Cursor, OpenCode):
+
+```bash
+DISABLE_TELEMETRY=1 npx --yes skills@latest add luckycold/agent-skills \
+  --skill '*' --global --yes \
+  --agent codex --agent claude-code --agent cursor --agent opencode
+```
+
+Hermes (historical HA add-on) can also load the checkout as an external directory:
 
 ```bash
 hermes config set skills.external_dirs '["~/.agents/skills"]'
@@ -19,21 +29,16 @@ hermes skills tap add luckycold/agent-skills
 
 `skills.external_dirs` makes the checked-out packages available to Hermes and writable in place. The tap adds the GitHub repository as a discovery/install source; it does not replace the writable checkout.
 
-For other compatible coding agents, install or refresh with the Agent Skills CLI:
-
-```bash
-DISABLE_TELEMETRY=1 npx --yes skills@latest add luckycold/agent-skills \
-  --skill '*' --global --yes \
-  --agent codex --agent claude-code --agent cursor --agent opencode
-```
-
 ## Skills
 
 - `direct-action-preferences`
 - `infrastructure-hygiene`
 - `minecraft-steam-gamescope`
+- `native-desktop-temporary`
+- `ntfy-ops`
 - `personal-skill-maintenance`
 - `proton-pass-cli`
+- `proxmox-homelab`
 - `steam-frame-linux-networking`
 - `steam-hyprland-scaling`
 - `tasker-automation`
