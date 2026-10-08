@@ -59,8 +59,15 @@ The helper's `list` command can expose its selected interface:
 /usr/bin/holo-polkit-helpers/holo-realtek-firmware-toggles list
 ```
 
-Inspect the installed SteamOS manager interface before using this supported
-setting; availability may vary. Its XML is normally under
+For a persistent choice, use Steam's **Settings > Developer > Force WPA
+supplicant Wi-Fi backend** toggle. Enable Developer Mode under System if that
+page is hidden. Steam can restore `iwd` at startup when this toggle is off:
+changing the manager property alone is a live diagnostic test, not a durable
+fix. The installed Steam UI uses `steamos_wifi_force_wpa_supplicant` for this
+setting; `logs/steamui_steamos.txt` records the requested value.
+
+Inspect the installed SteamOS manager interface before using the live property;
+availability may vary. Its XML is normally under
 `/usr/share/dbus-1/interfaces/com.steampowered.SteamOSManager1.xml`.
 
 ```bash
@@ -73,7 +80,8 @@ busctl --user set-property com.steampowered.SteamOSManager1 \
 ```
 
 For the observed failure, switching to `wpa_supplicant` through this native
-property established the dedicated 6 GHz connection. Record the original
+property established a 6 GHz association; a subsequent Steam restart restored
+`iwd` while its own toggle remained off. Record the original
 backend, account for network interruption, and revert through the same property
 if the test fails. Do not treat this as a universal backend preference or patch
 Valve's helper speculatively.
