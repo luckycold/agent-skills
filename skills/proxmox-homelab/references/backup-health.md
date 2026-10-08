@@ -65,6 +65,7 @@ qm guest exec <haos-vmid> --timeout 60 -- docker exec homeassistant python3 -c '
 - Add-ons not listed in `include_addons` (with `include_all_addons: false`) are **not** in the daily backup. Their only copies are the pre-update partials HA makes on updates, and those stay on the local disk.
 - Add-on data lives under `/mnt/data/supervisor/app_configs/<slug>` on newer HAOS (it used to be `addons/data`). `du -sh` it to size the gap.
 - `/mnt/data` usage: pre-update partials pile up and fill the data partition.
+- One-off full backup to a mount: `ha backups new --name ... --location=<mount>` (the `=` is required, because `--location NAME` fails with `unknown command`). To keep it encrypted with HA's configured key, read the key inside HAOS and pass it without printing. Add-ons with **locally built images** (e.g. Hermes, Playwright) get their image exported to `/mnt/data/supervisor/tmp` first, so check `/mnt/data` has free space of at least the image size. Run it detached (`qm guest exec … -- sh -c "nohup sh /mnt/data/x.sh &"`; piping a script on stdin into a background `sh` loses it) and poll `ha jobs info`.
 
 **TrueNAS side** (as root on the NAS):
 ```bash
