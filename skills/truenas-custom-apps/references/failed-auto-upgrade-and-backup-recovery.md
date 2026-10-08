@@ -25,6 +25,16 @@ Verified 2026-10-08 on TrueNAS 25.10. Resolve hosts, ports, and app names from `
 
 Start the SSO provider (Authelia) first. While it is down, every router that uses the `authelia@file` middleware returns HTTP **500**, even when the backend is healthy. Unprotected routes, such as PWA assets, still return 200.
 
+Field notes from the 2026-10-08 recovery of nine apps:
+
+- **Rollback points.** The nightly snapshot task covers `Apps/Applications`, but not `ix-apps/app_mounts/*`. For apps stored there (for example n8n), `app.upgrade` makes its own snapshot named `@<previous chart version>` on the app_mounts datasets before it starts. Check that snapshot's `written` value to confirm it is still a clean rollback point.
+- **Start one app at a time.** After each start, check that the app is RUNNING and its containers are healthy, then look for `error|fatal|migrat` in `docker logs --since 10m`. The postgres-upgrade helper should log `Upgrade already completed` when Postgres is staying on the same major version.
+- **RomM 5.3.x false lead.** RomM can crash-loop with `Failed to run database migrations`, but the real error is on the line just before it: `CRITICAL ... config_manager ... filesystem.roms_folder is no longer supported`. 5.3 rejects the old `filesystem.roms_folder` key in `config.yml` and wants `filesystem.structure.default: "roms/{platform}/{game}"`. The pinned image digest doesn't change in this case, so the error was already there before the upgrade. Stop the app, back up `config.yml`, and edit it with the owner's approval.
+- **Harmless noise:**
+  - Warracker logs a gevent `AssertionError: (None, <callback ...>)` when it forks workers.
+  - n8n warns that the Python task runner is missing.
+  - n8n's `/healthz` is served over HTTPS on its published port, so a plain-HTTP probe gets an empty reply.
+
 ## Knock-on effects to check
 
 - **tiredofit/db-backup** dumps its databases one after another. It retries an unreachable host forever (`Postgres Host '<container>' is not accessible, retrying.. (N seconds so far)`), so every database later in the list misses its dump. Once the host is back, the stuck job finishes on its own within seconds and writes the remaining dumps. Check:
