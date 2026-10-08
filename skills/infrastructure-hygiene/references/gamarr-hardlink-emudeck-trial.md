@@ -26,3 +26,9 @@ Use a pinned official image and native TrueNAS custom-app registration; keep app
 - Export the complete catalogue and verify declared counts programmatically; restart and compare stable record fields, not regenerated row IDs.
 - Recheck all captured existing torrent/file/config fields after testing. Distinguish connection/search success from a positive acquisition-to-seeding test. Zero search results are not a working release match.
 - Document scanner gaps, untested platforms, extraction storage overhead and disabled automation honestly. Keep operation/rollback artifacts beside app state; never put credentials in the skill.
+
+## Trigger (formerly in SKILL.md)
+
+_Moved verbatim from `SKILL.md` on 2026-10-08 during the size refactor; the skill keeps a short summary that links here._
+
+For Gamarr alongside an existing EmuDeck/RomM library, follow `references/gamarr-hardlink-emudeck-trial.md`: dedicated empty category, hardlink/error imports, startup recovery caveat, supported metadata-only scanner corrections, and full post-trial invariants. Do not assume it has Sonarr-level folder mapping or catalogue accuracy.

@@ -33,3 +33,9 @@ Use this procedure to evaluate game managers without changing canonical ROMs, se
 - No supported existing-directory metadata-only scanner was found in v1.4.2. Add a small owned sample with `POST /api/games`, selecting the correct platform/edition through IGDB, not the first search result. Quick Add forces wanted status and is unsuitable for this trial.
 - `DatabaseStorage.addGame` omits `libraryPath` and notes despite the schema accepting them. Use the supported `PATCH /api/games/<id>/notes` for provenance and describe records as metadata-only, not file imports.
 - Never call manual import confirmation or the hardlink-check endpoint during read-only evaluation; the latter performs test writes. Hardlink mode directly links the source and may fail for directories; cross-device errors can fall back to copies.
+
+## Trigger (formerly in SKILL.md)
+
+_Moved verbatim from `SKILL.md` on 2026-10-08 during the size refactor; the skill keeps a short summary that links here._
+
+For read-only comparison or replacement trials of RetroArr and Questarr, follow `references/game-manager-readonly-trials.md`: runtime UID alignment, native API authentication (including Authelia API-bypass traps), explicit automation gates, metadata-only samples and preserved torrent/library invariants.

@@ -84,3 +84,17 @@ Please confirm that you have supplied valid Cloudflare API credentials.
 Interpretation: the Cloudflare API token configured in TrueNAS's ACME DNS Authenticator is valid enough to reach Cloudflare, but Cloudflare rejects it from the current public source IP. Fix by updating the Cloudflare token client-IP restriction to include the NAS/home WAN IP shown in the error, or replacing the TrueNAS ACME authenticator token with a DNS-edit token that is not restricted away from that IP.
 
 Do not keep retrying the renewal unchanged; the job will fail repeatedly until the Cloudflare token policy/secret is corrected.
+
+## Renewal procedure (formerly in SKILL.md)
+
+_Moved verbatim from `SKILL.md` on 2026-10-08 during the size refactor; the skill keeps a short summary that links here._
+
+When Luke asks to renew TrueNAS certificates, use the TrueNAS middleware job directly and verify both job state and certificate dates:
+
+1. SSH to the NAS using the established host/key from memory, adding a scoped known_hosts file if needed.
+2. Inspect certificates first: `midclt call certificate.query` and summarize `id`, `name`, `acme`, `until`, `renew_days`, CN, and SAN without printing private keys or token values.
+3. Run renewal as a job: `midclt call -j -jp description certificate.renew_certs`.
+4. Verify after the run with `certificate.query` and recent `core.get_jobs` filtered to `certificate.renew_certs`.
+5. If Cloudflare DNS challenge fails with `Cannot use the access token from location: <WAN IP>`, interpret it as an IP-restricted Cloudflare token: the token must allow the NAS/home WAN IP or be replaced with a valid DNS-edit token. Do not treat this as a TrueNAS bug or keep retrying unchanged.
+
+See `references/truenas-acme-renewal.md` for the command pattern and the Cloudflare IP-restriction failure signature.

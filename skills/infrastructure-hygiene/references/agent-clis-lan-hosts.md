@@ -47,3 +47,9 @@ Install on the Hermes add-on instead: it is Debian/glibc, already has a scoped `
 Keep Hermes `~/.local/bin/agent` pointing at Cursor. After the Grok installer prepends `~/.grok/bin` to `PATH`, put `~/.local/bin` first again. Do not modify Hermes core under `hermes-agent/agent/`.
 
 HAOS itself is not the install target: the OS root is appliance-managed. A secondary Proxmox node that is offline is not a setup failure; retry when it is reachable.
+
+## Summary (formerly in SKILL.md)
+
+_Moved verbatim from `SKILL.md` on 2026-10-08 during the size refactor; the skill keeps a short summary that links here._
+
+Reuse the NAS Cursor/Grok/Codex/Pass pattern on other LAN hosts. Luke treats the Proxmox nodes, TrueNAS, and the PBS VM as his machines: stow `common` then `personal` on those homes. Keep binaries, Codex auth (`CODEX_HOME`), and T3/Pass units outside the Stow package. On Home Assistant, do not install glibc CLIs into the Alpine SSH add-on; use the Debian Hermes add-on `/config` and keep `cursor-agent` as the Cursor binary. See `references/agent-clis-lan-hosts.md`.

@@ -54,3 +54,12 @@ midclt call -j app.start qbitmanage
 - Re-read the parsed config and print only sanitized rule assertions.
 - If no torrent from the tracker is loaded, say that live tagging could not yet be observed; do not claim it was. The parsed rule plus successful qbit_manage run is the available verification.
 - Report unrelated integration warnings (such as Notifiarr HTTP errors) separately and do not imply they block tracker enforcement unless logs show they abort the run.
+
+## Summary (formerly in SKILL.md)
+
+_Moved verbatim from `SKILL.md` on 2026-10-08 during the size refactor; the skill keeps a short summary that links here._
+
+- For tracker-specific HnR/minimum-seed changes, inspect the live config mount first, map every announce/failover hostname to one stable tracker tag plus `private`, and select it through a buffered `share_limits` group that also requires `noHL`.
+- A RUNNING container is insufficient verification: prove the configured qBittorrent Web API endpoint works, restart with `midclt call -j app.stop/start`, and wait for `Qbt Connection Successful` plus `Finished Run`.
+- Never print private announce URLs/passkeys or qBittorrent credentials. If no matching torrent is loaded, report that live tagging remains unobserved rather than claiming it passed.
+- See `references/qbit-manage-tracker-retention.md` for the guarded edit procedure, migration-connectivity pitfall, and verification checklist. Keep tracker identities and account-specific policies out of the skill.

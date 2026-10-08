@@ -88,3 +88,13 @@ for rel in ("PS3_DISC.SFB", "PS3_GAME/PARAM.SFO", "PS3_GAME/USRDIR/EBOOT.BIN"):
 - Metadata remains identified, but identification is treated as secondary evidence.
 - Superseded filesystem copy and only its stale RomM record are removed.
 - qBittorrent source remains available for seeding unless deletion was explicitly requested.
+
+## Summary (formerly in SKILL.md)
+
+_Moved verbatim from `SKILL.md` on 2026-10-08 during the size refactor; the skill keeps a short summary that links here._
+
+- For archive-backed folder-format games, discover the live RomM host-path mount first and publish the completed game directory atomically. For PS3 JB folders, the destination shape is `<Title>.ps3/{PS3_DISC.SFB,PS3_GAME,PS3_UPDATE}` with no extra serial/release directory.
+- Normalize the **entire extracted tree** to the live RomM runtime ownership/modes before scanning; discover the runtime UID/GID rather than recording a host-specific value. Archive extractors can preserve nested directories as `0700`; fixing only the title directory lets RomM see `PS3_DISC.SFB` while silently skipping `PS3_GAME` and `PS3_UPDATE`.
+- Treat metadata identification as insufficient verification. From inside the RomM container, recursively compare file count and byte total with the host extraction, then after a complete platform scan require the RomM `RomFile` inventory and `fs_size_bytes` to match and explicitly require payload markers such as `PARAM.SFO` and `EBOOT.BIN`.
+- Replace formats conservatively: validate and publish the new folder before removing a superseded ISO; remove only that stale missing RomM record, and retain the qBittorrent payload for seeding unless deletion was explicitly requested.
+- See `references/romm-multifile-folder-ingest.md` for the safe staging sequence, deterministic permission repair, container-side red/green probe, partial-scan failure signature, and verification checklist.

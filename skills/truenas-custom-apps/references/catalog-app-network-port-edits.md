@@ -88,3 +88,33 @@ This pattern appears when a dual-IP host (primary for one role, alias for servic
 - User explicit correction: "make the DNS server ${REVERSE_PROXY_IP} then ... when I do a DNS lookup it uses .0.2 so that Seer can be seen".
 
 Update this reference whenever a similar catalog app port migration or dual-IP resolver requirement appears.
+
+## Catalog / existing app port host-IP changes (formerly in SKILL.md)
+
+_Moved verbatim from `SKILL.md` on 2026-10-08 during the size refactor; the skill keeps a short summary that links here._
+
+Catalog apps (community train) and many existing apps use the identical `user_config.yaml` layout under versions/.
+
+Typical block to target:
+```yaml
+network:
+  dns_port:
+    bind_mode: published
+    host_ips: ["${NAS_IP}"]   # the value to change
+    port_number: 53
+```
+
+Process:
+- Always `cp ... .bak.$(date +%s)` then python yaml edit.
+- **Major pitfall**: `midclt call app.stop <name> && sleep && midclt call app.start <name>` (or container restart) frequently does **not** move the published host IP. The Docker publish sticks to the old IP until a deeper update/upgrade or UI-triggered redeploy. Always verify with `docker inspect <ix-...> --format '{{json .NetworkSettings.Ports}}'` and `ss -tuln | grep :53`.
+
+When the user explicitly wants a particular alias to be the *client DNS server* (the one DHCP distributes and clients actually query for internal rewrites), do not wait for the app binding. Add a host-level iptables DNAT bridge right away:
+
+```bash
+iptables -t nat -A PREROUTING -d ${REVERSE_PROXY_IP} -p udp --dport 53 -j DNAT --to-destination ${NAS_IP}:53
+# same for tcp + the OUTPUT chain for local-origin tests
+```
+
+Persist with a small idempotent script + `@reboot` root cron (or TrueNAS Post Init). Resolve the private test hostname from `~/.agents/private-context.md`; see `references/catalog-app-network-port-edits.md` for verification and cleanup.
+
+Goal-clarification note (from user correction in session): Before touching DHCP or port publishes on dual-IP hosts, explicitly restate and confirm "the IP we want clients to use as their DNS resolver" vs "the IP the resolver will return as the A record for the service". Conflating the two produced the "I really don't think you're understanding me here" signal.

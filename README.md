@@ -54,4 +54,4 @@ python3 scripts/check-public-safety.py
 DISABLE_TELEMETRY=1 npx --yes skills@latest add . --list
 ```
 
-The repository's safety check rejects common secret formats, private keys, private network addresses, private-domain markers, emails, and tracked private-context files. GitHub Actions runs the same check on pushes and pull requests.
+The repository's safety check rejects common secret formats, private keys, private network addresses, private-domain markers, emails, and tracked private-context files. It also runs `scripts/check_skill_size.py`, which fails any `skills/*/SKILL.md` over 200 lines and warns above 100. GitHub Actions runs the same check on pushes and pull requests.

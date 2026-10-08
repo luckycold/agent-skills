@@ -82,3 +82,9 @@ name can silently fall back to Monday in the inspected importer.
 Ordinary Immich `pg_dump` backups do not create PostgreSQL roles. If a backup
 contains a custom read-only view grant, pre-create its grantee role before an
 isolated restore test. Follow the matching Immich release's restore procedure.
+
+## Trigger (formerly in SKILL.md)
+
+_Moved verbatim from `SKILL.md` on 2026-10-08 during the size refactor; the skill keeps a short summary that links here._
+
+For Immich backups using the official Proton Drive CLI, see `references/immich-proton-cli-verification.md` for verified JSON formats, deletion proofs, polling tests, and maintained filesystem-backup pitfalls.

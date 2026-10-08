@@ -45,7 +45,7 @@ Do not write a skill for a one-off result, transient status, speculation, or inf
    - Create a new skill only when no existing Luke-authored skill is a natural home.
 4. Apply the safety filter below.
 5. Verify frontmatter, relative links, commands, and consistency with the observed system.
-6. Run the canonical repository's public-safety check and treat any finding as blocking.
+6. Run the canonical repository's public-safety check (`python3 scripts/check-public-safety.py`) and treat any finding as blocking. It also runs `scripts/check_skill_size.py`, which fails a `SKILL.md` over 200 lines and warns above 100. Fix that by moving detail into linked `references/`, not by dropping content.
 7. Review the repository diff, commit and push the safe verified change to `luckycold/agent-skills`.
 8. In the user-facing final response, explicitly name every skill created or updated and include the resulting pushed commit. Never leave a skill change implicit.
 

@@ -54,3 +54,9 @@ Use this for a completed PS3 torrent that is a multipart scene archive and shoul
 - Use PS3-specific tooling for folder-to-ISO conversion; generic disc-image tools can produce an image that looks mountable but is not correct for PS3 tooling/emulators.
 - Keep scans platform-scoped to avoid unnecessary whole-library metadata churn.
 - Remove disposable staging, build clones, conversion images, and accidental partial files after successful verification.
+
+## Summary (formerly in SKILL.md)
+
+_Moved verbatim from `SKILL.md` on 2026-10-08 during the size refactor; the skill keeps a short summary that links here._
+
+For completed PS3 scene archives, discover qBittorrent and RomM paths from live container mounts, validate every multipart RAR volume, distinguish a JB/folder payload from an existing ISO, and retain the source in place for seeding. Convert folder games with PS3-aware `makeps3iso` tooling rather than generic ISO utilities, publish atomically into the live `roms/ps3` directory, then run a PS3-scoped RomM scan and verify the exact database row, title match, size, metadata IDs, and artwork. RomM filesystem and scheduled rescans may both be disabled, so a successful file copy is not proof of ingestion. See `references/truenas-romm-ps3-imports.md` for the validated disposable-Docker workflow, the `makeps3iso` auto-appended-extension pitfall, internal RQ scan fallback, cleanup, and verification checklist.

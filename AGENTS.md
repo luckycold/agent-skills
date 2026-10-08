@@ -29,7 +29,7 @@ That is the skills.sh (`skills`) CLI: `add luckycold/agent-skills --skill '*' --
 Luke-authored personal skills are canonical under `~/.agents/skills/` and have top-level `author: Luke` frontmatter.
 
 - Keep each skill under `skills/<skill-name>/` with a valid `SKILL.md` entrypoint.
-- Keep `SKILL.md` focused: target about 100 lines for a simple skill and 200 lines for a complex skill (Hermes' historical authoring guidance; still a useful size target for every agent). If it grows beyond that, move detailed procedures, examples, and historical notes into directly linked `references/`; put deterministic helpers in `scripts/`. Do not shorten at the expense of correctness, but treat an oversized `SKILL.md` as something to refactor before committing.
+- Keep `SKILL.md` focused: target about 100 lines for a simple skill and 200 lines for a complex skill (Hermes' historical authoring guidance; still a useful size target for every agent). If it grows beyond that, move detailed procedures, examples, and historical notes into directly linked `references/`; put deterministic helpers in `scripts/`. Do not shorten at the expense of correctness, but treat an oversized `SKILL.md` as something to refactor before committing. `scripts/check_skill_size.py` (run by `scripts/check-public-safety.py` and CI) fails any `skills/*/SKILL.md` over 200 lines and warns above 100.
 - Load the relevant personal skill before acting on Luke's infrastructure, authentication, automation, or agent-maintenance work.
 - Use `personal-skill-maintenance` when creating, correcting, consolidating, or extending personal skills.
 - Never self-modify third-party, bundled, system, or project-owned skills.

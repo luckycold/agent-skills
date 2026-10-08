@@ -54,3 +54,9 @@ These are research leads, not permanent prices:
 ## Compact output format
 
 Use a table with: **app/function | best hosted/subscription option | current price | privacy architecture + equivalent verdict | main limitation | official URLs**. Keep the overall conclusion short and explicit: which options are policy-based compromises, which consolidate economically, and which have no satisfactory replacement.
+
+## Assessment rule (formerly in SKILL.md)
+
+_Moved verbatim from `SKILL.md` on 2026-10-08 during the size refactor; the skill keeps a short summary that links here._
+
+When Luke asks for hosted or subscription alternatives to TrueNAS media/library/game apps, apply a strict architecture test: TLS, GDPR, private tenancy, at-rest encryption, or a staff non-access policy are not self-hosting-equivalent if the provider controls compute/storage or the running server can decrypt content. Identify the exact function, price storage/GPU/bandwidth separately, distinguish managed-same-app from partial SaaS substitutes, avoid acquisition automation when the *Arr suite is excluded, and say **no equivalent exists** where appropriate. Prefer a compact table with official URLs and an explicit equivalence verdict. See `references/truenas-hosted-privacy-alternatives.md` for the reusable workflow, August 2026 research leads, and functional caveats.

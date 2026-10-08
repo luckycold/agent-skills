@@ -74,3 +74,12 @@ Check the current [official CLI documentation](https://github.com/ProtonDriveApp
 ## Upgrade
 
 Change image tag in `user_config.yaml` + `templates/rendered/docker-compose.yaml`, `app.stop` / `app.start`, or `docker compose pull` on project `ix-<name>` then recreate via Apps UI.
+
+## FUTO Notes summary (formerly in SKILL.md)
+
+_Moved verbatim from `SKILL.md` on 2026-10-08 during the size refactor; the skill keeps a short summary that links here._
+
+- No repo clone: curl upstream production compose + env example; `docker pull` on NAS.
+- Register as custom app `futo-notes`: server + Postgres, data under `/mnt/Apps/Applications/futo-notes/data/`, and a private-domain Traefik route without Authelia.
+- Full recipe: `references/upstream-compose-multi-service-apps.md`.
+- **Blob volume permissions:** the server image runs as `bun` (uid **1000**). After creating `/mnt/Apps/Applications/futo-notes/data/blobs`, run `chown -R 1000:1000` on `blobs/` or sync uploads fail with `EACCES: permission denied, mkdir '/data/blobs/<user-id>'` while the client still shows “syncing”.

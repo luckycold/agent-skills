@@ -114,3 +114,9 @@ Never retain the literal MCP bearer token in references, memory, logs, or summar
 - Preserve the pre-change auth dump until the new login and restart-persistence checks pass.
 - If the password change succeeds but the email transaction fails, recovery is the old email with the new password; do not blindly restore the full database.
 - Report the resulting login email/display name, but refer to the password as “the Authelia password stored in Proton Pass.”
+
+## Pitfall summary (formerly in SKILL.md)
+
+_Moved verbatim from `SKILL.md` on 2026-10-08 during the size refactor; the skill keeps a short summary that links here._
+
+- **Reusing a Home Assistant add-on image as a TrueNAS custom app:** A prebuilt add-on image can be the cleanest upstream artifact when it includes its own database and launcher. Mount `/mnt/Apps/Applications/<name>/data` to `/data`, seed the add-on's expected `/data/options.json`, and preserve that directory. Ensure the bind root is traversable by internal service users (`chmod 755 .../data` when appropriate): a root-owned `0770` bind root can let the launcher `chown /data/postgres` yet still make `initdb` fail with `Permission denied` because the container's `postgres` user cannot traverse `/data`. After correcting permissions, stop/start through `midclt`, require both app `RUNNING` and container health `healthy`, then verify database health, authenticated login, and persistence across another managed stop/start.

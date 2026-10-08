@@ -63,3 +63,19 @@ An IPv4-only UniFi wildcard override can return the local app address for `A` wh
 For a Cloudflare Error 1027, distinguish the separate Worker quota failure from the LAN routing fault: the Workers Free account allowance is 100,000 requests per day and resets at midnight UTC. Confirm the current limit in official documentation. A DNS-edit token does not establish access to Worker routes or analytics; require appropriately scoped authenticated access before attributing quota exhaustion to a particular Worker or traffic source. Do not change billing or public routes based only on the error page.
 
 References: [UniFi DNS policies](https://help.ui.com/hc/en-us/articles/15179064940439-UniFi-DNS-Records-and-Local-Hostnames), [AdGuard domain-specific upstreams](https://adguard-dns.io/kb/adguard-home/configuration/#specifying-upstreams-for-domains), [Cloudflare Workers limits](https://developers.cloudflare.com/workers/platform/limits/).
+
+## AdGuard DNS IP vs Traefik app IP (formerly in SKILL.md)
+
+_Moved verbatim from `SKILL.md` on 2026-10-08 during the size refactor; the skill keeps a short summary that links here._
+
+On Luke's TrueNAS host, distinguish the DNS service IP from the Traefik app-routing IP before changing DNS/app records:
+
+- If Luke asks for the DNS server to be `${NAS_IP}`, update the TrueNAS-managed `adguard-home` app `network.dns_port.host_ips` via `midclt call -j app.update`, not rendered compose files.
+- Do **not** blindly change app hostname rewrites from the private app wildcard/route host to the NAS UI address: on this host, the private context distinguishes Traefik's address from the TrueNAS nginx/UI address.
+- If TrueNAS Apps show Docker DNS failures such as `lookup ... on 127.0.0.11:53: server misbehaving` or cloudflared resolves a private internal origin to public Cloudflare IPs, check the **TrueNAS host** resolver and the actual AdGuard published listener together. The safe invariant is: `midclt call network.configuration.config.nameserver1` must point at the IP where the `adguard-home` app actually publishes port 53. Resolve exact domains and addresses from `~/.agents/private-context.md`. After changing host DNS or app DNS binding, redeploy/restart affected apps so containers regenerate `/etc/resolv.conf`.
+- Verify separately: `dig @${NAS_IP} <host> A` for DNS reachability, and `curl --resolve <host>:443:${REVERSE_PROXY_IP} https://<host>/` for Traefik routing.
+- See `references/truenas-adguard-dns-and-traefik-ips.md` for the safe update command pattern and verification checklist.
+- See `references/truenas-docker-dns-recovery.md` for the Authelia/Cloudflared/Traefik outage recovery pattern when bad host DNS propagates into Docker's embedded resolver.
+- See `references/truenas-cloudflared-adguard-dns-origin-resolution.md` for the private photo-service class: a cloudflared internal origin resolves publicly because TrueNAS/Docker DNS points at the wrong AdGuard listener.
+- See `references/truenas-plex-docker-dns-recovery.md` for the Plex-specific pattern: local Plex port healthy but MyPlex/remote unavailable because the container still has stale Docker `ExtServers`; verify container `plex.tv` DNS and redeploy Plex/related apps through TrueNAS.
+- See `references/truenas-ninerouter-9router-maintenance.md` for Luke's `ninerouter` / 9Router custom app update pattern: migrate away from old copied `/app` runtime mounts, use the official `decolua/9router:latest` image, preserve `/app/data`, and verify `/api/version` plus the private route domain from the private context.

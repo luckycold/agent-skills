@@ -98,3 +98,12 @@ ssh -i "$NAS_SSH_KEY" -o BatchMode=yes -o StrictHostKeyChecking=yes \
 - Always use the proton-pass-agent with reason for locating the original Proton Mail item; never bypass consent.
 
 This reference should be updated (via patch or additional write) whenever a new custom app reveals a variation in the required files or midclt behavior.
+
+## ninerouter image update example (formerly misfiled under Glance in SKILL.md)
+
+_Moved verbatim from `SKILL.md` on 2026-10-08 during the size refactor; the skill keeps a short summary that links here._
+
+- Original: oven/bun:1.3.2-alpine image + custom command.
+- Updated to: decolua/9router:latest (official), removed command/working_dir, simplified volumes to data mount only.
+- Process: Backup user_config.yaml with timestamped .bak, python yaml edit, trigger update.
+- Result: App continued as RUNNING custom_app with new version in runtime.

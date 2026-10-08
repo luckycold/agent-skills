@@ -139,3 +139,11 @@ Add MCP servers/connectors individually and test each. Do not bulk-copy Hermes `
 - App server uses local Unix socket; no public listener.
 - Manual pair API returns a real code and environment ID.
 - Mobile read-only smoke confirms correct host, user, workspace, and skills.
+
+## Summary (formerly in SKILL.md)
+
+_Moved verbatim from `SKILL.md` on 2026-10-08 during the size refactor; the skill keeps a short summary that links here._
+
+When Luke wants a Hermes-like NAS agent through the ChatGPT app, treat Codex Remote as a separate host-agent migration: inspect the existing user installation and app-server first; place personal skills under `~/.agents/skills/` (not the internal `~/.codex/skills/.system` tree); use concise global `~/.codex/AGENTS.md` guidance; verify both through `codex debug prompt-input`; and keep app-server transport on SSH/local Unix sockets. Skills do not carry Hermes sessions, Mem0, MCP credentials, cron, or gateway integrations, so inventory and recreate those selectively.
+
+If a manually started app server blocks managed bootstrap, verify that no rollout is active, terminate only the exact matched unmanaged process after scope approval, then use Codex's own `app-server daemon bootstrap --remote-control` and verify the managed daemon before generating a short-lived mobile pairing code. See `references/codex-truenas-remote-control.md` for the validated reconnaissance, skill mirroring, Memories, unmanaged-to-managed conversion, pairing, security, and smoke-test workflow.

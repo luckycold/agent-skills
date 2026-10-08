@@ -67,3 +67,17 @@ Update this reference with any new token scope discoveries, alternative file-acc
 
 ## Session Origin
 Derived from investigation after the user asked whether the agent could "modify SSH access in the SSH add-on" and "enable it yourself" via the API (June 2026 session). The preference for disabled-by-default was stated explicitly.
+
+## Rule summary (formerly in SKILL.md)
+
+_Moved verbatim from `SKILL.md` on 2026-10-08 during the size refactor; the skill keeps a short summary that links here._
+
+Luke's explicit preference is to keep the **SSH & Web Terminal add-on disabled by default** and only enable it temporarily ("as needed") when direct read/write access to files under `/config` (e.g. automations.yaml and split files, configuration.yaml includes, etc.) is required.
+
+See `references/ha-ssh-addon-temporary-access.md` for the detailed workflow and the key limitation discovered in this session: the tokens available to Hermes (long-lived HASS_TOKEN and SUPERVISOR_TOKEN/HASSIO_TOKEN) only allow regular HA API access. Supervisor/hassio addon management endpoints return 401 Unauthorized or 403 Forbidden. `ha_call_service` for the hassio domain is blocked. Therefore the agent cannot self-enable the add-on via API — the user must perform the UI toggle when file work is needed, then disable it afterward.
+
+Additional notes:
+- HA itself is not running as a TrueNAS app (no entry in `midclt call app.query` on ${NAS_IP}; resolves to ${HOME_ASSISTANT_IP} from the Hermes container).
+- Prefer the temporary manual enable pattern over persistent authorized keys or always-on SSH.
+
+This is a hygiene rule for the HA portion of the stack.

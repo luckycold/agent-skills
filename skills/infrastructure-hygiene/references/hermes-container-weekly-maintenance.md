@@ -316,3 +316,22 @@ HAOS container, root, HOME=/config, Debian 12/glibc 2.36, Hermes **v0.21.0 (2026
 - Kagi MCP is **mcporter-nested**; test `mcporter` not `kagi`.
 - Schema probe lives under `/config/agent-skills/skills/infrastructure-hygiene/references/`.
 - Tirith blocks `cmd | python3`; use `python3 -c`/`subprocess`.
+
+## Maintenance rules (summary formerly in SKILL.md)
+
+_Moved verbatim from `SKILL.md` on 2026-10-08 during the size refactor; the skill keeps a short summary that links here._
+
+For Luke's dedicated Hermes container, treat `/config` as the active home in the Home Assistant/add-on layout; `/home/hermes` may be legacy or absent. Keep the run conventional and low-risk:
+
+- Inspect first: OS/kernel, disk, Hermes version/status, gateway status, MCP list, and git status of the active checkout (`/config/.hermes/hermes-agent` unless proven otherwise).
+- Do not create/modify cron jobs during **unattended** maintenance runs unless Luke explicitly asks. When Luke directs you to **fix the weekly maintenance report** (or its follow-up list), updating `weekly-tooling-maintenance` in `/config/.hermes/cron/jobs.json` (workdir, `/config` paths, kagi-cli pin text) is in scope.
+- When Luke asks to execute maintenance **follow-ups** (not just re-report), run the checklist in `references/hermes-container-weekly-maintenance.md` § **2026-07-05 follow-up execution** — disk (linuxbrew `.cellar`), `hermes update` + cherry-pick of HA/Kagi local commit, MCP adapter for subscriber summarize, config noise cleanup, and document that gateway reload requires **HA add-on restart** when blocked in-process. When the user *does* explicitly request a new hygiene/monitoring cron, create it via the `hermes cron create` subcommand (see `references/hermes-cron-creation.md`).
+- Do not print secrets, auth files, tokens, connection strings, or raw `.env`/credential contents.
+- Prefer safe package maintenance only: apt metadata refresh, noninteractive upgrade, autoremove/autoclean/clean. If the container is already root and `sudo` is unavailable, running apt directly is the equivalent path.
+- Update user-local npm globals with the existing prefix, but **never `npm update -g`** (with or without package names): it can **downgrade** (verified: mcporter 0.13.8 → 0.9.0). Install explicit versions: `npm install -g <pkg>@<ver> --prefix /config/.npm-global`. **pin/fallback `kagi-cli@0.12.0`** on this HAOS/bookworm image (0.13+ needs glibc 2.39; use `kagi-cli-update-safe.sh`). **Pin `mcporter@0.13.8`** while Node is 22.x; 0.13.10+ declares `engines.node >=24` and `mcporter list` fails with a legacy daemon-migrate error on Node 22. Do not run `mcporter daemon migrate --stop-legacy` from unattended maintenance.
+- Run `hermes config migrate`, `hermes config check`, and `hermes doctor` after routine updates.
+- For newly announced Grok/xAI OAuth models, use the supported provider catalog + config path and a real one-shot `hermes chat --provider xai-oauth -m <model>` smoke; see `references/hermes-xai-oauth-new-model-enablement.md`. Do not patch protected Hermes core/provider code just to add a new `grok-*` slug. After switching main model to Grok, set **`model.context_length` to the real window** (Grok 4.5 is **500000**, not leftover 1M from Codex/GPT-5.5).
+- Be conservative with `hermes update`/image upgrades when Hermes reports a container image update path, the git checkout is dirty, or the repo is many commits behind. Report and defer unless there is a safe rollback path and local-change audit.
+- Restart the gateway only when needed for config/tool changes and only through an approved/safe mechanism; if an approval guard blocks restart in unattended cron, report that a controlled restart is needed rather than bypassing it. After switching Kagi MCP registration, `hermes mcp test` may pass immediately while the long-lived gateway still serves the old stdio command until restart or `/reload-mcp`.
+- If `git status` shows **`UU` / conflict markers** in `agent/file_safety.py` (or any core path), fix before relying on file/terminal tools — unresolved markers cause `SyntaxError` and break `file_tools` / terminal cleanup (visible in `gateway.log` as `Could not import tool module tools.file_tools`). Resolve by aligning with `origin/main` for the conflict hunk, `git add`, then verify `python3 -c "from agent.file_safety import get_read_block_error"` from the repo root.
+- Tidy only conventional caches/log rotations. Do not delete repos, auth files, sessions, skills, cron jobs, memories, imports, or backups without explicit instruction.

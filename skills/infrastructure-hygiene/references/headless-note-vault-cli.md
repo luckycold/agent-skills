@@ -74,3 +74,9 @@ Installation is not complete vault setup. Require all of the following before cl
 7. Only then configure a durable continuous-sync process, and verify it survives the intended service/container lifecycle.
 
 Do not claim a configured vault when only the package installation passed or the local-vault list is empty.
+
+## Summary (formerly in SKILL.md)
+
+_Moved verbatim from `SKILL.md` on 2026-10-08 during the size refactor; the skill keeps a short summary that links here._
+
+When Hermes needs Obsidian access from the display-less Home Assistant add-on/container, distinguish the desktop-linked official `obsidian` CLI from the standalone official `obsidian-headless` client (`ob`). Prefer `ob` for Obsidian Sync, then operate on the downloaded Markdown vault with file tools. Use the bundled skill's default vault path (`/config/Documents/Obsidian Vault` here) unless a real requirement calls for an override; package installation alone is not completed vault setup. See `references/headless-note-vault-cli.md` for selection, installation, Proton Pass credential handling, initial sync, and verification.

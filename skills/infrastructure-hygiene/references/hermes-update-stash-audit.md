@@ -31,3 +31,17 @@ A Hermes update left local changes involving Kagi search and Home Assistant dash
 - **Keep** HA add-on dashboard patches in `web/src/lib/api.ts` and `web/vite.config.ts` and `hermes_cli/dashboard_auth/prefix.py` — commit on a branch, run `hermes update`, then **`git cherry-pick`** the integration commit onto updated `main`.
 
 This preserves Luke's preferred Kagi search path and HA dashboard base-path behavior without carrying hacky Hermes core/provider-routing drift.
+
+## Stash hygiene rules (formerly in SKILL.md)
+
+_Moved verbatim from `SKILL.md` on 2026-10-08 during the size refactor; the skill keeps a short summary that links here._
+
+When a Hermes update stashes or surfaces local harness changes, actively audit and reduce them instead of blindly reapplying everything:
+
+- Inspect both the current working tree and all stash entries; classify each changed path by blast radius.
+- Keep only narrow, concrete local integrations that use supported extension seams, such as a plugin or explicit local configuration hook.
+- Drop changes that alter Hermes core harness behavior, model/provider connection semantics, global fallback ordering, or bundled dashboard source. Exception: keep Luke-approved Home Assistant add-on dashboard base-path compatibility patches; verify them against the prior autostash/add-on copy instead of treating them as disposable harness hacks.
+- Prefer a plugin/config/wrapper boundary over editing `agent/`, provider registries, or dashboard internals. If a local integration needs a core hook, make it the smallest explicit-backend hook rather than a global behavior change.
+- Verify with `git diff --check`, syntax checks for touched files, a focused smoke test, and a final `git status --short --branch` showing only intentional local integration files.
+
+See `references/hermes-update-stash-audit.md` for the reusable audit checklist and the Kagi-vs-core-provider-routing example.

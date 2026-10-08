@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Fail when public skill files contain likely secrets or private context."""
+"""Fail when public skill files contain likely secrets or private context.
+
+Also runs the SKILL.md size check (scripts/check_skill_size.py).
+"""
 
 from __future__ import annotations
 
@@ -7,6 +10,9 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import check_skill_size  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 FORBIDDEN_BASENAMES = {
@@ -90,6 +96,9 @@ def main() -> int:
                 if pattern.search(line):
                     findings.append(f"{rel}:{line_number}: {label}")
 
+    size_errors, size_warnings = check_skill_size.check(ROOT)
+    check_skill_size.report(size_errors, size_warnings)
+
     if findings:
         print("Public-safety scan failed:", file=sys.stderr)
         for finding in findings:
@@ -97,7 +106,7 @@ def main() -> int:
         return 1
 
     print(f"Public-safety scan passed ({len(candidate_files())} files checked).")
-    return 0
+    return 1 if size_errors else 0
 
 
 if __name__ == "__main__":

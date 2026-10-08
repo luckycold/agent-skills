@@ -64,3 +64,13 @@ Before raising an orphan threshold or deleting anything:
 - 5–10 representative samples
 - Whether any deletion actually occurred
 - Explicit statement that no files were changed during a read-only audit
+
+## Rules (formerly in SKILL.md)
+
+_Moved verbatim from `SKILL.md` on 2026-10-08 during the size refactor; the skill keeps a short summary that links here._
+
+When changing private-tracker minimum seed times, first mirror the existing tracker-tag/share-limit convention, cover alternate announce hosts, and distinguish the tracker rule's category scope from the separately enumerated `nohardlinks` categories. A universal tracker rule omits `categories:`, but qbit_manage hard-link checks still require every real qBittorrent category explicitly; preserve a manual `keep` override unless Luke directs otherwise.
+
+When qbit_manage reports a large orphan set, do not raise the safety threshold or infer that the data is disposable. Compare every candidate against all live qBittorrent file manifests, check same-name/size near matches, and inspect device/inode/link count to distinguish stale download-only files from download-side links whose media-library hard links remain valid. Keep this audit read-only until cleanup is separately approved.
+
+See `references/truenas-qbit-manage-retention-and-orphan-forensics.md` for the full backup/edit/reload verification flow, multi-host tracker tagging, category-enumeration pitfall, API manifest comparison procedure, hard-link proof, and concise reporting template.

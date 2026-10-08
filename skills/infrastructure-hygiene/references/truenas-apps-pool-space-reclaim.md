@@ -99,3 +99,9 @@ Deleting files under snapshotted datasets (`Apps/backups` 1‑month dailies, `Ap
 - [ ] Target apps still RUNNING (Immich/Plex/Karakeep/Backrest as applicable)
 - [ ] `docker system df` Images reclaimable not still ~90%
 - [ ] No accidental delete of `/mnt/Apps/Applications/<live-app>` or `/mnt/Media/Photos`
+
+## Trigger (formerly in SKILL.md)
+
+_Moved verbatim from `SKILL.md` on 2026-10-08 during the size refactor; the skill keeps a short summary that links here._
+
+When Luke reports the Apps pool / apps folder near full, follow `references/truenas-apps-pool-space-reclaim.md` (inventory → Docker unused-image prune first → verify mounts before deleting leftovers / legacy datasets).

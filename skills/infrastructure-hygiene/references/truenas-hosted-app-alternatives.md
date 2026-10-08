@@ -54,3 +54,18 @@ Revalidate before reuse.
 ## Tool/research pitfall
 
 If bulk text extraction is unavailable, do not reduce evidence quality or repeat the same failing extractor. Pivot to official-site browser rendering plus targeted official-domain search snippets. For dynamic pricing pages, inspect rendered `document.body.innerText`; it often contains prices omitted from the accessibility snapshot. Treat this as a retry strategy, not a durable claim that any extraction tool is broken.
+
+## Research rules (formerly in SKILL.md)
+
+_Moved verbatim from `SKILL.md` on 2026-10-08 during the size refactor; the skill keeps a short summary that links here._
+
+When Luke asks whether a user-facing TrueNAS app can move to hosted SaaS, treat privacy architecture as a technical property, not a marketing adjective:
+
+- Distinguish true client-side **zero-knowledge/E2EE** from encryption at rest, EU hosting, no-ad policies, and promises of limited staff access.
+- Never describe ordinary managed hosting as “as private as self-hosting” when the operator controls the application runtime, database, backups, or encryption key.
+- For genuine E2EE, verify separately whether content and meaningful app metadata (filenames, tags, EXIF/location, notebook names) are encrypted; still disclose residual account/network/billing/storage metadata.
+- Prefer official pricing, privacy, cryptography, and feature-limit pages. Include billing cadence, currency, free-tier limits, and “from” resource-pricing caveats.
+- Evaluate the functional loss as well as privacy: LAN-only reachability, NAS/external libraries, server plugins, P2P behavior, AI subprocessors, or reduced monitoring/widgets.
+- Report a compact comparison table and a short verdict that clearly separates true ZK-E2EE candidates from policy-based managed plaintext.
+
+See `references/truenas-hosted-app-alternatives.md` for the reusable workflow, privacy taxonomy, dynamic-pricing research fallback, and the 2026-08-06 market snapshot for Notesnook, PikaPods, Ente, Karakeep Cloud, Start.me, Filen, and Carrd.

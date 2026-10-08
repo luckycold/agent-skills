@@ -46,246 +46,58 @@ See `references/hermes-harness-boundary.md` for the incident that established th
 - **Live Stow profile changes:** Do not unstow an entire active persona merely to relocate one subset. Required files can disappear between commands and trigger live reload failures (for example, Hyprland reporting a missing `hypr.autostart` module). Prepare the replacement first, relink/restow the narrow paths without a gap, then validate affected runtimes. For Hyprland, run `hyprctl reload` followed by `hyprctl configerrors`.
 - **Desktop configuration deployment:** Identify the host running the user's desktop and its active configuration before claiming a shortcut change is applied. Editing or pushing a headless host's dotfiles checkout does not update another host. Update the desktop checkout, verify the active Stow link and dry run before any restow, reload the affected runtime, and inspect the loaded binding. If desktop access is unavailable, report the saved change separately from deployment and provide the exact command the user can run on that desktop.
 
-## Preparing appliance storage on another Linux host
-
-After using a desktop disk utility to take ownership of an appliance filesystem for staging files, restore its filesystem root to the owner expected by the appliance before booting it. For a root-managed Linux appliance this is normally `root:root`; inspect its image and shipped configuration first. Change only the affected directory rather than recursively rewriting games or user data. A host user owning the filesystem root can cause systemd-tmpfiles to reject transitions into root-owned subdirectories, leaving native overlay work directories missing and emulator or service mounts unavailable.
-
-When logs show `Detected unsafe path transition` followed by missing overlay work directories, verify directory ownership, restore the expected owner, rerun the shipped tmpfiles configuration, and start the shipped failed mount units. Check that the required files are accessible, then verify after reboot when the user is out of any active workload. Preserve current saves and settings; use the emulator's native no-save mode for diagnostic runs. Prefer this native initialization repair over custom startup scripts or replacement mount units.
-
 ## Pitfalls to Avoid
 - Local modifications to protected harnesses
 - Leaving behind temporary or `tmp/.cellar` style installations
 - Explaining what you will do instead of doing it when the user has already approved
 - **Do not reintroduce `wg-home-auto`.** Luke retired the periodic Proton/home WireGuard SSID auto-switcher (30s systemd timer plus `/usr/local/bin/wg-home-auto`) as more trouble than help. It is gone from the dotfiles repo; if leftovers remain on a host, disable the timer and delete the unit/script rather than restoring them from git history. Leave existing `/etc/wireguard/*.conf` tunnels unless he asks to remove those too.
 
-## Kagi search/MCP in Luke's Hermes container
+## Appliance storage prepared on another host
 
-For Kagi CLI install, `web.search_backend`, MCP registration, and verification checklists, cross-check **`hermes-agent`** docs/skills for search wiring when needed.
+Before booting an appliance whose filesystem you staged from a desktop, restore its filesystem root to the owner the appliance expects (normally `root:root`). Change only that directory, not games or user data. A `Detected unsafe path transition` error from systemd-tmpfiles is the signature. Prefer the shipped tmpfiles/mount-unit repair over custom startup scripts. See `references/appliance-storage-ownership.md`.
 
-Container-specific hygiene only:
-- Verify paths against the active layout (`/config` in the Home Assistant add-on, not legacy `/home/hermes`). Cron jobs or workdirs still pointing at `/home/hermes/.hermes/...` will warn at runtime — report for Luke to fix; do not edit cron during unattended maintenance unless explicitly asked.
-- **npm prefix:** `/config/.npm-global` (`export PATH` includes `/config/.npm-global/bin` or use `npm --prefix /config/.npm-global …`).
-- **kagi-cli version pin (HAOS/bookworm):** Do **not** rely on blind `npm update -g` for `kagi-cli` on this image. **0.13+** (verified through npm latest `0.19.0` on 2026-09-06) require **GLIBC_2.39** while the container ships **glibc 2.36**. **Newest runnable npm release here: `kagi-cli@0.12.0`** (binary reports `kagi 0.12.0`). Use **`/config/.hermes/scripts/kagi-cli-update-safe.sh`** (tries latest, falls back to `0.12.0`) in weekly maintenance and after accidental bumps. Re-test schemas with `references/kagi-mcp-schema-probe.py` then `hermes mcp test mcporter` (kagi is nested; a top-level `kagi` MCP name is not registered).
-- **Schema probe after every kagi-cli bump** (decides adapter vs native):
-  - Prefer **`python3` references/kagi-mcp-schema-probe.py** from this skill (or a single inline `python3 -c '...'` subprocess probe) — no shell pipe into `python3` — so unattended/cron terminal runs avoid Tirith `pipe_to_interpreter` approval blocks.
-  - Call `/config/.npm-global/bin/kagi mcp --json-lines` with initialize + `tools/list`; require explicit `properties` on `kagi_search`, `kagi_quick`, `kagi_summarize`, `kagi_news`, `kagi_news_search`.
-  - **If typed:** keep the native kagi stdio wrapper (`/config/.local/bin/kagi-mcp` → `kagi mcp` with `HOME=/config`). On this host Kagi is **not** a top-level `mcp_servers.kagi` entry — it is nested under **mcporter** (`command: /config/.local/bin/mcporter-mcp`, `MCPORTER_SERVERS=kagi,context7,gh_grep`). Verify with `hermes mcp test mcporter` (expect **9** tools: 6 kagi + context7 + gh_grep). `hermes mcp test kagi` reporting "Server 'kagi' not found" is expected. **Do not** use the agent `patch`/`write_file` tools on `~/.hermes/config.yaml` — they are blocked. The legacy typed adapter `hermes-kagi-mcp.py` remains fallback documentation only (native MCP summarize/extract still need `KAGI_API_TOKEN`; subscriber summarize is CLI `--subscriber`). Schema probe path: `references/kagi-mcp-schema-probe.py` in this skill (`/config/agent-skills/skills/infrastructure-hygiene/references/...`). The old `/config/.hermes/skills/devops/infrastructure-hygiene/...` path is gone — `kagi-cli-update-safe.sh` must search the agent-skills path first.
-  - **Session auth sync:** `kagi auth status` reads `/config/.config/kagi-cli/config.toml`. If credentials exist only in `/config/.kagi.toml`, run `kagi auth set --session-token <token>` with `HOME=/config` (never print the token in reports). Without this, `hermes mcp test` may pass while live `tools/call` fails with `KAGI_SESSION_TOKEN`.
-  - **Summarize smokes:** MCP `kagi_summarize` may require **`KAGI_API_TOKEN`** (public API path). Subscriber/session summarize works via CLI: `kagi summarize --url <https-url> --subscriber --length overview` with `HOME=/config`. Report the gap if agent sessions need summarize without a public token.
-  - **If still empty `{type: object}` only:** keep `hermes-kagi-mcp.py` behind the wrapper; do not patch Hermes core for Kagi.
-- **Auth for smokes:** `hermes mcp test` only checks connect/list. Bounded CLI/API smokes need `KAGI_SESSION_TOKEN` or `kagi auth set --session-token` in `/config/.config/kagi-cli/` — report missing session without printing tokens.
-- Keep Kagi integration outside the Hermes core repo — no provider-specific edits under `agent/` or `tools/` except **resolving accidental merge-conflict markers** in the checkout (see weekly maintenance reference).
+## Hermes container (Home Assistant add-on)
 
-## Hermes Container Weekly Maintenance
+- **Weekly maintenance:** treat `/config` as home. Inspect before changing anything. Never print secrets. Never run `npm update -g`; install pinned versions instead (`kagi-cli@0.12.0` on glibc 2.36, `mcporter@0.13.8` on Node 22). Don't create or edit cron during unattended runs. Be conservative with `hermes update` and gateway restarts. Fix `UU`/conflict markers in core files before relying on tools. Full rules and follow-up checklists: `references/hermes-container-weekly-maintenance.md`.
+- **Kagi search/MCP:** Kagi is nested under the **mcporter** MCP, not a top-level `kagi` server. Re-probe schemas after every kagi-cli bump with `references/kagi-mcp-schema-probe.py`. Keep Kagi outside Hermes core. See `references/hermes-kagi-mcp.md`.
+- **Cron jobs:** use `hermes cron create` with a self-contained prompt, explicit `--skill`, and `deliver=local` for low-noise jobs. See `references/hermes-cron-creation.md`.
+- **Update/stash hygiene:** audit stashed local changes by blast radius. Keep only narrow integrations at supported seams, plus Luke-approved HA dashboard base-path patches. Drop core/provider/fallback changes. See `references/hermes-update-stash-audit.md`.
+- **New Grok/xAI OAuth models:** use the supported catalog/config path and a real one-shot smoke, and set `model.context_length` to the real window. See `references/hermes-xai-oauth-new-model-enablement.md`.
+- **Headless Obsidian:** prefer the official `obsidian-headless` (`ob`) client for Sync. See `references/headless-note-vault-cli.md`.
 
-For Luke's dedicated Hermes container, treat `/config` as the active home in the Home Assistant/add-on layout; `/home/hermes` may be legacy or absent. Keep the run conventional and low-risk:
+## Read-only infrastructure reconnaissance
 
-- Inspect first: OS/kernel, disk, Hermes version/status, gateway status, MCP list, and git status of the active checkout (`/config/.hermes/hermes-agent` unless proven otherwise).
-- Do not create/modify cron jobs during **unattended** maintenance runs unless Luke explicitly asks. When Luke directs you to **fix the weekly maintenance report** (or its follow-up list), updating `weekly-tooling-maintenance` in `/config/.hermes/cron/jobs.json` (workdir, `/config` paths, kagi-cli pin text) is in scope.
-- When Luke asks to execute maintenance **follow-ups** (not just re-report), run the checklist in `references/hermes-container-weekly-maintenance.md` § **2026-07-05 follow-up execution** — disk (linuxbrew `.cellar`), `hermes update` + cherry-pick of HA/Kagi local commit, MCP adapter for subscriber summarize, config noise cleanup, and document that gateway reload requires **HA add-on restart** when blocked in-process. When the user *does* explicitly request a new hygiene/monitoring cron, create it via the `hermes cron create` subcommand (see `references/hermes-cron-creation.md`).
-- Do not print secrets, auth files, tokens, connection strings, or raw `.env`/credential contents.
-- Prefer safe package maintenance only: apt metadata refresh, noninteractive upgrade, autoremove/autoclean/clean. If the container is already root and `sudo` is unavailable, running apt directly is the equivalent path.
-- Update user-local npm globals with the existing prefix, but **never `npm update -g`** (with or without package names): it can **downgrade** (verified: mcporter 0.13.8 → 0.9.0). Install explicit versions: `npm install -g <pkg>@<ver> --prefix /config/.npm-global`. **pin/fallback `kagi-cli@0.12.0`** on this HAOS/bookworm image (0.13+ needs glibc 2.39; use `kagi-cli-update-safe.sh`). **Pin `mcporter@0.13.8`** while Node is 22.x; 0.13.10+ declares `engines.node >=24` and `mcporter list` fails with a legacy daemon-migrate error on Node 22. Do not run `mcporter daemon migrate --stop-legacy` from unattended maintenance.
-- Run `hermes config migrate`, `hermes config check`, and `hermes doctor` after routine updates.
-- For newly announced Grok/xAI OAuth models, use the supported provider catalog + config path and a real one-shot `hermes chat --provider xai-oauth -m <model>` smoke; see `references/hermes-xai-oauth-new-model-enablement.md`. Do not patch protected Hermes core/provider code just to add a new `grok-*` slug. After switching main model to Grok, set **`model.context_length` to the real window** (Grok 4.5 is **500000**, not leftover 1M from Codex/GPT-5.5).
-- Be conservative with `hermes update`/image upgrades when Hermes reports a container image update path, the git checkout is dirty, or the repo is many commits behind. Report and defer unless there is a safe rollback path and local-change audit.
-- Restart the gateway only when needed for config/tool changes and only through an approved/safe mechanism; if an approval guard blocks restart in unattended cron, report that a controlled restart is needed rather than bypassing it. After switching Kagi MCP registration, `hermes mcp test` may pass immediately while the long-lived gateway still serves the old stdio command until restart or `/reload-mcp`.
-- If `git status` shows **`UU` / conflict markers** in `agent/file_safety.py` (or any core path), fix before relying on file/terminal tools — unresolved markers cause `SyntaxError` and break `file_tools` / terminal cleanup (visible in `gateway.log` as `Could not import tool module tools.file_tools`). Resolve by aligning with `origin/main` for the conflict hunk, `git add`, then verify `python3 -c "from agent.file_safety import get_read_block_error"` from the repo root.
-- Tidy only conventional caches/log rotations. Do not delete repos, auth files, sessions, skills, cron jobs, memories, imports, or backups without explicit instruction.
-
-## Creating Hermes Cron Jobs (Hygiene / Monitoring / Maintenance)
-
-See the dedicated reference `references/hermes-cron-creation.md` for the exact `hermes cron create` command shape, required flags (`--name`, `--deliver local`, `--skill` list), why `deliver=local` is preferred for low-noise jobs, the pitfall of using the generic `cronjob` tool instead, and verification with `hermes cron list`.
-
-Key points:
-- Always supply a fully self-contained prompt (fresh session).
-- Explicitly attach the skills the job will need via `--skill`.
-- Use `deliver=local` + conditional internal notification (NTFY, selective send_message) for jobs that should be silent unless they have a real signal (example: the morning email importance scan that only pings on important mail).
-- The pattern was hardened during setup of the 8 a.m. email scan cron (himalaya + proton-pass-cli + truenas-custom-apps skills, tunnel + wrapper for bridge, conservative filter).
-
-## Hermes Update / Stash Hygiene
-When a Hermes update stashes or surfaces local harness changes, actively audit and reduce them instead of blindly reapplying everything:
-
-- Inspect both the current working tree and all stash entries; classify each changed path by blast radius.
-- Keep only narrow, concrete local integrations that use supported extension seams, such as a plugin or explicit local configuration hook.
-- Drop changes that alter Hermes core harness behavior, model/provider connection semantics, global fallback ordering, or bundled dashboard source. Exception: keep Luke-approved Home Assistant add-on dashboard base-path compatibility patches; verify them against the prior autostash/add-on copy instead of treating them as disposable harness hacks.
-- Prefer a plugin/config/wrapper boundary over editing `agent/`, provider registries, or dashboard internals. If a local integration needs a core hook, make it the smallest explicit-backend hook rather than a global behavior change.
-- Verify with `git diff --check`, syntax checks for touched files, a focused smoke test, and a final `git status --short --branch` showing only intentional local integration files.
-
-See `references/hermes-update-stash-audit.md` for the reusable audit checklist and the Kagi-vs-core-provider-routing example.
-
-## Read-Only Infrastructure Reconnaissance
-When Luke asks you to "learn" an infrastructure host so you can help later, do an active but read-only orientation pass instead of waiting for credentials:
-
-- Probe DNS, reachability, common service ports, TLS certificates, and unauthenticated status/API endpoints.
-- Correlate with already-accessible systems such as Home Assistant device trackers, NAS reverse-proxy configs, and prior session records.
-- In the Home Assistant add-on/container, expect network vantage to differ from the LAN. Use HA/UniFi device trackers for host/IP/MAC/name, then pivot through an already-trusted LAN host such as Proxmox for ARP, DNS, nmap, and port checks when container routing or mDNS is incomplete.
-- For OS identification, prefer authenticated commands (`uname`, `/etc/os-release`, `sw_vers`) when SSH works. If SSH is filtered, use read-only network fingerprinting (`nmap -O -sV -Pn`) from a same-LAN host and label it as a confidence estimate rather than exact truth.
-- Identify exactly what is still inaccessible because credentials are missing, host firewall blocks access, or the service is not enabled; recommend the cleanest future access path, such as enabling SSH for the known user or installing an authorized key.
-- **Verify before blaming NAS/DNS:** Luke may use `${REVERSE_PROXY_IP}` as alternate DNS on TrueNAS; confirm with `dig`, not stale "Traefik-only" assumptions.
-- **Work-from-home NetBird:** unstable private routed networks on home LAN with fine hotspot behavior → check dual-homed Wi‑Fi + Ethernet on the workstation; resolve private values from `~/.agents/private-context.md` and see `references/netbird-bmc-work-pc-dual-homed.md`.
-- Save durable topology facts, but not raw credentials, private keys, cookies, or transient outage/error claims.
-
-For Luke's Proxmox home lab (access, inventory, backup health), load the `proxmox-homelab` skill first. For generic Proxmox hosts, see `references/proxmox-readonly-recon.md` for the reusable inventory checklist and `references/proxmox-cluster-ceph.md` for generic quorum, upgrade, storage, replication, and PBS recovery patterns. Resolve Luke's current topology from private context. For workstation/laptop discovery from the HA add-on, see `references/laptop-lan-recon.md`. For NetBird → work BMC from home, see `references/netbird-bmc-work-pc-dual-homed.md`. For idempotent UniFi WAN port-forward creation with an API key, exact legacy endpoint/schema, credential hygiene, and external verification, see `references/unifi-port-forwarding-via-api.md`.
+When Luke asks you to "learn" a host, do an active but read-only pass: DNS, reachability, ports, TLS, and unauthenticated status endpoints. Correlate with HA/UniFi trackers and NAS proxy configs, and pivot through a trusted LAN host when the container's vantage is limited. Label fingerprinting as an estimate. Report exactly what remains inaccessible and the cleanest access path. Save durable topology facts (never credentials) to private context. See `references/readonly-infrastructure-recon.md`. For Luke's Proxmox lab, load `proxmox-homelab` first; generic Proxmox: `references/proxmox-readonly-recon.md`, `references/proxmox-cluster-ceph.md`.
 
 ## Proton Pass CLI for audited agent secrets
 
 Use the **`proton-pass-cli`** skill for install, agent tokens, wrappers, `PROTON_PASS_AGENT_REASON`, headless `fs` key provider, and session repair. Resolve Luke's exact password-manager topology and local integration paths from `~/.agents/private-context.md`.
 
-## Headless note-vault access
+## Agent hosts and CLIs on the LAN
 
-When Hermes needs Obsidian access from the display-less Home Assistant add-on/container, distinguish the desktop-linked official `obsidian` CLI from the standalone official `obsidian-headless` client (`ob`). Prefer `ob` for Obsidian Sync, then operate on the downloaded Markdown vault with file tools. Use the bundled skill's default vault path (`/config/Documents/Obsidian Vault` here) unless a real requirement calls for an override; package installation alone is not completed vault setup. See `references/headless-note-vault-cli.md` for selection, installation, Proton Pass credential handling, initial sync, and verification.
+- **Codex Remote on TrueNAS:** treat it as a separate host-agent migration with personal skills under `~/.agents/skills/` and transport over SSH or local sockets. See `references/codex-truenas-remote-control.md`.
+- **T3 Connect on TrueNAS:** use the official user-systemd service with a loopback listener. Build `node-pty` in a temporary container, not with a host toolchain. Treat link codes as secrets. See `references/t3-connect-truenas-host-service.md`.
+- **Agent CLIs on Proxmox/TrueNAS/PBS/HA:** stow `common` then `personal`, and keep binaries and auth outside Stow. On HA, use the Debian Hermes add-on, not the Alpine SSH add-on. See `references/agent-clis-lan-hosts.md`.
 
-## Researching Hosted Replacements for TrueNAS Apps
+## TrueNAS apps
 
-When Luke asks whether a user-facing TrueNAS app can move to hosted SaaS, treat privacy architecture as a technical property, not a marketing adjective:
+- **Deployment preference:** (1) a catalog app, (2) a custom app through the Apps UI or middleware (`midclt call -j app.create/app.update`), (3) raw compose only when Luke asks. Apps must stay visible in the TrueNAS UI. Keep data under `/mnt/Apps/Applications/<service>` as bind mounts. Keep Postgres/Redis private. Put private routes behind `authelia@file`. See `references/truenas-app-deployment-conventions.md`, `references/truenas-custom-app-cli-registration.md`, and the `truenas-custom-apps` skill.
+- **DNS vs Traefik IPs:** the TrueNAS host nameserver must point at the IP where `adguard-home` actually publishes port 53. Never rewrite app hostnames to the NAS UI address. Verify with `dig` and `curl --resolve`. See `references/truenas-adguard-dns-and-traefik-ips.md`, `references/truenas-docker-dns-recovery.md`, `references/truenas-cloudflared-adguard-dns-origin-resolution.md`, and `references/truenas-plex-docker-dns-recovery.md`.
+- **Traefik exposure and certificates:** use a small dedicated dynamic file. Issue ACME certificates for out-of-SAN hosts with `midclt call -j`. See `references/truenas-traefik-app-routing.md`. For renewal, run `certificate.renew_certs` as a job and verify the dates. A Cloudflare `Cannot use the access token from location` error means an IP-restricted token. See `references/truenas-acme-renewal.md`.
+- **ninerouter/9Router:** `references/truenas-ninerouter-9router-maintenance.md`.
+- **Apps pool space:** prune unused Docker images first, and verify mounts before deleting anything. See `references/truenas-apps-pool-space-reclaim.md` and `references/truenas-zfs-dataset-busy-delete.md`.
+- **Backrest/restic and Immich backups:** Immich usually already has a plan, so inspect the mounts and logs before creating one. See `references/truenas-backrest-restic-path-health.md` and `references/immich-proton-cli-verification.md`.
+- **qbit_manage:** mirror the existing tracker-tag convention. Never raise the orphan threshold or delete orphans without a read-only manifest and hard-link audit. See `references/truenas-qbit-manage-retention-and-orphan-forensics.md`.
+- **Game managers:** `references/game-manager-readonly-trials.md` (RetroArr/Questarr) and `references/gamarr-hardlink-emudeck-trial.md`. For PS3 archive imports into RomM, keep sources seeding, use `makeps3iso`, and verify the RomM DB row; see `references/truenas-romm-ps3-imports.md`.
+- **Hosted alternatives:** treat privacy as architecture. Separate true zero-knowledge E2EE from policy-based managed plaintext, and say when no equivalent exists. See `references/truenas-hosted-app-alternatives.md`, `references/truenas-hosted-privacy-alternatives.md`, and `references/truenas-app-retirement-hosted-alternatives.md`.
 
-- Distinguish true client-side **zero-knowledge/E2EE** from encryption at rest, EU hosting, no-ad policies, and promises of limited staff access.
-- Never describe ordinary managed hosting as “as private as self-hosting” when the operator controls the application runtime, database, backups, or encryption key.
-- For genuine E2EE, verify separately whether content and meaningful app metadata (filenames, tags, EXIF/location, notebook names) are encrypted; still disclose residual account/network/billing/storage metadata.
-- Prefer official pricing, privacy, cryptography, and feature-limit pages. Include billing cadence, currency, free-tier limits, and “from” resource-pricing caveats.
-- Evaluate the functional loss as well as privacy: LAN-only reachability, NAS/external libraries, server plugins, P2P behavior, AI subprocessors, or reduced monitoring/widgets.
-- Report a compact comparison table and a short verdict that clearly separates true ZK-E2EE candidates from policy-based managed plaintext.
+## Home Assistant config access
 
-See `references/truenas-hosted-app-alternatives.md` for the reusable workflow, privacy taxonomy, dynamic-pricing research fallback, and the 2026-08-06 market snapshot for Notesnook, PikaPods, Ente, Karakeep Cloud, Start.me, Filen, and Carrd.
+Keep the **SSH & Web Terminal add-on disabled by default**. Luke enables it temporarily when `/config` file work is needed. Agent tokens cannot manage add-ons through the Supervisor API, so ask him to toggle it in the UI and to disable it afterward. HA is not a TrueNAS app. See `references/ha-ssh-addon-temporary-access.md`.
 
-For infrastructure/helper retirement specifically, use `references/truenas-app-retirement-hosted-alternatives.md`. It begins with dependency elimination, classifies every helper as delete/conditional/retain-workload, identifies roles that inherently require a trusted local endpoint, and records the dated August 2026 official pricing/privacy evidence for 9Router, TrueNAS/HexOS, notifications, RSS/YouTube, access/IAM, backups, DNS, Proton Bridge, pgAdmin, and AList. Re-check pricing before use.
+## Other references
 
-## TrueNAS ACME Certificate Renewal
-When Luke asks to renew TrueNAS certificates, use the TrueNAS middleware job directly and verify both job state and certificate dates:
-
-1. SSH to the NAS using the established host/key from memory, adding a scoped known_hosts file if needed.
-2. Inspect certificates first: `midclt call certificate.query` and summarize `id`, `name`, `acme`, `until`, `renew_days`, CN, and SAN without printing private keys or token values.
-3. Run renewal as a job: `midclt call -j -jp description certificate.renew_certs`.
-4. Verify after the run with `certificate.query` and recent `core.get_jobs` filtered to `certificate.renew_certs`.
-5. If Cloudflare DNS challenge fails with `Cannot use the access token from location: <WAN IP>`, interpret it as an IP-restricted Cloudflare token: the token must allow the NAS/home WAN IP or be replaced with a valid DNS-edit token. Do not treat this as a TrueNAS bug or keep retrying unchanged.
-
-See `references/truenas-acme-renewal.md` for the command pattern and the Cloudflare IP-restriction failure signature.
-
-## Codex on an always-on TrueNAS/Linux host
-
-When Luke wants a Hermes-like NAS agent through the ChatGPT app, treat Codex Remote as a separate host-agent migration: inspect the existing user installation and app-server first; place personal skills under `~/.agents/skills/` (not the internal `~/.codex/skills/.system` tree); use concise global `~/.codex/AGENTS.md` guidance; verify both through `codex debug prompt-input`; and keep app-server transport on SSH/local Unix sockets. Skills do not carry Hermes sessions, Mem0, MCP credentials, cron, or gateway integrations, so inventory and recreate those selectively.
-
-If a manually started app server blocks managed bootstrap, verify that no rollout is active, terminate only the exact matched unmanaged process after scope approval, then use Codex's own `app-server daemon bootstrap --remote-control` and verify the managed daemon before generating a short-lived mobile pairing code. See `references/codex-truenas-remote-control.md` for the validated reconnaissance, skill mirroring, Memories, unmanaged-to-managed conversion, pairing, security, and smoke-test workflow.
-
-## T3 Connect on an always-on TrueNAS host
-
-Use T3's official user-systemd service model with its persistent base directory on the Apps pool and the local listener restricted to loopback. For a root-owned service, enable user lingering. If `npx t3 service install` fails because `node-pty` cannot compile on the appliance host, do not add a host build toolchain: build the runtime in a temporary compatible Debian/glibc container using the same Node release and architecture, copy it into the persistent base, and point the systemd unit's `PATH` at that Node/runtime.
-
-Complete `t3 connect link --headless` in a durable interactive session, treat its challenge URL and one-time code as transient secrets, restart the service after authorization, and require a provisioned environment link and relay—not merely a stored credential. Install agent CLIs with official installers into the NAS root home, expose them with a systemd drop-in `PATH`, and use a scoped Proton Pass CLI agent plus filesystem key store rather than interactive Pass login in T3. When a vendor login page blocks automation (Cloudflare Turnstile), copy an existing same-account CLI session file from a already-authenticated workstation instead of storing passwords in skills. See `references/t3-connect-truenas-host-service.md` for the verified deployment and health checks. Cursor is opt-in in T3: a logged-in `cursor-agent` still stays hidden until Settings → Providers enables it on that T3 server.
-
-## Agent CLIs on Proxmox and Home Assistant
-
-Reuse the NAS Cursor/Grok/Codex/Pass pattern on other LAN hosts. Luke treats the Proxmox nodes, TrueNAS, and the PBS VM as his machines: stow `common` then `personal` on those homes. Keep binaries, Codex auth (`CODEX_HOME`), and T3/Pass units outside the Stow package. On Home Assistant, do not install glibc CLIs into the Alpine SSH add-on; use the Debian Hermes add-on `/config` and keep `cursor-agent` as the Cursor binary. See `references/agent-clis-lan-hosts.md`.
-
-## TrueNAS App Deployment Preference
-When deploying apps on Luke's TrueNAS SCALE host, prefer approaches in this order:
-
-### TrueNAS AdGuard DNS IP vs Traefik App IP
-On Luke's TrueNAS host, distinguish the DNS service IP from the Traefik app-routing IP before changing DNS/app records:
-
-- If Luke asks for the DNS server to be `${NAS_IP}`, update the TrueNAS-managed `adguard-home` app `network.dns_port.host_ips` via `midclt call -j app.update`, not rendered compose files.
-- Do **not** blindly change app hostname rewrites from the private app wildcard/route host to the NAS UI address: on this host, the private context distinguishes Traefik's address from the TrueNAS nginx/UI address.
-- If TrueNAS Apps show Docker DNS failures such as `lookup ... on 127.0.0.11:53: server misbehaving` or cloudflared resolves a private internal origin to public Cloudflare IPs, check the **TrueNAS host** resolver and the actual AdGuard published listener together. The safe invariant is: `midclt call network.configuration.config.nameserver1` must point at the IP where the `adguard-home` app actually publishes port 53. Resolve exact domains and addresses from `~/.agents/private-context.md`. After changing host DNS or app DNS binding, redeploy/restart affected apps so containers regenerate `/etc/resolv.conf`.
-- Verify separately: `dig @${NAS_IP} <host> A` for DNS reachability, and `curl --resolve <host>:443:${REVERSE_PROXY_IP} https://<host>/` for Traefik routing.
-- See `references/truenas-adguard-dns-and-traefik-ips.md` for the safe update command pattern and verification checklist.
-- See `references/truenas-docker-dns-recovery.md` for the Authelia/Cloudflared/Traefik outage recovery pattern when bad host DNS propagates into Docker's embedded resolver.
-- See `references/truenas-cloudflared-adguard-dns-origin-resolution.md` for the private photo-service class: a cloudflared internal origin resolves publicly because TrueNAS/Docker DNS points at the wrong AdGuard listener.
-- See `references/truenas-plex-docker-dns-recovery.md` for the Plex-specific pattern: local Plex port healthy but MyPlex/remote unavailable because the container still has stale Docker `ExtServers`; verify container `plex.tv` DNS and redeploy Plex/related apps through TrueNAS.
-- See `references/truenas-ninerouter-9router-maintenance.md` for Luke's `ninerouter` / 9Router custom app update pattern: migrate away from old copied `/app` runtime mounts, use the official `decolua/9router:latest` image, preserve `/app/data`, and verify `/api/version` plus the private route domain from the private context.
-
-See `references/truenas-custom-app-cli-registration.md` for the complete manual registration + Dockge-to-Custom-App migration procedure (including the exact `/mnt/.ix-apps/app_configs/<name>/` structure, python calls to `setup_install_app_dir`/`update_app_config`/`update_app_metadata`/`compose_action`, ix- prefix handling, and the proton-bridge case that drove the pattern). Use this when `midclt app.create` is restricted.
-
-1. Official/native TrueNAS Apps from the catalog.
-2. Custom TrueNAS Apps created through the TrueNAS Apps UI.
-3. Custom app YAML / Docker Compose only when the first two do not fit.
-
-Deployments should remain visible/manageable through the TrueNAS UI whenever possible. Avoid standalone compose projects that TrueNAS cannot see unless Luke explicitly asks for that style.
-
-For SCALE custom Compose apps, create/update through middleware instead of manual `docker compose` so the app appears in the UI:
-
-```bash
-# create
-midclt call -j app.create '{"app_name":"<name>","custom_app":true,"custom_compose_config_string":"<compose-yaml-string>"}'
-
-# update existing custom compose
-midclt call -j app.update <name> '{"custom_compose_config_string":"<compose-yaml-string>"}'
-```
-
-Use project name `ix-<app>` if an updater container must rebuild via the Docker socket, e.g. `docker compose -p ix-<app> -f /compose/docker-compose.yml up -d --build <service>`, so it updates the TrueNAS-managed Compose project rather than creating a standalone one.
-
-### TrueNAS Traefik App Exposure
-For exposing TrueNAS Apps through Luke's Traefik app, prefer a small dedicated file in `/mnt/Apps/Applications/traefik/dynamic/` over editing a large shared route file. Verify DNS, Traefik route, TLS certificate, and HTTPS response end-to-end.
-
-When a hostname is outside the existing wildcard certificate SANs, issue a TrueNAS ACME cert for that hostname, copy the resulting `.crt`/`.key` from `/etc/certificates/` into `/mnt/Apps/Applications/traefik/certs/`, reference it from the dynamic file, and touch the dynamic YAML to force Traefik's file provider to reload. Remember that `certificate.create` and `certificate.delete` are job methods; use `midclt call -j ...` for ACME creation and CSR cleanup. See `references/truenas-traefik-app-routing.md` for the route/cert/sync pattern and verification commands.
-
-For custom or self-hosted multi-container services on TrueNAS SCALE:
-
-- Target the dedicated Apps pool at `/mnt/Apps/Applications/<service>` for app files and persistent data unless the TrueNAS app's UI-generated storage paths dictate otherwise.
-- Use bind mounts on ZFS datasets/directories instead of Docker named volumes where possible. This ensures native TrueNAS storage management, snapshots, and permissions.
-- Expose only the necessary app ports; keep internal services such as Postgres and Redis private to the app network or bound to localhost when possible.
-- A supported exposure pattern is Traefik as a TrueNAS app bound to `${REVERSE_PROXY_IP}:80/443`, Docker provider with `exposedByDefault=false`, an external proxy network, app-level labels, and narrowly scoped dynamic configuration files.
-- Use `authelia@file` / Authelia forwardAuth for private routes unless an app intentionally handles public auth itself; Authelia is backed by LLDAP. Cloudflared provides tunnel ingress without publishing app ports directly.
-- Fix common container permission issues immediately (e.g. mounted entrypoint/init scripts must be readable/executable by the container user).
-- Ensure passwords in app environment blocks exactly match connection URIs used by dependent services.
-- TrueNAS `pool.snapshottask.create` rejects a `description` field; use only accepted fields such as `dataset`, `recursive`, `exclude`, `lifetime_value`, `lifetime_unit`, `naming_schema`, `schedule`, `enabled`, and `allow_empty`.
-
-### TrueNAS Apps pool space and Backrest backups
-
-When Luke reports the Apps pool / apps folder near full, follow `references/truenas-apps-pool-space-reclaim.md` (inventory → Docker unused-image prune first → verify mounts before deleting leftovers / legacy datasets).
-
-When Luke asks about Immich restic, missing backups, or Backrest health, follow `references/truenas-backrest-restic-path-health.md`. **Immich usually already has a plan** — inspect container mounts and process logs before creating another. After reclaim or Backrest upgrades, re-verify `/host/Media` and real `/host/ix-app-mounts` binds.
-
-For Immich backups using the official Proton Drive CLI, see `references/immich-proton-cli-verification.md` for verified JSON formats, deletion proofs, polling tests, and maintained filesystem-backup pitfalls.
-
-### qbit_manage tracker retention and orphan review
-
-When changing private-tracker minimum seed times, first mirror the existing tracker-tag/share-limit convention, cover alternate announce hosts, and distinguish the tracker rule's category scope from the separately enumerated `nohardlinks` categories. A universal tracker rule omits `categories:`, but qbit_manage hard-link checks still require every real qBittorrent category explicitly; preserve a manual `keep` override unless Luke directs otherwise.
-
-When qbit_manage reports a large orphan set, do not raise the safety threshold or infer that the data is disposable. Compare every candidate against all live qBittorrent file manifests, check same-name/size near matches, and inspect device/inode/link count to distinguish stale download-only files from download-side links whose media-library hard links remain valid. Keep this audit read-only until cleanup is separately approved.
-
-See `references/truenas-qbit-manage-retention-and-orphan-forensics.md` for the full backup/edit/reload verification flow, multi-host tracker tagging, category-enumeration pitfall, API manifest comparison procedure, hard-link proof, and concise reporting template.
-
-### Gamarr game-acquisition trials
-
-For read-only comparison or replacement trials of RetroArr and Questarr, follow `references/game-manager-readonly-trials.md`: runtime UID alignment, native API authentication (including Authelia API-bypass traps), explicit automation gates, metadata-only samples and preserved torrent/library invariants.
-
-For Gamarr alongside an existing EmuDeck/RomM library, follow `references/gamarr-hardlink-emudeck-trial.md`: dedicated empty category, hardlink/error imports, startup recovery caveat, supported metadata-only scanner corrections, and full post-trial invariants. Do not assume it has Sonarr-level folder mapping or catalogue accuracy.
-
-### qBittorrent archive → RomM PS3 library imports
-
-For completed PS3 scene archives, discover qBittorrent and RomM paths from live container mounts, validate every multipart RAR volume, distinguish a JB/folder payload from an existing ISO, and retain the source in place for seeding. Convert folder games with PS3-aware `makeps3iso` tooling rather than generic ISO utilities, publish atomically into the live `roms/ps3` directory, then run a PS3-scoped RomM scan and verify the exact database row, title match, size, metadata IDs, and artwork. RomM filesystem and scheduled rescans may both be disabled, so a successful file copy is not proof of ingestion. See `references/truenas-romm-ps3-imports.md` for the validated disposable-Docker workflow, the `makeps3iso` auto-appended-extension pitfall, internal RQ scan fallback, cleanup, and verification checklist.
-
-This is the preferred native/manageable pattern the user expects for TrueNAS infrastructure.
-
-### Assessing hosted replacements for TrueNAS apps
-
-When Luke asks for hosted or subscription alternatives to TrueNAS media/library/game apps, apply a strict architecture test: TLS, GDPR, private tenancy, at-rest encryption, or a staff non-access policy are not self-hosting-equivalent if the provider controls compute/storage or the running server can decrypt content. Identify the exact function, price storage/GPU/bandwidth separately, distinguish managed-same-app from partial SaaS substitutes, avoid acquisition automation when the *Arr suite is excluded, and say **no equivalent exists** where appropriate. Prefer a compact table with official URLs and an explicit equivalence verdict. See `references/truenas-hosted-privacy-alternatives.md` for the reusable workflow, August 2026 research leads, and functional caveats.
-
-## Home Assistant Config and File Access (SSH Add-on)
-
-Luke's explicit preference is to keep the **SSH & Web Terminal add-on disabled by default** and only enable it temporarily ("as needed") when direct read/write access to files under `/config` (e.g. automations.yaml and split files, configuration.yaml includes, etc.) is required.
-
-See `references/ha-ssh-addon-temporary-access.md` for the detailed workflow and the key limitation discovered in this session: the tokens available to Hermes (long-lived HASS_TOKEN and SUPERVISOR_TOKEN/HASSIO_TOKEN) only allow regular HA API access. Supervisor/hassio addon management endpoints return 401 Unauthorized or 403 Forbidden. `ha_call_service` for the hassio domain is blocked. Therefore the agent cannot self-enable the add-on via API — the user must perform the UI toggle when file work is needed, then disable it afterward.
-
-Additional notes:
-- HA itself is not running as a TrueNAS app (no entry in `midclt call app.query` on ${NAS_IP}; resolves to ${HOME_ASSISTANT_IP} from the Hermes container).
-- Prefer the temporary manual enable pattern over persistent authorized keys or always-on SSH.
-
-This is a hygiene rule for the HA portion of the stack.
-
-## References
-- `references/hermes-container-weekly-maintenance.md` — concrete execution log + recipes from cron runs on the HAOS Hermes container (inspection commands, npm prefix update, **kagi-cli glibc pin**, Kagi MCP wrapper+HOME + auth sync, summarize MCP vs subscriber CLI, smoke tests, caches, hermes-update/gateway approval behavior, git dirty handling, no-sudo observation, final report template). **2026-07-05 follow-up execution:** Luke-directed fix of cron report items (jobs.json paths, linuxbrew tmp reclaim, update+cherry-pick, MCP adapter, add-on gateway restart). **2026-07-05 cron run:** 0.14.1 glibc break → pin 0.11.0; `hermes mcp add` for config.yaml. **2026-06-21:** native typed schemas; `file_safety.py` conflict fix.
-- `references/kagi-mcp-schema-probe.py` — Tirith-safe schema probe script (no shell pipes); exit 1 if the five required tools lack typed properties.
-- See `references/hermes-harness-boundary.md` for the specific incident that established the Hermes harness rule.
-- See `references/proxmox-readonly-recon.md` for read-only Proxmox reconnaissance without persisting live topology.
-- See `references/proxmox-cluster-ceph.md` for generic cluster join, major-version upgrade, Ceph retirement, local-ZFS replication, HAOS placement, and PBS recovery patterns.
-- `references/agent-clis-lan-hosts.md` — Cursor/Grok/Codex/Pass on Proxmox, TrueNAS, PBS, and Hermes; `common`+`personal` Stow; vendored Stow when `apt` is disabled.
-- `references/truenas-backrest-restic-path-health.md` — Backrest/restic: empty `_backrest-view` ix-app-mounts stub; Immich Media mount failure (top-level `additional_storage` ignored; use `storage.additional_storage`); host-eval secrets + `docker exec restic` (no python3 in image); midclt app.update Extra inputs pitfall; plan gaps (odysseus, HA); FUTO restore drill; NFSv4 ACL for uid 568.
-- `references/truenas-apps-pool-space-reclaim.md` — Apps pool near full: Docker image prune first; karakeep/plex-stage leftovers; legacy Immich `app_mounts` destroy only after live mounts verified; snapshot holdback.
-- `references/netbird-bmc-work-pc-dual-homed.md` — generic diagnosis for NetBird routed-network instability when Wi‑Fi and Ethernet are both active.
-- `references/hermes-cron-creation.md` — correct `hermes cron create` usage, flags, deliver=local pattern, skill attachment, self-contained prompts, and the generic-cronjob-tool pitfall (for hygiene/monitoring/maintenance jobs). Cross-references the himalaya email-scan example.
-- `references/rpi-otbr-docker-appliance.md` — standalone Raspberry Pi OTBR Docker appliance for Home Assistant (host-network REST on 8081, Trixie docker-cli split, ghcr IPv4 pull pitfall). Resolve host/IP from private context.
+`references/index.md` has the full descriptions. Also: `references/hermes-harness-boundary.md`, `references/laptop-lan-recon.md`, `references/netbird-bmc-work-pc-dual-homed.md`, `references/unifi-port-forwarding-via-api.md`, `references/unifi-dhcp-dns-via-api-and-ip-diagnostics.md`, `references/rpi-otbr-docker-appliance.md`, and `references/application-mcp-transport-and-placement.md`.
 
 ## Self-maintenance
 

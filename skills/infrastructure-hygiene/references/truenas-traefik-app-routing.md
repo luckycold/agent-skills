@@ -82,3 +82,11 @@ curl -sS -I --max-time 15 https://<host>/
 ```
 
 A good result for app exposure is: DNS points to Traefik, the served certificate subject/SAN matches the hostname, and the HTTPS probe returns the expected app response without `-k`.
+
+## Exposure rules (formerly in SKILL.md)
+
+_Moved verbatim from `SKILL.md` on 2026-10-08 during the size refactor; the skill keeps a short summary that links here._
+
+For exposing TrueNAS Apps through Luke's Traefik app, prefer a small dedicated file in `/mnt/Apps/Applications/traefik/dynamic/` over editing a large shared route file. Verify DNS, Traefik route, TLS certificate, and HTTPS response end-to-end.
+
+When a hostname is outside the existing wildcard certificate SANs, issue a TrueNAS ACME cert for that hostname, copy the resulting `.crt`/`.key` from `/etc/certificates/` into `/mnt/Apps/Applications/traefik/certs/`, reference it from the dynamic file, and touch the dynamic YAML to force Traefik's file provider to reload. Remember that `certificate.create` and `certificate.delete` are job methods; use `midclt call -j ...` for ACME creation and CSR cleanup. See `references/truenas-traefik-app-routing.md` for the route/cert/sync pattern and verification commands.

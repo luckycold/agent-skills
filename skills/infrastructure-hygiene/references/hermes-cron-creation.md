@@ -58,3 +58,15 @@ See the `himalaya` skill references (`automated-email-importance-scans.md` and `
 - Logs / final responses from runs are delivered according to the --deliver setting (local = internal only).
 
 This pattern keeps infrastructure maintenance conventional, auditable, and low-noise.
+
+## Key points (formerly in SKILL.md)
+
+_Moved verbatim from `SKILL.md` on 2026-10-08 during the size refactor; the skill keeps a short summary that links here._
+
+See the dedicated reference `references/hermes-cron-creation.md` for the exact `hermes cron create` command shape, required flags (`--name`, `--deliver local`, `--skill` list), why `deliver=local` is preferred for low-noise jobs, the pitfall of using the generic `cronjob` tool instead, and verification with `hermes cron list`.
+
+Key points:
+- Always supply a fully self-contained prompt (fresh session).
+- Explicitly attach the skills the job will need via `--skill`.
+- Use `deliver=local` + conditional internal notification (NTFY, selective send_message) for jobs that should be silent unless they have a real signal (example: the morning email importance scan that only pings on important mail).
+- The pattern was hardened during setup of the 8 a.m. email scan cron (himalaya + proton-pass-cli + truenas-custom-apps skills, tunnel + wrapper for bridge, conservative filter).

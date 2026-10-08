@@ -121,3 +121,9 @@ Keep the result compact and grouped. For every named app include:
 - official URL;
 - exact privacy class: **E2EE/zero-knowledge**, **ZDR**, or **hosted/TLS only**;
 - a direct warning when no hosted substitute can remove the need for a trusted local agent.
+
+## Scope (formerly in SKILL.md)
+
+_Moved verbatim from `SKILL.md` on 2026-10-08 during the size refactor; the skill keeps a short summary that links here._
+
+For infrastructure/helper retirement specifically, use `references/truenas-app-retirement-hosted-alternatives.md`. It begins with dependency elimination, classifies every helper as delete/conditional/retain-workload, identifies roles that inherently require a trusted local endpoint, and records the dated August 2026 official pricing/privacy evidence for 9Router, TrueNAS/HexOS, notifications, RSS/YouTube, access/IAM, backups, DNS, Proton Bridge, pgAdmin, and AList. Re-check pricing before use.

@@ -160,3 +160,9 @@ Optional: `EXCLUDE_APPS=immich` on auto-update; upgrade Immich manually (watchdo
 - No python3 in Backrest image.
 - No `app.restart` — stop then start.
 - Status **1** may be scheduled, not running.
+
+## Trigger (formerly in SKILL.md)
+
+_Moved verbatim from `SKILL.md` on 2026-10-08 during the size refactor; the skill keeps a short summary that links here._
+
+When Luke asks about Immich restic, missing backups, or Backrest health, follow `references/truenas-backrest-restic-path-health.md`. **Immich usually already has a plan** — inspect container mounts and process logs before creating another. After reclaim or Backrest upgrades, re-verify `/host/Media` and real `/host/ix-app-mounts` binds.
