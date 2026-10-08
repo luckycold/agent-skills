@@ -34,6 +34,7 @@ DISABLE_TELEMETRY=1 npx --yes skills@latest add luckycold/agent-skills \
 - `minecraft-steam-gamescope`
 - `personal-skill-maintenance`
 - `proton-pass-cli`
+- `steam-frame-linux-networking`
 - `steam-hyprland-scaling`
 - `tasker-automation`
 - `temporary-support-watcher-cleanup`
