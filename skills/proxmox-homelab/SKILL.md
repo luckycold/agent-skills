@@ -56,6 +56,10 @@ See [references/backup-health.md](references/backup-health.md) for commands and 
 
 When backups run at inconsistent speeds, or you need to pick a PBS target disk, follow [references/storage-speed.md](references/storage-speed.md): identify SMR, QLC, and aging disks; run the capped `scripts/fio-chunk-test.sh` (2 GiB, self-deleting, only on pools with plenty of free space); run read-only raw tests on unused disks; and run a socket throughput test for the network. PBS writes only new chunks, so speed swings track the datastore disks, not the source.
 
+## Drive and port audit
+
+For a read-only drive health/speed/port audit across hosts, run `scripts/drive-inventory.sh` and follow [references/drive-audit.md](references/drive-audit.md) (classification rules, slot-occupancy and port-sharing gotchas, report format).
+
 ## Replication and offline nodes
 
 - `pvesr status`: a job targeting an offline node fails with SSH exit 255 and keeps retrying. Confirm whether the node is intentionally retired (look for dated notes under `/root/`) before proposing removal of the job or the node.
