@@ -29,7 +29,20 @@ Field notes from the 2026-10-08 recovery of nine apps:
 
 - **Rollback points.** The nightly snapshot task covers `Apps/Applications`, but not `ix-apps/app_mounts/*`. For apps stored there (for example n8n), `app.upgrade` makes its own snapshot named `@<previous chart version>` on the app_mounts datasets before it starts. Check that snapshot's `written` value to confirm it is still a clean rollback point.
 - **Start one app at a time.** After each start, check that the app is RUNNING and its containers are healthy, then look for `error|fatal|migrat` in `docker logs --since 10m`. The postgres-upgrade helper should log `Upgrade already completed` when Postgres is staying on the same major version.
-- **RomM 5.3.x false lead.** RomM can crash-loop with `Failed to run database migrations`, but the real error is on the line just before it: `CRITICAL ... config_manager ... filesystem.roms_folder is no longer supported`. 5.3 rejects the old `filesystem.roms_folder` key in `config.yml` and wants `filesystem.structure.default: "roms/{platform}/{game}"`. The pinned image digest doesn't change in this case, so the error was already there before the upgrade. Stop the app, back up `config.yml`, and edit it with the owner's approval.
+- **RomM 5.3.x false lead.** RomM can crash-loop with `Failed to run database migrations`, but the real error is on the line just before it: `CRITICAL ... config_manager ... filesystem.<key> is no longer supported`. RomM 5.3 rejects **both** `filesystem.roms_folder` and `filesystem.firmware_folder` (`_check_retired_filesystem_keys`, exit 3). The log names only the first key it finds, so replacing just one leads to a second crash. Replace both:
+  ```yaml
+  filesystem:
+    structure:
+      default: "<roms_folder>/{platform}/{game}"
+      firmware: "<firmware_folder>/{platform}"
+  ```
+  Back up `config.yml` with `cp -p`, make the targeted edit, parse it with `yaml.safe_load`, then run `app.start`. Verify:
+  - the log shows `Database migrations succeeded`
+  - the container is healthy
+  - `/api/heartbeat` reports `FILESYSTEM.FS_PLATFORMS` equal to the number of platform folders
+  - the DB `platforms`/`roms` counts are unchanged
+
+  To check the code in a pinned image without starting the app, run `docker run --rm --network none --entrypoint sed <image> -n ... /backend/config/config_manager.py`.
 - **Harmless noise:**
   - Warracker logs a gevent `AssertionError: (None, <callback ...>)` when it forks workers.
   - n8n warns that the Python task runner is missing.
