@@ -41,3 +41,6 @@ remote audit transmission even while the same scoped session works. After a
 verified serialized read succeeds, retry failed items one at a time with their
 original share/item IDs. Preserve unresolved errors and distinguish full-item
 coverage from field-only recovery.
+
+Opaque IDs can begin with `-`. Pass them as `--share-id=<share-id>` and
+`--item-id=<item-id>` so the CLI does not interpret the value as another option.
