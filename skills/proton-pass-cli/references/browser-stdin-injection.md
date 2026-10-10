@@ -53,3 +53,9 @@ results privately; batch output can be an array rather than a single object.
 When the configured extension offers a passkey for the exact intended account,
 use that native browser flow and verify the resulting signed-in identity; do not
 export passkey material or infer success from the selection click alone.
+
+Vault membership and a working credential do not establish that two saved logins
+belong to the same person. Match the requested service identity and known
+username before authentication. If a live account has a different handle, keep
+it separate, stop further account inspection, and retire only the agent-created
+browser session. Do not merge it into an email-migration plan by alias alone.

@@ -70,3 +70,10 @@ can exhaust RAM. Check kernel OOM evidence before blaming authentication or the
 browser driver; provide suitable memory and native swap, then recheck the page.
 
 For image boot and native kernel-update checks, see [persistent VM startup](omarchy-vm-startup.md).
+
+A blank page DOM can coexist with a native Chromium or password-manager passkey
+popup. Inspect a fresh native desktop/window capture and the active browser
+before treating this as a stuck page. Select the exact saved identity through
+Cua's native UI; prefer an accessibility token, or a capture-bound pixel click
+when the popup is absent from that tree. Verify the signed-in identity afterward.
+Do not export passkeys to replace this flow.
