@@ -35,3 +35,9 @@ audit logging or widen permissions. A successful email/username read does not
 establish that notes, passkeys or the full item were examined. Missing optional
 fields are different from failed reads. Duplicate titles require item-ID-based
 references; never resolve duplicates by taking the last title match.
+
+Serialize audited `item view` calls on a host. Concurrent views can time out in
+remote audit transmission even while the same scoped session works. After a
+verified serialized read succeeds, retry failed items one at a time with their
+original share/item IDs. Preserve unresolved errors and distinguish full-item
+coverage from field-only recovery.
