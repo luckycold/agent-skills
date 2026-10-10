@@ -79,6 +79,29 @@ Require all of the following:
 
 A stored credential with `Environment link: pending server startup` is not complete. Restart the service and wait for provisioning. A provisioned relay also does not automatically select the remote environment in each client, and the project sidebar does not act as a machine list. Connect to the host under Connections, then add or select a project separately. Do not expose the local T3 port through router NAT or Traefik when the managed relay is working.
 
+## Authorized direct HTTPS fallback
+
+If the managed route is unavailable, do not unlink an existing environment just
+to free a slot. The official desktop-managed SSH route can reuse a running server;
+check provider PATH through its documented non-interactive login shell. The hosted
+web client instead needs a reachable HTTPS endpoint.
+
+For an explicitly authorized direct route, use the existing service's native
+`T3CODE_HOST` and `T3CODE_PORT` settings to bind only the selected private address.
+Add a dedicated native Traefik dynamic file using an unused hostname covered by an
+existing certificate. Keep desktop-control and browser-debug listeners local.
+Verify strict TLS, the unauthenticated native pairing gate, then a fresh native
+`t3 pair` invite in a separate verification client. A static SPA returning 200
+for an API-looking path does not prove API health or authorization.
+
+After a full restart, wait for service readiness and reload a client that loaded
+a transient proxy error during startup. Verify the paired session persists. The
+user's receiving client still needs its own fresh invite; testing another client
+does not connect it. Keep pairing fragments out of logs and runbooks. If the
+private address changes, update the listener and proxy backend together.
+
+[Official remote access](https://github.com/pingdotgg/t3code/blob/main/docs/user/remote-access.md).
+
 ## Cursor provider is opt-in on the T3 server
 
 A working `cursor-agent` binary and a logged-in CLI session are not enough for T3 Code to list Cursor. In T3 0.0.33, Codex/Claude/Grok/OpenCode default to `enabled: true`; Cursor defaults to `enabled: false` and is labeled Early Access. If `<t3-base>/userdata/settings.json` is missing, those defaults apply and the server cache reports Cursor as disabled without probing PATH.
