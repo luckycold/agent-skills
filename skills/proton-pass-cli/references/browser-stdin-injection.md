@@ -44,3 +44,12 @@ coverage from field-only recovery.
 
 Opaque IDs can begin with `-`. Pass them as `--share-id=<share-id>` and
 `--item-id=<item-id>` so the CLI does not interpret the value as another option.
+
+The Proton Pass extension can overlay the web app with autofill or unrelated
+save proposals. A covered Continue or Create button is not a successful submit.
+Dismiss the unrelated proposal with Escape or Not now, inspect a fresh snapshot,
+and verify the intended page or saved item afterward. Capture echoed batch
+results privately; batch output can be an array rather than a single object.
+When the configured extension offers a passkey for the exact intended account,
+use that native browser flow and verify the resulting signed-in identity; do not
+export passkey material or infer success from the selection click alone.
