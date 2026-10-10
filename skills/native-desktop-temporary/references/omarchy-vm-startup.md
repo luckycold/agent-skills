@@ -72,3 +72,23 @@ archiving stale owner metadata. Never use stale-file removal to bypass an active
 owner. Moving retired metadata from runtime tmpfs to a home-directory backup
 can cross filesystems; use a file move that supports that boundary. Socket files
 are retired separately only after their owner and transport are gone.
+
+## Native OAuth outside a keepalive connection
+
+Interactive OAuth can be rejected by a keepalive runtime even when the server
+configuration is correct. Inspect the installed MCPorter version and native
+lifecycle implementation. The verified release supports a process-local
+MCPORTER_DISABLE_KEEPALIVE=<server-name> override for its auth command. Use that
+one-time setting rather than removing the server lifecycle from shared config.
+
+Run native mcporter auth <server-name> --no-browser in a durable terminal, with
+private output, and open its fresh authorization URL in the browser on the same
+host as the loopback callback. Do not print OAuth state, callback codes or URLs
+containing them. A timed-out auth process requires a new native flow even when
+the browser has since authenticated; reuse the browser session, not the expired
+callback. Verify consent account and requested application before authorizing.
+
+Require native auth exit success, selected-server tool discovery and a harmless
+authenticated identity read. Then test cached authorization after a restart.
+Keep native token storage and remove only completed temporary challenge logs.
+Do not widen password-manager vault scopes to compensate for a stale credential.
