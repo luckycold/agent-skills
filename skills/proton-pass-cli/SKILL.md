@@ -190,6 +190,8 @@ See:
 - `references/proton-drive-public-share-retrieval.md` — secure public-share export download workflow and current browser-automation compatibility fixes.
 - See the `himalaya` skill's `references/proton-pass-agent-wrapper-for-himalaya.md` for a concrete, production example of a dedicated bash wrapper that drives the agent (with REASON) to supply the Proton Bridge relay credential to himalaya's `auth.cmd` in headless/cron runs. The wrapper follows all the security and REASON discipline documented here.
 
+See [browser stdin injection](references/browser-stdin-injection.md) for scoped native `run` usage and OTP input behavior.
+
 ## Self-maintenance
 
 This is a Luke-authored personal skill. After using it, update its canonical package under `~/.agents/skills/` when a verified reusable correction, user correction, or repeatable workflow would improve future runs. Make the smallest evidence-backed edit, never record credentials or secret values, and do not infer a durable preference from one request. Follow the `personal-skill-maintenance` skill for the full review and verification workflow.

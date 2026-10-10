@@ -125,6 +125,8 @@ their focus during preparation. Verify the result reached the intended window
 before closing any agent-created window. Read the reference's
 [finish procedure](references/background.md#finish) for transfer limits and cleanup.
 
+For a dedicated Omarchy browser profile, see [Cua and Brave](references/cua-brave-profile.md).
+
 ## Self-maintenance
 
 Follow `personal-skill-maintenance` for verified corrections and publication.
