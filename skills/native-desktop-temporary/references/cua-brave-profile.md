@@ -98,7 +98,7 @@ string rather than interpolating titles or untrusted text. Check fresh clients
 and active-workspace state, then a native screenshot, before further input.
 
 For dedicated native apps, standard Ctrl+Q can quit an owned app cleanly for a
-configuration reload. Verify the active app first, verify its window retired,
+configuration reload. Verify the active app first, verify its window and main process retired,
 then relaunch its packaged desktop entry and check both session persistence and
 connection status. A window-close action can leave an Electron app running in
 the tray, so it does not prove configuration was reloaded.
