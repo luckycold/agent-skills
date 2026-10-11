@@ -77,3 +77,28 @@ before treating this as a stuck page. Select the exact saved identity through
 Cua's native UI; prefer an accessibility token, or a capture-bound pixel click
 when the popup is absent from that tree. Verify the signed-in identity afterward.
 Do not export passkeys to replace this flow.
+
+## Lua compositor control
+
+On current Lua-based Hyprland, a legacy command such as hyprctl dispatch workspace
+2 can exit zero while returning a Lua syntax error. Inspect the response body and
+verify the actual compositor state; command exit status is insufficient.
+
+Use the native Lua interface documented in the
+[Hyprland dispatcher reference](https://wiki.hypr.land/configuring/core/dispatchers/):
+
+```bash
+hyprctl eval 'hl.dispatch(hl.dsp.focus({workspace=2}))'
+```
+
+For an exactly identified window, hl.dsp.window.move accepts window, workspace
+and follow=false; hl.dsp.focus accepts window. Wrap dispatcher constructors in
+hl.dispatch. Discover the current window selector and serialize it as a Lua
+string rather than interpolating titles or untrusted text. Check fresh clients
+and active-workspace state, then a native screenshot, before further input.
+
+For dedicated native apps, standard Ctrl+Q can quit an owned app cleanly for a
+configuration reload. Verify the active app first, verify its window retired,
+then relaunch its packaged desktop entry and check both session persistence and
+connection status. A window-close action can leave an Electron app running in
+the tray, so it does not prove configuration was reloaded.
