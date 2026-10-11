@@ -4,6 +4,14 @@ _Moved verbatim from `SKILL.md` on 2026-10-08 during the size refactor; the skil
 
 For Kagi CLI install, `web.search_backend`, MCP registration, and verification checklists, cross-check **`hermes-agent`** docs/skills for search wiring when needed.
 
+## Resolve the active deployment first
+
+Do not apply historical add-on paths or CLI pins to a migrated host. Inspect the current home, package manager, MCP registry entry, and live tool list. A `kagi-ken` server is a different integration from `kagi-cli`: search and summarize can be typed and working without dedicated quick/news/news-search tools. Report the actual surface rather than claiming the old five-capability smoke suite passed.
+
+For a `kagi-ken` missing-session error, use its supported `~/.kagi_session_token` credential file when the approved scoped Pass item supplies the session token. Render a host-local placeholder template with `pass-cli inject --out-file <native-token-file> --file-mode 0600 --force`; never print the rendered value. Verify live search and summarize after injection. A successful connect/tools-list check alone does not prove authentication. If the live server reads the file on each call, no gateway restart is needed.
+
+## Historical add-on layout
+
 Container-specific hygiene only:
 - Verify paths against the active layout (`/config` in the Home Assistant add-on, not legacy `/home/hermes`). Cron jobs or workdirs still pointing at `/home/hermes/.hermes/...` will warn at runtime — report for Luke to fix; do not edit cron during unattended maintenance unless explicitly asked.
 - **npm prefix:** `/config/.npm-global` (`export PATH` includes `/config/.npm-global/bin` or use `npm --prefix /config/.npm-global …`).
