@@ -27,3 +27,9 @@ Complete this **before** `yay`, `makepkg`, or `omarchy pkg aur add`. Write the f
 - **Reputation:** search for malware, hijack, or compromised-maintainer reports for this exact package name. An old unused name that recently changed maintainer or source is a stop.
 
 If anything is unclear, do not install. Report the concern instead.
+
+## Installed AUR package no longer updates
+
+Check the installed name with `pacman -Qi` and query the AUR RPC for that exact name before assuming the updater is broken. A deleted or merged package can remain installed indefinitely; use AUR merge/deletion records and the upstream stable download to identify a maintained successor, then complete the review above.
+
+Preserve application data and back it up after the app has exited. Prefer a package-manager replacement transaction over deleting installation files manually. Omarchy's `omarchy pkg aur add` uses `--noconfirm`, which can reject a conflicting old package because removal defaults to No. If it has already built the reviewed successor, install that exact cached package with interactive `pacman -U` and approve only the expected replacement. Verify package integrity, the app version, and a successful desktop launch; confirm that Omarchy's AUR updater includes the new package.
