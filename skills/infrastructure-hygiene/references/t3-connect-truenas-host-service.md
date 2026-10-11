@@ -102,6 +102,41 @@ private address changes, update the listener and proxy backend together.
 
 [Official remote access](https://github.com/pingdotgg/t3code/blob/main/docs/user/remote-access.md).
 
+## Explicitly authorized host handoff and private routes
+
+When the user authorizes moving a registration, first verify a paired direct
+connection to the source and prepare the receiving host. Existing threads stay
+on their original host; selecting another environment does not move their data.
+Use the CLI matching the running server version, as reported by `t3 service
+status`, rather than upgrading the service carrying the active task.
+
+Archive the source's configuration and sensitive state privately. Native
+`t3 connect unlink` disables exposure while retaining authorization and revokes
+that host's relay-side record. It can free a host slot without uninstalling or
+restarting its local server. A bounded live-unlink timeout can accompany a
+successful record revocation: check whether the owned connector has stopped,
+then retry the idempotent command before considering any restart. Start or
+restart only the receiving service, and verify its provisioned registration,
+live owned relay connections, and direct pairing. Do not remove another host
+merely because the account has reached its registration limit.
+
+For an existing server, native `t3 pair --tailscale` configures persistent
+Tailscale Serve HTTPS without restarting T3. Confirm the requested identity
+provider and existing tailnet before approving device enrollment; using the
+same person's Google and GitHub identities can create different accounts.
+If HTTPS needs enabling, verify the target tailnet and clear optional Funnel
+for a private-only route. Check the resulting Serve configuration. If the
+tailnet hostname does not resolve locally, inspect native DNS status, archive
+the existing resolver configuration, and verify both tailnet and home DNS
+after enabling the host's supported DNS integration.
+
+An existing Caddy service can provide a LAN proxy for a loopback T3 server
+without restarting T3. Bind the proxy listener to the selected private address.
+When an HTTPS frontend preserves its Host header, use a port-matching Caddy
+site with that private bind; an IP-address site matcher can instead return an
+empty successful response for the frontend hostname. Validate and reload the
+existing proxy, then verify native pairing rather than HTTP status alone.
+
 ## Cursor provider is opt-in on the T3 server
 
 A working `cursor-agent` binary and a logged-in CLI session are not enough for T3 Code to list Cursor. In T3 0.0.33, Codex/Claude/Grok/OpenCode default to `enabled: true`; Cursor defaults to `enabled: false` and is labeled Early Access. If `<t3-base>/userdata/settings.json` is missing, those defaults apply and the server cache reports Cursor as disabled without probing PATH.
