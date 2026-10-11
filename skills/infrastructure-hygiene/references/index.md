@@ -13,3 +13,4 @@ _Moved verbatim from `SKILL.md` on 2026-10-08 during the size refactor; the skil
 - `references/netbird-bmc-work-pc-dual-homed.md` — generic diagnosis for NetBird routed-network instability when Wi‑Fi and Ethernet are both active.
 - `references/hermes-cron-creation.md` — correct `hermes cron create` usage, flags, deliver=local pattern, skill attachment, self-contained prompts, and the generic-cronjob-tool pitfall (for hygiene/monitoring/maintenance jobs). Cross-references the himalaya email-scan example.
 - `references/rpi-otbr-docker-appliance.md` — standalone Raspberry Pi OTBR Docker appliance for Home Assistant (host-network REST on 8081, Trixie docker-cli split, ghcr IPv4 pull pitfall). Resolve host/IP from private context.
+- `references/hermes-addon-to-host-migration.md` — moving Hermes from the HA add-on to a host install: guest-agent access, backup/import pitfalls, path rewrites, hook re-consent, and re-pointing the `hermes_conversation` integration.

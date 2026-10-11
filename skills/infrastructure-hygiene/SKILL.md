@@ -63,6 +63,7 @@ Before booting an appliance whose filesystem you staged from a desktop, restore 
 - **Cron jobs:** use `hermes cron create` with a self-contained prompt, explicit `--skill`, and `deliver=local` for low-noise jobs. See `references/hermes-cron-creation.md`.
 - **Update/stash hygiene:** audit stashed local changes by blast radius. Keep only narrow integrations at supported seams, plus Luke-approved HA dashboard base-path patches. Drop core/provider/fallback changes. See `references/hermes-update-stash-audit.md`.
 - **New Grok/xAI OAuth models:** use the supported catalog/config path and a real one-shot smoke, and set `model.context_length` to the real window. See `references/hermes-xai-oauth-new-model-enablement.md`.
+- **Migrating off the add-on:** use `hermes backup`/`hermes import`, stop the gateway that import auto-starts, restore modes and plugin `.git`, rewrite `/config` paths, and re-point the `hermes_conversation` integration. See `references/hermes-addon-to-host-migration.md`.
 - **Headless Obsidian:** prefer the official `obsidian-headless` (`ob`) client for Sync. See `references/headless-note-vault-cli.md`.
 
 ## Read-only infrastructure reconnaissance
