@@ -37,6 +37,28 @@ Known signatures:
 | `ssh … exit code 255` in `pvesr status` | Replication target node unreachable | See SKILL.md "Replication and offline nodes" |
 | `unable to freeze guest fs … Another job is running for job group <addon>` | HAOS fsfreeze hook busy (add-on job running) | Usually transient; check whether it repeats |
 
+### Disabled pruning with an inherited backup cap
+
+A job with remove=0 can still inherit a finite prune-backups policy from its
+storage or vzdump defaults. Once the guest reaches that count, the next backup
+fails before transferring data with "There is a max backup limit". Disabling
+removal alone does not remove the inherited limit.
+
+When keeping every snapshot is authorized and intended, use the native per-job
+prune-backups=keep-all=1 setting. In the verified PVE implementation, keep-all
+disables the client backup-count limit and prevents the removal code path. It
+does not change PBS-side prune jobs or grant additional token permissions.
+Prefer the owned job's setting over modifying shared storage retention.
+
+```bash
+pvesh set /cluster/backup/<job-id> --prune-backups keep-all=1
+vzdump <vmid> --storage <pbs-storage-id> --remove 0 --prune-backups keep-all=1
+```
+
+Preserve the prior job configuration before editing. Verify the API's parsed
+keep-all field, backup task success and retained snapshots. Keep-all needs
+capacity planning; do not select it merely to bypass a retention decision.
+
 Notifications: one failure can produce two emails when two targets match (SMTP + `mail-to-root`).
 
 ## 4. Guests that vzdump cannot protect
