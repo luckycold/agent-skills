@@ -15,6 +15,14 @@ Use this whenever software needs to be installed on Luke's Arch/Omarchy machines
 
 If AUR only offers a source build, skip it and continue to the next step. Use mise rather than compiling.
 
+## Python command-line applications
+
+When the upstream Linux distribution is a Python package, check mise's built-in `pypi:` backend even if `mise registry` has no short name. `mise use -g pypi:<distribution>@latest` manages an isolated environment through uv when available. See the [official backend documentation](https://mise.jdx.dev/dev-tools/backends/pypi.html).
+
+Check the interpreter actually used: older mise versions may accept the per-tool `python` option without applying it. The documented `uvx_args = "--python 3.12"` form can select a compatible interpreter for version-only installs; verify the installed environment and command before removing any prior installation.
+
+Verify the installed application version against upstream. An unconstrained `uv tool install --no-build` can silently resolve an ancient application release when a current dependency has no wheel. Pin the intended application version while diagnosing this; distinguish packaging a pure Python dependency from compiling native code.
+
 ## Required AUR review
 
 Complete this **before** `yay`, `makepkg`, or `omarchy pkg aur add`. Write the findings in the session, then install only if the review is clean.
