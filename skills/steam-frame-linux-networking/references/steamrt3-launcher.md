@@ -50,3 +50,32 @@ Low-latency helper `No such device (-19)` errors also occurred with
 `wpa_supplicant`. That message alone does not establish an iwd failure or justify
 patching the helper; require the backend authentication evidence in the parent
 skill before changing backends.
+
+## Desktop-view crash after launcher recovery
+
+The older client can expose a separate 32-bit VR renderer failure when opening
+the desktop view. Require matching evidence: `vrclient_steam.txt` reports
+`Failed to load pixel shader ! (size=2147483647)`, followed by a Steam crash in
+the graphics driver and `vrclient.so`. This was reproduced on AMD as well as
+the NVIDIA reports in [Valve issue 963](https://github.com/ValveSoftware/SteamVR-for-Linux/issues/963).
+
+The shipped SteamVR schema has `dashboard.useNewDesktop=true` by default.
+Setting it to `false` avoided the observed crash: the compositor remained
+running, SteamVR reported Ready, and the dedicated link carried streaming data.
+The tradeoff is a potentially blank desktop tab; tell the user explicitly.
+This does not establish that every renderer crash has the same cause.
+
+Prefer the live native settings command when the runtime is functioning:
+
+```bash
+"$steamvr_dir/bin/linux64/vrcmd" --background \
+  --set-settings-bool dashboard.useNewDesktop 0
+"$steamvr_dir/bin/linux64/vrcmd" --background \
+  --settings-bool dashboard.useNewDesktop
+```
+
+If Steam has already crashed, stop the remaining Steam/SteamVR processes through
+their existing service first, back up the active user `steamvr.vrsettings`, and
+change only `dashboard.useNewDesktop` in that JSON. Restart normally, verify
+live readback and disk persistence, and obtain the headset-side result. Do not
+edit shipped defaults. Restore the original value to undo the workaround.
