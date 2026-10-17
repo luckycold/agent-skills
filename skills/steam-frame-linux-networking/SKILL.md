@@ -44,6 +44,13 @@ Treat its success as a prerequisite check, not proof of an established link.
   appropriate; discover the existing launcher/service and preserve its flags.
   Do not create a restart wrapper or change release channels without need.
 
+## Connected adapter, SteamVR still waiting
+
+If the dedicated association succeeds but Steam times out waiting for VR,
+inspect `logs/vrserver.txt` and `logs/vrstartup-linux.txt` before changing Wi-Fi.
+SteamRT3 can leave SteamVR unable to launch its compositor. See
+[SteamRT3 launcher diagnosis and native opt-out](references/steamrt3-launcher.md).
+
 ## SteamOS backend failure
 
 A verified failure pattern with `iwd` combined:
