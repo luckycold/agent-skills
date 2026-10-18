@@ -23,6 +23,13 @@ Use when Luke asks whether Backrest is healthy, why backups failed, which apps t
 - Require both middleware schema validation and an actual target-catalog render before downtime. Schema validation can pass while the template library rejects a host source. Normalize with `perform_actions=False`, add the real upgrade context, copy the target catalog version to a private temporary directory, and run `apps_render_app render --path <temporary-target-version> --values <private-normalized-values.yaml>`; never render into the active app or catalog tree during preflight.
 - Treat `restic snapshots --latest 1` as one snapshot per group, not one global result. Select the newest timestamp explicitly. Filter `restic ls --json` node paths yourself when counting a protected subtree: `--path` selects matching snapshots rather than restricting every emitted node. Verify a representative restored original with a hash comparison, without printing its filename or contents.
 
+## Failure class: cloud authorization hidden behind HTTP 500
+
+- Diagnose repeated restic `Stat(<config/>)` HTTP 500 failures with a bounded, read-only `rclone about <remote>: --json` using the same configuration and runtime identity; the restic transport can hide a provider authorization error.
+- Treat pCloud error 2095 (`Revoked 'access_token' provided`) as a reauthorization blocker, not a repository corruption or stale-lock problem. Preserve the running service, repositories, credentials and schedules; do not initialize replacement repositories, prune, unlock active jobs, or claim a fresh backup/restore passed.
+- Enforce probe deadlines inside `docker exec` with the container's `timeout`, not only on the local SSH/Docker client: killing the client can leave the remote restic process running. Clean up only the exact read-only process started by the probe, never scheduler-owned tasks.
+- Keep secret-bearing recovery archives outside configured backup sources in a root-only recovery directory unless the backup runtime is explicitly intended to read them. For an existing maintenance archive that causes partial backups, grant only the known backup-reader identity access to that exact file and verify a real read; never recursively change application permissions.
+
 ## Failure class: empty `ix-app-mounts` bind
 
 Backrest **`storage.additional_storage`** may mount:
