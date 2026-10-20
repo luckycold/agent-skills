@@ -70,18 +70,34 @@ STOP and escalate on any large `trash_photos`, `retire_*`, or applied
 `proton_deletions`.
 
 Known long-lived holds that are not regressions: Proton-only `import` items are
-paused by `--import-limit 0`; `size_conflict` groups are held by design; hidden
-Live Photo components whose on-disk SHA1 differs from Immich's checksum hold as
-`FileNotFoundError` uploads; a mapped Photos UID whose `filesystem info` fails
-keeps a `proton_delete_held: RuntimeError` forever (it never deletes in Immich).
+paused by `--import-limit 0`; `size_conflict` groups are held by design; a
+mapped Photos UID whose `filesystem info` fails keeps a
+`proton_delete_held: RuntimeError` forever (it never deletes in Immich).
+
+Since 0.1.13, Immich-extracted motion clips (hidden, `parents` set, path under
+`encoded-video`) are skipped entirely (summary `derived_motion.skipped` /
+`in_proton`): the still's original embeds the same bytes. They never upload and
+never drive deletion/restore mirroring. `in_proton` should stay at the 3 kept
+standalone clips whose stills Luke deleted in Proton. Separate live-photo
+originals (iPhone `.MOV`) still upload unpaired. CLI 0.9.0 makes no thumbnails
+for video/HEIC; a forked CLI would need its own `external-drive` login.
+The container cannot read `.zfs/snapshot` (ELOOP), so the `original()` snapshot
+fallback only works on the host. 2026-10-20 audit and cleanup notes:
+`/workspace/homelab/proton-motion-thumbs/README.md` on the Labby box.
 
 ## 4. Deploy and watch
 
-Replace the image tag in `versions/<v>/user_config.yaml`,
+Preferred (0.1.13): back up `midclt call app.config immich-proton-sync`, change
+only `services.reconciler.image` in that JSON, and apply it with
+`midclt call -j app.update immich-proton-sync '{"custom_compose_config": <json>}'`
+(regenerates the rendered files and redeploys); then update the reference
+`compose.json`. Older manual way: replace the tag in `versions/<v>/user_config.yaml`,
 `versions/<v>/templates/rendered/docker-compose.yaml`, and the app's
 `compose.json` (back each up first), then `app.stop` + `app.start`. Confirm
 `RUNNING`, container `healthy`, and at least one cycle with `"applied": true`,
 `actions_completed > 0` and no `error`. Backlog drains about 8 uploads per cycle
 at the deployed budget (12 actions minus 4 reserved).
-Rollback: `docker load` the tarball (or use the held tag), restore the tag in
-the three files, stop/start.
+Rollback: `docker load` the tarball (or use the held tag), restore the tag
+(app.update with the backed-up config, or the three files), stop/start. Holders
+exist per version (`immich-proton-sync-rollback-hold` = 0.1.11,
+`immich-proton-sync-rollback-hold-0.1.12`).
