@@ -11,7 +11,7 @@
    ```
    server:
        interface: 127.0.0.1
-       interface: <bridge-gw>            # e.g. 172.31.110.1
+       interface: <bridge-gw>            # e.g. the .1 of a fixed Docker bridge subnet
        ip-freebind: yes                  # bind before Docker creates the bridge
        do-ip6: no
        access-control: 0.0.0.0/0 refuse
