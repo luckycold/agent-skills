@@ -73,6 +73,7 @@ For a read-only drive health/speed/port audit across hosts, run `scripts/drive-i
 - `/etc/pve/notifications.cfg` lists targets and matchers. Read only target names, types, and modes; never print credentials.
 - If postfix logs `status=deferred (alias database unavailable)` for root mail, the local `mail-to-root` target is silently queueing. The fix (on approval) is `newaliases` and then flushing the queue.
 - Luke runs ntfy. To add a PVE webhook/Gotify-style ntfy target, follow `ntfy-ops`.
+- Availability monitoring (Uptime Kuma CT, host push scripts, responder webhook) lives in `uptime-kuma`. Its pve push script runs from `/etc/cron.d`; keep it read-only.
 
 ## Self-maintenance
 
