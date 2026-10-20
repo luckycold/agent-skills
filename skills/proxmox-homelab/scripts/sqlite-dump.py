@@ -15,6 +15,7 @@ JOBS = {   # examples; list the live DB files (from `docker inspect` mounts), ne
  "plex": dict(dbs=[f"{PLEX}/Plug-in Support/Databases/com.plexapp.plugins.library.db",
                    f"{PLEX}/Plug-in Support/Databases/com.plexapp.plugins.library.blobs.db"], tar=(PLEX, ["Preferences.xml"])),
  "app-configs": dict(tar=("/mnt/.ix-apps", ["app_configs"]), keep_days=14),
+ "uptime-kuma": dict(remote=("root@<kuma-ct>", "kuma.db")),  # dump-only key + forced command on the far side, see backup-health
  "hass": dict(newest="/mnt/<apps-pool>/backups/hass/automatic_backup_*.tar", keep_days=3, separate=True),
 }
 UID, GID = pwd.getpwnam("apps").pw_uid, grp.getgrnam("apps").gr_gid
@@ -100,6 +101,18 @@ def dump_tar(app, d, base_dir, members):
     if p1.wait() not in (0, 1) or p2.returncode: raise RuntimeError("tar/zstd failed")
     subprocess.run(["zstd", "-q", "-t", tmp], check=True); os.replace(tmp, f"{d}/{base}"); finish(d, base, f"latest-files_{app}")
     log(f"{app}: ok {base} {os.path.getsize(f'{d}/{base}')} B")
+KEY = "/mnt/<apps-pool>/Applications/sqlite-dump/kuma_dump_ed25519"; KH = "/mnt/<apps-pool>/Applications/sqlite-dump/known_hosts"
+def dump_remote(app, d, host, name):
+    # the key is restricted on the far side to a forced command that prints a consistent .backup copy; we then run the normal pipeline on it
+    t = f"{d}/.remote.{TS}.partial"; os.makedirs(t, mode=0o700)
+    try:
+        with open(f"{t}/{name}", "wb") as f:
+            subprocess.run(["ssh", "-T", "-i", KEY, "-o", "IdentitiesOnly=yes", "-o", "BatchMode=yes", "-o", f"UserKnownHostsFile={KH}",
+                            "-o", "StrictHostKeyChecking=yes", "-o", "ConnectTimeout=15", host], stdout=f, check=True, timeout=600,
+                           env={k: v for k, v in os.environ.items() if k != "SSH_AUTH_SOCK"})
+        dump_db(app, d, f"{t}/{name}")
+    finally:
+        shutil.rmtree(t, ignore_errors=True)
 def copy_newest(app, d, pattern):
     fs = sorted(glob.glob(pattern), key=os.path.getmtime)
     if not fs: raise FileNotFoundError(pattern)
@@ -119,6 +132,9 @@ for app in sel:
     if "tar" in j:
         try: dump_tar(app, d, *j["tar"])
         except Exception as e: rc = 1; log(f"{app}: FAILED tar: {e}")
+    if "remote" in j:
+        try: dump_remote(app, d, *j["remote"])
+        except Exception as e: rc = 1; log(f"{app}: FAILED remote: {e}")
     if "newest" in j:
         try: copy_newest(app, d, j["newest"])
         except Exception as e: rc = 1; log(f"{app}: FAILED copy: {e}")
