@@ -56,7 +56,7 @@ for c in ${PUBLIC_CHECKS:-}; do IFS='|' read -r h p w <<<"$c"; chk "$h" "$p" "$w
 # DB dump freshness (db-backup app)
 D=${DUMP_DIR:-/mnt/<apps-pool>/Applications/db-dumps}
 dump_chk() { # token dir minbytes
-  local f; f=$(ls -t "$D/$2"/*.sql.zst 2>/dev/null | head -1)
+  local f; f=$(ls -t "$D/$2"/pgsql_*.sql.zst 2>/dev/null | head -1)
   if [ -z "$f" ]; then push "$1" down "no dump in $2"; return; fi
   local a sz; a=$(age_h "$f"); sz=$(stat -c %s "$f")
   if [ "$a" -lt 26 ] && [ "$sz" -ge "$3" ] && [ -s "$f.sha1" ]; then push "$1" up "$(basename "$f") ${a}h old, $((sz/1048576)) MiB"; else push "$1" down "$2 dump stale/small: ${a}h, ${sz} B, sha1=$( [ -s "$f.sha1" ] && echo ok || echo missing)"; fi; }
@@ -64,7 +64,7 @@ dump_chk T_BK_IMMICH immich 50000000
 dump_chk T_BK_FRESHRSS freshrss 1000000
 # DBs dumped outside db-backup (proxmox-homelab scripts/pg-dump-exec.sh): one combined monitor, name:minbytes
 o_ok=""; o_bad=""
-for x in ${OTHER_DUMPS:-}; do n=${x%%:*}; m=${x#*:}; f=$(ls -t "$D/$n"/*.sql.zst 2>/dev/null | head -1)
+for x in ${OTHER_DUMPS:-}; do n=${x%%:*}; m=${x#*:}; f=$(ls -t "$D/$n"/pgsql_*.sql.zst 2>/dev/null | head -1)
   if [ -n "$f" ] && [ "$(age_h "$f")" -lt 26 ] && [ "$(stat -c %s "$f")" -ge "$m" ] && [ -s "$f.sha1" ]; then o_ok="$o_ok $n:$(age_h "$f")h/$(( $(stat -c %s "$f")/1024 ))K"
   else o_bad="$o_bad $n"; fi; done
 [ -n "${OTHER_DUMPS:-}" ] && { if [ -z "$o_bad" ]; then push T_BK_OTHER up "fresh:$o_ok"; else push T_BK_OTHER down "stale/small/missing:$o_bad;${o_ok:+ ok:$o_ok}"; fi; }
