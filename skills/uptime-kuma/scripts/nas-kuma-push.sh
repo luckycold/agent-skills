@@ -69,6 +69,13 @@ for x in ${OTHER_DUMPS:-}; do n=${x%%:*}; m=${x#*:}; f=$(ls -t "$D/$n"/pgsql_*.s
   else o_bad="$o_bad $n"; fi; done
 [ -n "${OTHER_DUMPS:-}" ] && { if [ -z "$o_bad" ]; then push T_BK_OTHER up "fresh:$o_ok"; else push T_BK_OTHER down "stale/small/missing:$o_bad;${o_ok:+ ok:$o_ok}"; fi; }
 
+# SQLite/config dumps (proxmox-homelab scripts/sqlite-dump.py): every latest-sqlite_*/latest-files_* link in each listed app dir < 26 h with sha1
+s_ok=0; s_bad=""
+for n in ${SQLITE_DUMP_APPS:-}; do links=$(ls "$D/$n"/latest-sqlite_* "$D/$n"/latest-files_* "$D/$n"/latest-hass_* 2>/dev/null)
+  [ -z "$links" ] && { s_bad="$s_bad $n:none"; continue; }
+  for l in $links; do f=$(readlink -f "$l"); if [ -s "$f" ] && [ -s "$f.sha1" ] && [ "$(age_h "$f")" -lt 27 ]; then s_ok=$((s_ok+1)); else s_bad="$s_bad $n/${l##*/latest-}"; fi; done; done
+[ -n "${SQLITE_DUMP_APPS:-}" ] && { [ -z "$s_bad" ] && push T_BK_SQLITE up "fresh: $s_ok dumps" || push T_BK_SQLITE down "stale/missing:$s_bad (ok $s_ok)"; }
+
 # Home Assistant automatic backup on NAS share
 f=$(ls -t ${HA_BACKUP_DIR:-/mnt/<apps-pool>/backups/hass}/automatic_backup_*.tar 2>/dev/null | head -1)
 if [ -n "$f" ] && [ "$(age_h "$f")" -lt 26 ]; then push T_BK_HA up "$(basename "$f") $(age_h "$f")h old"; else push T_BK_HA down "newest HA backup: ${f:+$(basename "$f") $(age_h "$f")h old}${f:-none}"; fi
