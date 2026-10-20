@@ -38,5 +38,6 @@ Prefer checks that prove the app's **dependencies** work (DB, upstream, auth), n
 - In host scripts, inline `python3 -c '...'` inside bash: don't use backslash-escaped quotes inside f-strings (Python < 3.12 SyntaxError). A failing parser must turn the check **down** (`|| bad=check-failed`), never silently up.
 - Never run push scripts with `bash -x`: it prints push tokens.
 - TrueNAS `cronjob.create` fields are `stdout`/`stderr` (true = hide), not `hide_stdout`.
-- Kuma's own DNS is the home resolver, so `*.domain` checks hit Traefik on the LAN; use host pushes for the public path.
+- Kuma's own DNS is the home resolver (via the CT's unbound cache), so `*.domain` checks hit Traefik on the LAN; use host pushes for the public path. A public fallback resolver makes `*.domain` checks silently go to Cloudflare IPs when the home resolver drops a query.
+- `type=dns` monitors use their own resolver (`dns_resolve_server`) and bypass the container DNS/cache, so AdGuard checks stay real.
 - Kuma has no alert dependencies: a NAS outage fires one alert per monitor. Keep LAN-direct checks critical and route checks at 5 min.
