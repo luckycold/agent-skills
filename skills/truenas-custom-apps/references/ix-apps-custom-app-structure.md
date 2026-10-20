@@ -107,3 +107,8 @@ _Moved verbatim from `SKILL.md` on 2026-10-08 during the size refactor; the skil
 - Updated to: decolua/9router:latest (official), removed command/working_dir, simplified volumes to data mount only.
 - Process: Backup user_config.yaml with timestamped .bak, python yaml edit, trigger update.
 - Result: App continued as RUNNING custom_app with new version in runtime.
+
+## Background and extending this skill
+
+- Inspecting middlewared (crud.py, custom_app.py, ix_apps/*) is useful for understanding why manual registration works, but not required for routine additions.
+- Add new references/ for specific images or common services; capture new midclt behaviors after TrueNAS updates; patch the skill when a step fails in a repeatable way.

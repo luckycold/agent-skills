@@ -64,6 +64,7 @@ Load the matching reference before working on one of these apps:
 - **proton-bridge:** see `references/proton-bridge-app.md` for the overview and pitfalls, plus `references/proton-bridge-pass-automation.md`, `references/proton-bridge-public-mail-client-exposure.md`, `references/proton-bridge-imap-health-libfido2.md` (with `scripts/probe-bridge-imap.sh`), and `references/proton-bridge-locked-vault-credential-recovery.md`. Never print relay credentials or TOTP material. A scan without a proven authenticated IMAP session is **incomplete**, never "no mail".
 - **Upstream compose stacks (FUTO Notes, etc.):** see `references/upstream-compose-multi-service-apps.md`. The server image's UID (FUTO: 1000) must own its blob directory.
 - **Jellyfin SSO plus native clients:** see `references/jellyfin-authelia-sso-native-clients.md`.
+- **immich-proton-sync after an Immich update:** the reconciler's version guard stops it (app stuck DEPLOYING, container unhealthy) until the new Immich is verified. Verify, bump the allowlist, rebuild, and dry-run per `references/immich-proton-sync-version-bump.md`.
 
 ## Pitfalls and Anti-Patterns
 - Never rely solely on `midclt call app.create` for custom apps on this system — it consistently hits validation blocks. Manual structure replication is the proven path.
@@ -77,7 +78,6 @@ Load the matching reference before working on one of these apps:
 - Secrets/credentials: Use the pre-configured proton-pass-agent + explicit reason for every vault/item operation. Respect system blocks on secret viewing. Never embed real passwords in commands, logs, or memory. After obtaining bridge info, consider storing the *generated* bridge creds back into a new Pass item.
 - Port binding: Omitting `127.0.0.1` on intentionally local-only services exposes them on all interfaces — use `127.0.0.1` by default. When public mail-client access is explicitly requested, bind only the required standard ports, document the exposure, and verify the complete chain rather than treating an all-interface Docker publish as internet reachability.
 - **Proton Bridge pitfalls** (socat protocol mapping, probing in the configured TLS mode, DNS-only mail records, stale relay credentials, `socat` resets, sync-monitor timeouts, libfido2, empty data dir, keychain failures, TLS/DNS interception, historical vs current errors): see `references/proton-bridge-app.md`.
-- Inspecting middlewared (crud.py, custom_app.py, ix_apps/*) is useful for understanding why manual registration works, but not required for routine additions.
 - **Many apps STOPPED after a nightly auto-upgrade:** a failed image pull during `app.upgrade` leaves the app stopped on the new version. Diagnose with `core.get_jobs` and `app_lifecycle.log`, then recover with `app.start` once the registry is reachable. Start Authelia first, because protected routes return 500 while it is down. Then check the backup knock-ons: db-backup stuck on a stopped database host, and Backrest partial runs from files that uid 568 can't read. See `references/failed-auto-upgrade-and-backup-recovery.md`.
 - **`midclt call app.restart <name>` does not exist** on this stack (`Method does not exist`). Restart custom apps with `app.stop` then `app.start`, then poll `app.query`.
 - **Catalog/existing app port host-IP changes** (`network.*.host_ips`): back up `user_config.yaml` and edit it with python. A stop/start often does **not** move the published IP, so verify with `docker inspect` and `ss`. Confirm with Luke which IP clients should use as their DNS resolver before touching DHCP. See `references/catalog-app-network-port-edits.md`.
@@ -93,13 +93,6 @@ Load the matching reference before working on one of these apps:
 
 ## Related Skills and Overlaps
 This skill focuses on the registration and structure mechanics for custom apps. It overlaps with the broader `infrastructure-hygiene` skill (Luke's TrueNAS/Home Assistant patterns). The background curator should consolidate if duplication grows. Also relevant for any self-hosted AI workspace setup (Odysseus) that needs supporting local services.
-
-## How to Extend
-- Add new references/ for specific images or common services.
-- Capture new workarounds (e.g. new midclt behaviors after TrueNAS updates) via patch.
-- When a user corrects the approach or a step fails in a repeatable way, patch this skill immediately.
-
-Consult this skill before any new custom app work on the TrueNAS.
 
 ## Self-maintenance
 
