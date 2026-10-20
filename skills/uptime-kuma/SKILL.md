@@ -43,7 +43,7 @@ Keep the live `spec.py` (real hosts) in the private notes dir, not here. Monitor
 
 - `unattended-upgrades` for Debian, security, updates and the Docker CE origin; no auto-reboot. Docker json-file logs capped.
 - `/root/update-kuma.sh` in the CT: pull the pinned major, SQLite `.backup`, recreate, wait for container `healthy` + `/api/entry-page` 200. Run from the weekly review, **not cron**. Ask Luke before a major-version change.
-- Nightly vzdump of only the Kuma CT, snapshot mode. If the PBS token lacks `Datastore.Prune`, a `keep-last` job fails nightly after uploading; use `keep-all` and propose the ACL fix or a PBS-side prune job.
+- Nightly vzdump of only the Kuma CT, snapshot mode. If the PBS token lacks `Datastore.Prune`, a `keep-last` job fails nightly after uploading; use `keep-all` until the ACL fix (DatastorePowerUser on the datastore, see `proxmox-homelab` backup-health) is approved, then switch to `keep-last 7`.
 
 ## Triage of an alert
 
