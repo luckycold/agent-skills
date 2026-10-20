@@ -60,6 +60,9 @@ Avoid `Requires=` on a one-shot first-boot unit that later becomes inactive. Pre
 
 ## DNS hygiene
 
+- Point the Pi host at the LAN router's resolver (DHCP-provided preferred; see private context), not a separate filtering resolver that may be retired. `dockerd` resolves registry hosts (ghcr.io pulls by the update timer) through the host `/etc/resolv.conf`, so fixing the host resolver needs no Docker restart. A `dns` key in `/etc/docker/daemon.json` or compose only applies after restarting Docker/the container, which interrupts Thread: schedule it.
+- Record the appliance's SSH login user, authorized keys, and host key fingerprint in private context when it is built; an undocumented login leaves later bots unable to maintain it.
+
 If AdGuard (or similar) has a wildcard rewrite for the private LAN zone pointing at the reverse proxy, add **exact** A rewrites for the OTBR hostname **above** the wildcard, then reload/restart the resolver. Exact entries without `enabled: true` may be ignored depending on config schema.
 
 ## Auto-updates (verified)
