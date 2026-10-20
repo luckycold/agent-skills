@@ -25,7 +25,7 @@ Prefer checks that prove the app's **dependencies** work (DB, upstream, auth), n
 | n8n | `/healthz/readiness` status ok | DB connected |
 | Jellyfin | `/health` = Healthy | |
 | ntfy | `/v1/health` healthy=true | |
-| AdGuard | DNS monitor for a rewrite (expect the proxy IP) + an external name | rewrites + upstreams |
+| Home DNS (router or AdGuard) | `type=dns` against the resolver: a local record equals its LAN IP (e.g. NAS host, proxy wildcard) + an external name | local records + upstream |
 | cloudflared | host push: container IP `:20241/ready` readyConnections ≥ 1 | tunnel connected |
 | Public path | host push: `curl --resolve host:443:<ip from 1.1.1.1>` | Cloudflare → home works (bypasses home DNS) |
 | Thread OTBR on isolated VLAN | host push via `qm guest exec <vmid> -- curl 127.0.0.1:8081/node/state` | border router role |
@@ -39,5 +39,6 @@ Prefer checks that prove the app's **dependencies** work (DB, upstream, auth), n
 - Never run push scripts with `bash -x`: it prints push tokens.
 - TrueNAS `cronjob.create` fields are `stdout`/`stderr` (true = hide), not `hide_stdout`.
 - Kuma's own DNS is the home resolver (via the CT's unbound cache), so `*.domain` checks hit Traefik on the LAN; use host pushes for the public path. A public fallback resolver makes `*.domain` checks silently go to Cloudflare IPs when the home resolver drops a query.
-- `type=dns` monitors use their own resolver (`dns_resolve_server`) and bypass the container DNS/cache, so AdGuard checks stay real.
+- `type=dns` monitors use their own resolver (`dns_resolve_server`) and bypass the container DNS/cache, so home-DNS checks stay real.
+- If the home resolver has no split-horizon record for a public name (it returns the CDN IPs), say so in the check description and expect only what the public path returns (e.g. the app's version JSON), not a LAN-only detail. Retired checks: pause, list their IDs in the spec, keep them out of the synced groups.
 - Kuma has no alert dependencies: a NAS outage fires one alert per monitor. Keep LAN-direct checks critical and route checks at 5 min.

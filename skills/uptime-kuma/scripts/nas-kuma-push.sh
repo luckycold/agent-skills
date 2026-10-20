@@ -44,7 +44,7 @@ cip=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}
 rc=$(curl -s -m 5 "http://$cip:20241/ready" | python3 -c 'import json,sys;print(json.load(sys.stdin).get("readyConnections",0))' 2>/dev/null || echo 0)
 [ "${rc:-0}" -ge 1 ] && push T_CLOUDFLARED up "readyConnections=$rc" || push T_CLOUDFLARED down "cloudflared not ready (readyConnections=${rc:-0})"
 
-# Public path through Cloudflare (resolve via 1.1.1.1, bypass AdGuard rewrites)
+# Public path through Cloudflare (resolve via 1.1.1.1, bypass home-DNS local records)
 pf=""
 chk() { local h=$1 p=$2 want=$3 ip; ip=$(dig +short +time=3 +tries=1 @1.1.1.1 "$h" A | grep -E '^[0-9.]+$' | head -1)
   [ -z "$ip" ] && { pf="$pf $h:nodns"; return; }

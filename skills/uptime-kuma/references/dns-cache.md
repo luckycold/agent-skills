@@ -25,11 +25,16 @@
        prefetch: no
    forward-zone:
        name: "."
-       forward-addr: ${ADGUARD_IP}       # home resolver only, never public DNS
+       forward-addr: ${HOME_RESOLVER_IP} # the LAN resolver holding the local records (router or AdGuard), never public DNS
    ```
-3. Compose: a named network with fixed `ipam` subnet/gateway, and `dns: [<bridge-gw>, ${ADGUARD_IP}]` (AdGuard direct is the fallback if unbound is down). Recreate inside a maintenance window; remove the old `<project>_default` network.
+3. Compose: a named network with fixed `ipam` subnet/gateway, and `dns: [<bridge-gw>, ${HOME_RESOLVER_IP}]` (the home resolver direct is the fallback if unbound is down). Recreate inside a maintenance window; remove the old `<project>_default` network.
 
 ## Verify / measure
 - `docker exec uptime-kuma getent hosts <route-host>` returns the proxy IP; `unbound-control stats_noreset | grep total.num`.
 - `timeout 300 tcpdump -nn -l -i eth0 'udp dst port 53'` in the CT, count per minute and by name.
-- Trade-off: Kuma sees an AdGuard rewrite change up to 10 min late. Lower `cache-min-ttl` if that matters.
+- Trade-off: Kuma sees a local-record change up to 10 min late. Lower `cache-min-ttl` if that matters.
+
+## Switching the home resolver (e.g. AdGuard retired, router DNS takes over)
+- Keep the cache: UniFi local records answer with **TTL 0**, so without it every check re-queries the router.
+- Back up the unbound conf and compose file, change `forward-addr` and the compose `dns` fallback, `unbound-checkconf && systemctl restart unbound`, then `docker compose up -d` inside a maintenance window. Verify with `docker exec uptime-kuma getent hosts <name>` and the `# ExtServers:` line in the container's `/etc/resolv.conf`.
+- Querying `<bridge-gw>` from the CT host itself returns REFUSED (access-control allows only the bridge subnet and loopback); test from inside the container or via 127.0.0.1.

@@ -54,6 +54,7 @@ Use this skill when setting up, troubleshooting, or using Proton Pass from Herme
 - Do not pass PATs on the command line if an environment variable or file-based handoff is available; command-line args may leak via process listings or history.
 - If a user pastes a PAT in chat and asks to save it, do not save the literal token; use the existing secure env file/wrapper path or ask for a secure handoff if needed.
 - Prefer viewer-scoped, item- or vault-limited access with short expiration.
+- Store API tokens as **API Credential** custom items with fields `API Key`, `Secret`, `Expiry Date`, `Permissions`, one item per token, so Luke can see what each token can do and when it expires. Read a field with `--field "API Key"`; never echo it.
 - Before granting broad vault access or editor/manager roles, confirm the intended scope with the user.
 
 ## Browser sign-in and passkey-only records
