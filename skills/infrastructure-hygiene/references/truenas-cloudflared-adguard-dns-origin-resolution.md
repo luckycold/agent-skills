@@ -106,3 +106,21 @@ http:
 ```
 
 A nested private AdGuard hostname may still fail at Cloudflare TLS if the edge certificate does not cover that wildcard depth; local Traefik success proves the NAS route is correct.
+
+## Durable pin: hosts file mounted in the cloudflared app
+
+Use this so tunnel origins never depend on DNS (for example AdGuard per-/24 rate limiting makes Docker fall back to public DNS, which answers internal names with Cloudflare anycast IPs). The TrueNAS catalog app has no extra_hosts field, so mount a hosts file read-only over `/etc/hosts`; Docker then skips its own hosts file, and the value persists across catalog upgrades.
+
+1. Back up: `midclt call app.config cloudflared > /root/labby-backups/<date>/app-config.json` (contains the tunnel token: `chmod 600`, never print it).
+2. List origins from the last `Updated to new configuration` log line (token-mode tunnels are dashboard-managed; no local config.yml). Resolve every internal origin name, including short names expanded by the resolv.conf `search` domain, via AdGuard and pin the same answers.
+3. Write `/mnt/<pool>/<apps-dataset>/cloudflared/hosts` (644; keep the `localhost` lines).
+4. Apply (restarts the app once; open a Kuma maintenance window first):
+
+```bash
+midclt call -j app.update cloudflared '{"values":{"storage":{"additional_storage":[{"type":"host_path","read_only":true,"mount_path":"/etc/hosts","host_path_config":{"acl_enable":false,"path":"/mnt/<pool>/<apps-dataset>/cloudflared/hosts"}}]}}}'
+```
+
+5. Verify: `docker inspect <ctr> --format '{{json .Mounts}}'`, `docker cp <ctr>:/etc/hosts - | tar -xO` (image is distroless: no getent/shell), `/ready` readyConnections ≥ 1 on the container IP `:20241`, and 20+ requests via `curl --resolve host:443:<ip from 1.1.1.1>`.
+6. Rollback: same update with `"additional_storage":[]`. When an origin IP changes, edit the hosts file and restart the app.
+
+Removing a public hostname from a dashboard-managed tunnel needs the Zero Trust dashboard or an API token with Cloudflare Tunnel edit rights; the connector cannot do it locally.
