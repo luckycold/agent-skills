@@ -68,9 +68,9 @@ A rule existing in UniFi proves configuration, not reachability. Verify all laye
 
 For `check-host.net/check-tcp`, success may be represented as a result containing an address and numeric connection time, e.g. `[{"address":"203.0.113.10","time":0.2}]`, rather than the literal word `Connected`. Parse the shape, not only status words.
 
-## Luke's lab: no SSH exposure (2026-10-21)
+## Policy: no SSH exposure
 
-The router is UniFi at `192.168.0.1`. Its WAN must have **no forward to SSH (internal port 22) on any host**. On 2026-10-21, Luke had two such forwards to the NAS removed after sshd logged about 1,100 invalid-user attempts in 19 hours: "TrueNAS world" (WAN 22) and "SSH" (WAN 20050, interface both). Use WireGuard for remote shell access. Remaining intentional forwards: Plex 32400 and Proton Bridge 993/587 to the NAS, 80/443 to Traefik `192.168.0.2`, and the Minecraft ports. Check exposure from outside with `bash -c 'exec 3<>/dev/tcp/<wan>/22'` from a non-WireGuard path. `stat/portforward` lists live rules with packet counters, plus UPnP/NAT-PMP leases (`is_upnp: 1`). UPnP and NAT-PMP are enabled in secure mode in `get/setting/usg`.
+The WAN must have **no forward to SSH (internal port 22, or any port that lands on sshd) on any host**. Internet-facing SSH forwards attract constant brute-force attempts; use WireGuard for remote shell access instead. When auditing, list every forward whose internal port is 22 (including ones on non-standard WAN ports and on interface "both"), back up the rule JSON, then delete only those exact rule IDs. Keep the inventory of intentional forwards (which hosts and services are exposed) in private context, not in this public file. Check exposure from outside with `bash -c 'exec 3<>/dev/tcp/<wan>/22'` from a non-WireGuard path. `stat/portforward` lists live rules with packet counters, plus UPnP/NAT-PMP leases (`is_upnp: 1`); UPnP/NAT-PMP state is in `get/setting/usg`.
 
 ## Cleanup and credential hygiene
 
