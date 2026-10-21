@@ -87,19 +87,7 @@ PROTON_PASS_AGENT_REASON="Verification read" proton-pass-agent item view --help
 
 For unauthenticated setups, `pass-cli info` should fail cleanly with an authenticated-client error.
 
-### Scoped SSH agent for Git operations
-
-When a headless host needs Git SSH authentication, start the CLI's native daemon through the scoped wrapper instead of exporting a private key or falling back to an expired HTTPS token:
-
-```bash
-PROTON_PASS_AGENT_REASON="Authenticate Git remote" proton-pass-agent ssh-agent daemon start \
-  --socket-path "<ssh-agent-socket>" \
-  --vault-name "<scoped-vault>" \
-  --pid-file "<ssh-agent-pid-file>" \
-  --log-file "<ssh-agent-log-file>"
-```
-
-The first status check can briefly report `degraded` while keys are loading. Wait for the socket with a bounded retry, require `ssh-agent daemon status` to report `running`, then verify identities with `SSH_AUTH_SOCK="<ssh-agent-socket>" ssh-add -l`. For a new Git host, compare the scanned host-key fingerprint with the provider's official documentation before adding a scoped `known_hosts` entry. Test `ssh -T` before changing the remote and pushing. Keep the socket, PID, log, vault, and remote values in host-local configuration or the private context, not in this skill.
+For Git SSH auth on a headless host (native `ssh-agent daemon` via the scoped wrapper) and for missing or corrupted local sessions in a headless add-on, see [headless recovery and SSH agent](references/headless-recovery-and-ssh-agent.md).
 
 ## CLI v2.5.0 login notes
 
@@ -109,98 +97,36 @@ The first status check can briefly report `degraded` while keys are loading. Wai
   (`export PROTON_PASS_EXTRA_PASSWORD="$PROTON_PASS_LOGIN_EXTRA"`). Never print either value.
 - Read an API Credential field straight into a 0600 file (`--field "API Key" > file`), then use
   it through a credential helper that reads the file. Never put it in argv or the output.
+- Older-version syntax quirks (v2.1.0 positional vault for `item list`, alias-vs-login lookups, JSON control characters): see [CLI version notes](references/cli-version-notes.md), which also repeats the v2.5.0 notes above.
 
-## CLI v2.1.0 syntax notes
+## Agent roles, writes, and REASON
 
-- `pass-cli item list` takes the vault as a positional argument in the observed 2.1.0 CLI:
-  ```bash
-  proton-pass-agent item list "<vault>" --output json
-  ```
-- Do not use `--vault-name` with `item list` on this version; it errors with `unexpected argument '--vault-name'`. Other subcommands may still use `--vault-name`, so check `--help` per subcommand.
-- A global `item list --output json` can fail if no default vault is set. Prefer explicit positional vault names for deterministic automation.
-- When locating credentials, use `item list "<Vault>" --filter-type login --output json` before resolving `/username` or `/password`. Recursive searches across every item type can mistake email aliases for login records because alias titles often look like account usernames; aliases correctly fail with `Field 'username' not found`.
-- When scanning item metadata for candidate SSH/host credentials, summarize only title/type/state; redact vault/share/item IDs and never print secret fields.
-- If `--output json` from `pass-cli item list` contains literal control characters and `json.loads` fails, use Hermes `execute_code`'s `json_parse()` helper instead of printing or hand-cleaning the JSON. Continue to redact IDs and secret fields in any summary.
+- Luke's scoped agent token is usually **viewer** only: `info`, `vault list`, `item list`, `item view` work; creates/updates fail with `NotAllowed`. Do not retry writes through a viewer agent or bootstrap a broader session to bypass it.
+- Agent-created credentials belong in the **Agents** vault; verify the agent can read them after saving.
+- Keep `PROTON_PASS_AGENT_REASON` short (under ~300 characters) and specific.
+- `item update` on a note fails with `InvalidValue` at about 39.9 KB; check `wc -c` and split large notes.
+- When a phone approval arrives after a timeout, reissue the operation; delayed approval is not refusal.
 
-## Agent Role Limitations, Write Operations, and REASON Constraints
+Details, owner-only grant operations, the temporary root-only handoff pattern, and the one-shot API key pattern: [agent roles and writes](references/agent-roles-and-writes.md).
 
-Credentials created by the agent belong in the **Agents** vault, rather than
-Main or another vault containing user-created items. Verify that the configured
-agent can read the destination after saving or moving the item; the correct
-vault name does not itself grant access. Do not expand token permissions merely
-to make storage convenient. An already user-authenticated Proton Pass browser
-can perform the requested create or move while the CLI remains viewer-scoped.
-If that browser disconnects, keep the protected temporary handoff and report
-the unfinished move instead of claiming it succeeded.
+## Vault migration, native archives, and reconciliation
 
-Agent and personal-access-token sessions cannot manage agents or PAT grants,
-even with an editor vault role. Run access grants from an owner-authenticated
-CLI. Whole-vault read/write uses `--role editor` without item flags. Preserve
-the existing agent session when arranging an owner login; a web login can
-still require human reauthentication despite an already signed-in browser.
-For authorized editor writes, use `item create login --from-template -` with
-JSON on stdin, then verify the saved vault and secret. Avoid passwords in argv.
-
-Luke's scoped agent token is usually granted only **viewer** role for least privilege. Resolve its local wrapper and approved vault scope from `~/.agents/private-context.md`. This is safe for discovery but restrictive for writes:
-
-- Successful with REASON: `info`, `vault list`, `item list "<Vault>" --output json`, `item view`.
-- Fails with "Could not perform operation. Reason: NotAllowed" (or similar): `item create`, `item create note`, `item update`, adding custom fields, or editing existing logins/aliases.
-
-When a task requires persisting a discovered secret, use the agent **only for read/discovery**. After the user supplies the value, perform the actual storage manually in the Proton Pass app as a purpose-named note or custom field on the appropriate item. Resolve existing item and alias names from the private context; do not keep retrying writes through a viewer agent.
-
-Likewise, do not use account credentials readable by the viewer agent to bootstrap a broad owner/full-account CLI session merely to bypass the viewer role. If a generated operational credential must be consumed before a human can save it in Pass, use a narrowly scoped root-only local secret (`0700` parent, `0600` file), keep it out of logs and argv, clearly report the remaining manual Pass-save step, and remove the local copy after Pass-backed injection is verified. This is a temporary handoff pattern, not a replacement for Proton Pass.
-
-**Note size limit.** `item update --field "note=…"` fails with `Could not perform operation. Reason: InvalidValue` once the note body reaches about 39.9 KB. On 2026-10-08, 39,815 bytes was accepted and 39,913 bytes was rejected. The same error is easy to mistake for a role problem. Before syncing a large note such as the shared private context, check `wc -c`; compact it or split it into a second note, then read it back and confirm it matches.
-
-`PROTON_PASS_AGENT_REASON` must be short (< ~300 characters). Overly long or narrative reasons are rejected at the agent layer before the operation is attempted. Keep them concise and specific (e.g. "Locate UniFi API key for router DHCP DNS fix").
-
-**Proven one-shot pattern for API keys (observed in router DHCP work):**
-1. Agent + short REASON to list and locate the item (redact IDs in summaries).
-2. User pastes or confirms the key value in chat.
-3. Use directly in terminal for the duration of the task only: `export KEY=...; curl -k -H "X-API-Key: $KEY" ...` (never echo the value, never write it to files or memory).
-4. Redact the literal key as `[REDACTED]` in all tool output, thinking, and final messages.
-5. Tell the user to add it manually in the app for future use.
-
-This pattern keeps the audit trail while respecting role limits.
-
-## Troubleshooting: missing or corrupted local session in a headless add-on
-
-Resolve the wrapper, token env file, session directory, SSH-agent paths, and watchdog from `~/.agents/private-context.md`; do not persist them in this skill.
-
-1. Run the wrapper's `info` command.
-2. If no authenticated client exists, confirm the scoped PAT is available to the wrapper as an exported environment variable, then run the wrapper's login command. Never put the PAT in argv.
-3. For local decrypt/aead corruption, move the existing session directory to a timestamped sibling backup, recreate it with mode `0700`, and retry login.
-4. Apply mode `0700` to state directories and `0600` to state files.
-5. Verify vault listing and one permitted item operation before restarting dependent services.
-6. Run the durable watchdog and require silent success. Do not depend on add-on system-service paths that disappear across container restarts.
-7. Remove the corrupt-session backup only after the replacement session and dependent SSH agent are verified.
-
-Always set a short, specific `PROTON_PASS_AGENT_REASON`. When the user says they approved after a timeout, reissue the operation; delayed phone approval is not refusal.
-
-## Vault Migration, Native Archives, and Reconciliation
-
-For authorized in-place duplicate cleanup, see [CLI duplicate cleanup](references/cli-duplicate-cleanup.md) for full-content inventory, conservative matching, URL preservation, trash-only operations, and final reconciliation.
-
-For password-manager round trips, do not import one populated vault directly over another when deduplication is required. Export both sides, reconcile locally into a clean native Proton archive, preserve conflicting older copies in a review vault, and verify before retiring either source. Treat third-party passkey conversion as experimental until each credential authenticates successfully against its real relying party.
-
-When generating or validating a native archive, derive the contract from commit-pinned `proton-webclients` export/import source rather than guessing from example exports. Do not access user exports unless explicitly authorized; use source inspection and synthetic fixtures. Preserve Proton passkey objects as opaque Base64/MessagePack state. Remember that vault IDs, item IDs, pin state, vault display metadata, and input content-format versions are not restored, and attachment linking can advance the backend-controlled final modification time.
-
-See:
-
-- `references/native-export-schema.md` for exact ZIP paths, field paths, passkeys, attachments, timestamp behavior, and validation/import pitfalls.
-- `references/bitwarden-roundtrip-migration.md` for timestamp-based reconciliation, conservative duplicate matching, trash/alias handling, current Bitwarden/CXP limitations, and native-Proton passkey conversion requirements.
-- `references/passkey-canary-and-secure-handoff.md` for a one-entry passkey canary, full cryptographic/native-archive validation, and password-protected AES delivery without exposing the password in argv or chat.
-- `references/proton-drive-public-share-retrieval.md` for securely downloading password-protected public-share exports, Base64URL/link parsing, current browser selectors, permission hardening, and completion verification.
+Do not import one populated vault directly over another when deduplication is required; reconcile exports locally first. Overview and rules: [vault migration](references/vault-migration.md).
 
 ## References
 
+- `references/cli-version-notes.md` — v2.5.0 web login + extra password, v2.1.0 syntax quirks.
+- `references/agent-roles-and-writes.md` — viewer-role limits, Agents vault, REASON length, note size limit, one-shot API key pattern.
+- `references/headless-recovery-and-ssh-agent.md` — headless session recovery and scoped SSH agent for Git.
+- `references/stale-pat-recovery.md` — rejected server session that still looks authenticated locally.
+- `references/vault-migration.md` — migration overview and pointers.
+- `references/cli-duplicate-cleanup.md` — authorized in-place duplicate cleanup with trash-only operations.
 - `references/bitwarden-roundtrip-migration.md` — safe Bitwarden↔Proton reconciliation, trash/alias semantics, and passkey-portability research.
 - `references/passkey-canary-and-secure-handoff.md` — disposable one-entry migration test, Proton-native passkey validation, and AES-protected delivery using `pass-cli run` secret injection.
 - `references/native-export-schema.md` — commit-pinned Proton native ZIP/JSON schema, field paths, timestamp and vault behavior, opaque passkey format, attachment naming, and import-validation pitfalls.
 - `references/proton-drive-public-share-retrieval.md` — secure public-share export download workflow and current browser-automation compatibility fixes.
-- See the `himalaya` skill's `references/proton-pass-agent-wrapper-for-himalaya.md` for a concrete, production example of a dedicated bash wrapper that drives the agent (with REASON) to supply the Proton Bridge relay credential to himalaya's `auth.cmd` in headless/cron runs. The wrapper follows all the security and REASON discipline documented here.
-
-See [browser stdin injection](references/browser-stdin-injection.md) for scoped native `run` usage and OTP input behavior.
+- `references/browser-stdin-injection.md` — scoped native `run` usage and OTP input behavior.
+- See the `himalaya` skill's `references/proton-pass-agent-wrapper-for-himalaya.md` for a production wrapper that drives the agent (with REASON) to supply the Proton Bridge credential to himalaya in headless/cron runs.
 
 ## Self-maintenance
 
