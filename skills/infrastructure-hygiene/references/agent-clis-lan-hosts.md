@@ -36,6 +36,10 @@ If `~/.local/bin`, `~/.bashrc`, `~/.cursor`, or `~/.config/systemd` are Stow lin
 
 A clean Proxmox node without Stow can follow the NAS-style `$HOME/.local/bin` plus a user systemd oneshot.
 
+## Codex updates when mise is already configured
+
+Check `type -a codex`, `readlink -f "$(command -v codex)"`, `codex --version`, and `mise ls codex` before retrying an update. An older standalone installation earlier in PATH can hide a successful mise update. Use `mise upgrade codex` for an existing mise-managed installation. If a host-local `agent-tools/bin/codex` link shadows mise, back up that link and point it at `$HOME/.local/share/mise/shims/codex`; keep the launcher outside Stow. Verify from a fresh login shell with `codex --version`, `mise upgrade codex --dry-run`, `codex login status`, and `codex doctor --summary`. Keep binaries used by active sessions until those sessions exit; do not restart them merely to update the launcher.
+
 ## Home Assistant
 
 The Advanced SSH add-on is Alpine/musl. Official Cursor, Grok, and Pass CLI builds are glibc and fail there even with `gcompat`. Do not disable protection mode to reach Docker. HAOS itself is not the install target: the OS root is appliance-managed. Install these CLIs on Proxmox, TrueNAS, and the PBS VM. A secondary Proxmox node that is offline is not a setup failure; retry when it is reachable.
