@@ -13,6 +13,8 @@ curl -skS -H "X-API-Key: $UNIFI_KEY" \
 
 A `200` with a non-empty `data` array confirms the key and site visibility. The same key can work with the legacy Network application endpoints under `/proxy/network/api/s/<site>/rest/...` even though it was validated against `integration/v1`.
 
+Without an API key, the console owner's UI account (Pass login `account.ui.com`, with its TOTP) works for a local UniFi OS session: POST `{username,password,token,rememberMe:false}` to `https://GATEWAY/api/auth/login` from a script that keeps the values out of argv and output, keep the cookie jar in a `0700` temp dir, and send the `X-Updated-Csrf-Token` response header as `X-Csrf-Token` on writes. Delete the temp dir afterwards.
+
 If Proton Pass discovery is needed, search **login items only** (`item list <vault> --filter-type login`); email aliases with UniFi-looking titles are not login credentials and correctly lack `username`/`password` fields. A viewer-scoped Pass agent cannot save a newly supplied API key. Use it only for reads, consume a user-supplied key in memory for the task, and leave a manual secure-storage step. Never preserve raw API keys in conversational memory.
 
 ## Read and mirror existing rule schema
@@ -65,6 +67,10 @@ A rule existing in UniFi proves configuration, not reachability. Verify all laye
 - authentication succeeds when the service requires it.
 
 For `check-host.net/check-tcp`, success may be represented as a result containing an address and numeric connection time, e.g. `[{"address":"203.0.113.10","time":0.2}]`, rather than the literal word `Connected`. Parse the shape, not only status words.
+
+## Luke's lab: no SSH exposure (2026-10-21)
+
+The router is UniFi at `192.168.0.1`. Its WAN must have **no forward to SSH (internal port 22) on any host**. On 2026-10-21, Luke had two such forwards to the NAS removed after sshd logged about 1,100 invalid-user attempts in 19 hours: "TrueNAS world" (WAN 22) and "SSH" (WAN 20050, interface both). Use WireGuard for remote shell access. Remaining intentional forwards: Plex 32400 and Proton Bridge 993/587 to the NAS, 80/443 to Traefik `192.168.0.2`, and the Minecraft ports. Check exposure from outside with `bash -c 'exec 3<>/dev/tcp/<wan>/22'` from a non-WireGuard path. `stat/portforward` lists live rules with packet counters, plus UPnP/NAT-PMP leases (`is_upnp: 1`). UPnP and NAT-PMP are enabled in secure mode in `get/setting/usg`.
 
 ## Cleanup and credential hygiene
 
