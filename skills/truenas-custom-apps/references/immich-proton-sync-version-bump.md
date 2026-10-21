@@ -69,10 +69,19 @@ new Immich assets since the outage, plus a few `retire_recovery`/`save_recovery`
 STOP and escalate on any large `trash_photos`, `retire_*`, or applied
 `proton_deletions`.
 
-Known long-lived holds that are not regressions: Proton-only `import` items are
-paused by `--import-limit 0`; `size_conflict` groups are held by design; a
+Known long-lived holds that are not regressions: Proton-only imports run at
+`--import-limit 10` (since 2026-10-20; config `import_album` is false, so no
+"Imported from Proton" album); `size_conflict` groups are held by design; a
 mapped Photos UID whose `filesystem info` fails keeps a
 `proton_delete_held: RuntimeError` forever (it never deletes in Immich).
+
+Since 0.1.16, a Proton `claimedSize` that equals the real size modulo 2^32
+counts as a match for files of 2 GiB or more (some Proton clients wrote it as
+int32, so it wrapped, often negative); the SHA1 must still match. Such files
+are no longer `size_conflict` and get linked without a re-upload. Remaining
+`size_conflict` groups are genuine (e.g. edited JPEGs whose claimed size is
+smaller than the Immich original). The CLI upload path already writes full
+64-bit sizes.
 
 Since 0.1.13, Immich-extracted motion clips (hidden, `parents` set, path under
 `encoded-video`) are skipped entirely (summary `derived_motion.skipped` /
@@ -118,7 +127,7 @@ at the deployed budget (12 actions minus 4 reserved).
 Rollback: `docker load` the tarball (or use the held tag), restore the tag
 (app.update with the backed-up config, or the three files), stop/start. Holders
 exist per version (`immich-proton-sync-rollback-hold` = 0.1.11,
-`immich-proton-sync-rollback-hold-0.1.12`, `-0.1.13`, `-0.1.14`); tarballs live in
+`immich-proton-sync-rollback-hold-0.1.12`, `-0.1.13`, `-0.1.14`, `-0.1.15`); tarballs live in
 `build/immich-proton-sync-<v>.tar.gz` with sources in `build-<v>-src/`. Back up
 the ledger with the sqlite backup API (it runs in WAL mode), not `cp`.
 Restarting with app.update between cycles costs about 13 s of downtime.
