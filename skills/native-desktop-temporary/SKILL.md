@@ -48,6 +48,15 @@ hyprctl -j monitors
 hyprctl -j activewindow
 ```
 
+Do not assume `wlrctl` is installed; if it is missing, focus with
+`hyprctl dispatch 'hl.dsp.focus({window = "address:<window-address>"})'`.
+Neither path provides mouse clicks. For an Electron app that needs clicks,
+relaunch it with its original flags plus `--remote-debugging-address=127.0.0.1
+--remote-debugging-port=<free-port>` (a Chromium flag, not blocked by Electron's
+inspect fuses), drive it with `agent-browser --session <name> --cdp <port>`, then
+relaunch it without the port when finished. Don't `pkill -f` a pattern that also
+appears in your own command line, because it kills the calling shell.
+
 Select the native browser's actual app ID from the client list; do not infer it
 from the executable's name. Focus it, then verify the active window before input:
 
