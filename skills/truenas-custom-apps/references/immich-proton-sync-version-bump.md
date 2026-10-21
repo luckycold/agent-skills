@@ -79,15 +79,33 @@ Since 0.1.13, Immich-extracted motion clips (hidden, `parents` set, path under
 `in_proton`): the still's original embeds the same bytes. They never upload and
 never drive deletion/restore mirroring. `in_proton` should stay at the 3 kept
 standalone clips whose stills Luke deleted in Proton. Separate live-photo
-originals (iPhone `.MOV`) still upload unpaired. CLI 0.9.0 makes no thumbnails
-for video/HEIC; a forked CLI would need its own `external-drive` login.
+originals (iPhone `.MOV`) still upload unpaired.
+
+Since 0.1.14 (deployed: 0.1.15), uploads go through the thumbnail-capable fork
+when config `proton_cli_thumbs` = `/usr/local/bin/proton-drive-thumbs` (a
+wrapper that sets XDG dirs to `/state/thumbs-cli` and execs
+`proton-drive-labby`, build `external-drive-labby_photos@1.0.0-stable+cli090.thumbs3`;
+patches in the repo's `proton-cli/patches/`). Video thumbnails come from an
+ffmpeg frame, HEIC from heif-convert, and undecodable JPEGs from an ffmpeg
+re-encode (0.1.15). Failures log `thumbs_upload_failed` and fall back to the
+official CLI. The fork has its OWN session: if it expires, run
+`proton-drive-thumbs auth login` in a one-off container with `/state` mounted,
+hand Luke the sign-in URL (write it to a 600 file, never print it); polling lasts
+30 min. Check locally, with no upload or sign-in:
+`docker exec <c> proton-drive-thumbs photo thumbnail-test -o /tmp/tt <file>`.
+Check a node's thumbnails with `proton-drive-thumbs photo thumbnails /photos/<uid> --json`.
+Replacing a thumbless node: upload a new copy (`--conflict-strategy rename`),
+verify sha1, size, capture time and thumbnails, wait until the ledger
+`photo_uids` includes the new uid, trash the old node, then rename the new node
+back. The same content is never absent, so no deletion is mirrored. The
+2026-10-20 run (256 replaced) used `state/thumbs-replace/replace_thumbs.py` on the NAS.
 The container cannot read `.zfs/snapshot` (ELOOP), so the `original()` snapshot
 fallback only works on the host. 2026-10-20 audit and cleanup notes:
 `/workspace/homelab/proton-motion-thumbs/README.md` on the Labby box.
 
 ## 4. Deploy and watch
 
-Preferred (0.1.13): back up `midclt call app.config immich-proton-sync`, change
+Preferred (0.1.13+): back up `midclt call app.config immich-proton-sync`, change
 only `services.reconciler.image` in that JSON, and apply it with
 `midclt call -j app.update immich-proton-sync '{"custom_compose_config": <json>}'`
 (regenerates the rendered files and redeploys); then update the reference
@@ -100,4 +118,7 @@ at the deployed budget (12 actions minus 4 reserved).
 Rollback: `docker load` the tarball (or use the held tag), restore the tag
 (app.update with the backed-up config, or the three files), stop/start. Holders
 exist per version (`immich-proton-sync-rollback-hold` = 0.1.11,
-`immich-proton-sync-rollback-hold-0.1.12`).
+`immich-proton-sync-rollback-hold-0.1.12`, `-0.1.13`, `-0.1.14`); tarballs live in
+`build/immich-proton-sync-<v>.tar.gz` with sources in `build-<v>-src/`. Back up
+the ledger with the sqlite backup API (it runs in WAL mode), not `cp`.
+Restarting with app.update between cycles costs about 13 s of downtime.

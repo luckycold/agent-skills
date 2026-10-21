@@ -101,6 +101,15 @@ PROTON_PASS_AGENT_REASON="Authenticate Git remote" proton-pass-agent ssh-agent d
 
 The first status check can briefly report `degraded` while keys are loading. Wait for the socket with a bounded retry, require `ssh-agent daemon status` to report `running`, then verify identities with `SSH_AUTH_SOCK="<ssh-agent-socket>" ssh-add -l`. For a new Git host, compare the scanned host-key fingerprint with the provider's official documentation before adding a scoped `known_hosts` entry. Test `ssh -T` before changing the remote and pushing. Keep the socket, PID, log, vault, and remote values in host-local configuration or the private context, not in this skill.
 
+## CLI v2.5.0 login notes
+
+- v2.5.0 (box, 2026-10-20) signs in through the web login only; there is no password prompt flow.
+- The account has an extra (second) password. Commands that need it read `PROTON_PASS_EXTRA_PASSWORD`.
+  After `source ~/.config/proton-pass-cli/env`, set it from the env var `PROTON_PASS_LOGIN_EXTRA`
+  (`export PROTON_PASS_EXTRA_PASSWORD="$PROTON_PASS_LOGIN_EXTRA"`). Never print either value.
+- Read an API Credential field straight into a 0600 file (`--field "API Key" > file`), then use
+  it through a credential helper that reads the file. Never put it in argv or the output.
+
 ## CLI v2.1.0 syntax notes
 
 - `pass-cli item list` takes the vault as a positional argument in the observed 2.1.0 CLI:
