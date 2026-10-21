@@ -77,6 +77,7 @@ Use the **`proton-pass-cli`** skill for install, agent tokens, wrappers, `PROTON
 ## Agent hosts and CLIs on the LAN
 
 - **Codex Remote on TrueNAS:** treat it as a separate host-agent migration with personal skills under `~/.agents/skills/` and transport over SSH or local sockets. See `references/codex-truenas-remote-control.md`.
+- **Unresponsive T3 on a small Linux VM:** compare client disconnect timestamps with guest memory pressure, swap occupancy, and process RSS before restarting. See `references/t3-memory-pressure-recovery.md`.
 - **T3 Connect on TrueNAS:** use the official user-systemd service with a loopback listener. Build `node-pty` in a temporary container, not with a host toolchain. Treat link codes as secrets. See `references/t3-connect-truenas-host-service.md`.
 - **Agent CLIs on Proxmox/TrueNAS/PBS/HA:** stow `common` then `personal`, and keep binaries and auth outside Stow. On HA, use the Debian Hermes add-on, not the Alpine SSH add-on. See `references/agent-clis-lan-hosts.md`.
 
