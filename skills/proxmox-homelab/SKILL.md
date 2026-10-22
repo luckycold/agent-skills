@@ -30,6 +30,10 @@ Load with: `infrastructure-hygiene` (UniFi, DNS, Traefik lockdown), `proton-pass
 6. **Batch scripts.** If you pipe a script into `ssh … 'bash -s' <<'EOF'`, every **nested** `ssh` inside the script must use `-n` (or `</dev/null`). Otherwise it consumes the rest of the heredoc and the script silently stops. The same applies to `pct exec` and `qm guest exec`.
 7. There is no Proxmox API token for agents yet. Use SSH + `pvesh`. If Luke wants API access, propose a least-privilege `PVEAuditor` token and store it in Pass.
 
+## Approved major upgrades
+
+For an explicitly authorized major upgrade, follow the current official release guide and the [backup, interruption, and reboot checks](references/major-upgrade-verification.md). Preserve the user's guest-start and reboot boundaries throughout.
+
 ## Inventory refresh
 
 Run `scripts/pve-inventory.sh` (read-only; see the header for usage) or the checklist in [references/inventory-commands.md](references/inventory-commands.md). Save output under a private working directory and redact `tn_api_key` and similar values. Summarize into a dated inventory and update **private context** (not this skill) with verified facts. Facts to capture:
