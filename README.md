@@ -2,7 +2,7 @@
 
 Luke-authored portable skills for infrastructure, automation, authentication, and agent workflow maintenance. This is a **public** repository: procedures use placeholders, while private operational values remain in an ignored local `~/.agents/private-context.md`.
 
-First-class consumers include Labby (Cursor home-lab bot), Codex, Cursor, Claude Code, OpenCode, OpenClaw, and Hermes (historical Home Assistant add-on agent). Prefer portable skills; Hermes-specific HA-addon paths stay in `infrastructure-hygiene` references.
+First-class consumers include Labby (Cursor home-lab bot), Codex, Cursor, Claude Code, OpenCode, OpenClaw, and Hermes (historical Home Assistant add-on agent), including when those CLIs run inside T3 Code. Prefer portable skills; Hermes-specific HA-addon paths stay in `infrastructure-hygiene` references.
 
 ## Canonical checkout
 
@@ -32,6 +32,7 @@ hermes skills tap add luckycold/agent-skills
 ## Skills
 
 - `direct-action-preferences`
+- `grok-bot-coordination`
 - `infrastructure-hygiene`
 - `minecraft-steam-gamescope`
 - `native-desktop-temporary`
