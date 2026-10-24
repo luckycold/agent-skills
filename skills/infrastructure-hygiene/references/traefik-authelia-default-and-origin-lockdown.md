@@ -114,6 +114,29 @@ their own auth.
   - Hairpin source (`docker exec <app> curl https://<protected-host>/`) → 302.
   - Internal callers' log lines are still 200, and Kuma is green.
 
+## 7. Trusted LAN skips Authelia (when Luke treats the home LAN as safe)
+- **Know what Authelia sees.** With no `forwardedHeaders.trustedIPs` on the entrypoints, Traefik
+  drops incoming `X-Forwarded-*`, so forwardAuth's XFF is the TCP peer. Prove it: send a spoofed
+  `X-Forwarded-For: <lan-ip>` through Cloudflare and over a VPN, then read Authelia's `remote_ip`
+  log field. Don't trust Cloudflare's XFF to get real client IPs. Authelia uses the leftmost
+  entry, which the client controls.
+- **Map every source:** LAN clients through Docker DNAT keep their real address. Containers and
+  a containerized cloudflared on the Traefik host show up as the Docker gateway. A
+  **cloudflared connector running on another LAN host shows up as that LAN host's IP**. So its
+  tunnel traffic would match a LAN rule. VPN and VLAN clients may be routed (own subnet) or
+  NATed (router IP); check the access log.
+- **Rule order:** per-host API bypasses → internal hairpin rules → `two_factor` for each LAN
+  tunnel-connector IP and the uptime monitor (so gate checks still see the 302) →
+  `bypass` with `networks: [<lan-cidr>]` on the wildcard domains. Keep Tailscale, VPN, IoT and
+  work VLANs out unless Luke says otherwise.
+- **Audit:** allow one LAN-wide network rule only when every network is inside the configured LAN
+  CIDRs **and** an earlier `two_factor` rule for the same domains lists every required exclusion.
+  Selftest both failure modes.
+- **Test:** LAN host with local DNS → app response, not Authelia. Box through Cloudflare with
+  spoofed XFF → 302. Each real tunnel hostname → 302 (check `remote_ip`). Hairpin from a container
+  → 302.
+- Prefer removing tunnel → Traefik paths (normal proxied DNS) over relying on a fixed DHCP address.
+
 ## Rollback pattern
 Keep `*.bak-<date>-<agent>` beside every edited dynamic file, a tarball of the dynamic dir and
 the app config JSON, and a JSON snapshot of the tunnel configs and DNS records. Remove the
