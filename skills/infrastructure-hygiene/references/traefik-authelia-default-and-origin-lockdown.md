@@ -135,7 +135,18 @@ their own auth.
 - **Test:** LAN host with local DNS → app response, not Authelia. Box through Cloudflare with
   spoofed XFF → 302. Each real tunnel hostname → 302 (check `remote_ip`). Hairpin from a container
   → 302.
-- Prefer removing tunnel → Traefik paths (normal proxied DNS) over relying on a fixed DHCP address.
+- Prefer removing tunnel → Traefik paths over relying on a fixed DHCP address. To do that:
+  - Repoint the hostname's CNAME from `<tunnel-id>.cfargotunnel.com` to the proxied apex. Do this
+    first, so there's no downtime.
+  - Then trim the tunnel's ingress (keep the `http_status:404` catch-all).
+  - Only then drop the connector host from the login-required rule.
+  - Check that `remote_ip` changes from the connector's address to a Cloudflare edge IP.
+- Make the audit enforce it. Keep a no-secrets snapshot of every tunnel's ingress from the
+  Cloudflare API, with a stale warning, and a map of tunnel → connector location (LAN IP,
+  Docker gateway, off-site, unknown). Fail on:
+  - an unclassified tunnel;
+  - a LAN-host connector that routes to Traefik while its IP isn't login-required;
+  - an unknown-host connector that routes to Traefik.
 
 ## Rollback pattern
 Keep `*.bak-<date>-<agent>` beside every edited dynamic file, a tarball of the dynamic dir and
