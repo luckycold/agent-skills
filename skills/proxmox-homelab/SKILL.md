@@ -66,6 +66,7 @@ For a read-only drive health/speed/port audit across hosts, run `scripts/drive-i
 - `ha-manager status`: stale services pinned to an offline node, or `hastate: request_stop` on a running guest, mean leftover HA state. Report it. Clean it up only with an explicit plan, because HA can stop guests.
 - To move guests off a failing single-disk ZFS pool while keeping the storage ID and incremental replication, follow [references/zfs-disk-migration.md](references/zfs-disk-migration.md) (send -R to a temporary pool, then a short-shutdown cutover with pool renames and a GUID-checked rollback).
 - To move a VM with USB passthrough (radio sticks) to another node, or to cap ZFS ARC before adding guests, follow [references/usb-passthrough-migration.md](references/usb-passthrough-migration.md).
+- When a node freezes silently (the journal just stops and it needs a power cycle), follow [references/silent-hang-diagnosis.md](references/silent-hang-diagnosis.md): timeline from boots, pstore, oops reading, Zen idle-state fixes, lockup panics and a hardware watchdog.
 - Removing a dead node (`pvecm delnode`) and fixing expected votes are cluster changes that need Luke's approval and a quorum plan (see `infrastructure-hygiene/references/proxmox-cluster-ceph.md`).
 
 ## Notifications
