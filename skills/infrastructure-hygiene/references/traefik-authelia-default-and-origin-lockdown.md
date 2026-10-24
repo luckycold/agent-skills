@@ -17,7 +17,8 @@ tunnel IDs from private context / live config, never from this file.
   CNAME to that apex still reaches the origin through Cloudflare.
 - **Authelia `access_control`:** read the rules. A domain-wide `resources: ^/api...` bypass, or
   a `networks:` bypass for the Docker proxy subnet, quietly un-protects routes that look
-  gated. Report these rather than changing them silently; app clients may depend on them.
+  gated. Report these and get Luke's OK before changing them; app clients may depend on them.
+  Section 6 covers how to replace them.
 
 ## 2. Docker hairpin pitfall (tunnel traffic looks internal)
 A container (for example `cloudflared`) that connects to Traefik's *host-published* IP arrives
@@ -26,6 +27,9 @@ bypasses that subnet by network, every request through that tunnel skips Autheli
 Verify in Traefik's access log (the client column) before trusting a tunnel → Traefik route.
 Fixes: point that hostname at the normal proxied-DNS path (Cloudflare → WAN → Traefik), use a
 tunnel connector running outside that Docker host, or narrow the network bypass.
+The same gateway address is also what *every* app on that Docker host shows when it calls a
+public hostname that resolves to Traefik's host IP. So a subnet bypass doubles as an
+"anything on the NAS" bypass.
 
 ## 3. Default Authelia: per-router + audit, not entrypoint forwardAuth
 Entrypoint-level forwardAuth (`--entrypoints.websecure.http.middlewares=authelia@file`) cannot be
@@ -66,6 +70,49 @@ header-based native-client routers (Jellyfin token routes) would break. Prefer:
   transparent SNI proxy may silently send `--resolve` tests through Cloudflare instead. Confirm
   the source IP in Traefik's access log.
 - Kuma: all monitors green after the change.
+
+## 6. Replace blanket Authelia bypasses with per-app API bypasses
+Goal: web UIs stay behind Authelia, and native, mobile and desktop apps keep working against
+their own auth.
+- **Find real callers first.** Traefik access log (`--accesslog=true`) grouped by client,
+  router and first two path segments. Grep app configs and SQLite DBs for public hostnames.
+  Typical internal callers: *arr download clients → qBittorrent, *arrs → Prowlarr indexer links
+  (`/<id>/api`, `/<id>/download`, not under `/api`), Seerr/Tautulli → Plex, FreshRSS → RSS-Bridge,
+  Prowlarr → FlareSolverr, Home Assistant → *arr APIs.
+- **Probe each host's `/api/` from outside before and after.** SPAs answer 200 with their shell,
+  which hides nothing. Watch for apps that **trust private IPs**: requests via Traefik come from
+  a private address, so the app sees them as local. qBittorrent's `AuthSubnetWhitelist` and
+  Plex's `allowedNetworks` both do this. Through a path bypass, their API is fully open to the
+  internet. Never bypass those hosts publicly.
+- **Per-host path bypass only when** a real client uses the path **and** the app enforces its own
+  auth on it. Examples: an API key or token (*arr, Tautulli, Mealie, Kavita, Sure, Seerr),
+  Proxmox `/api2/json/` tickets or API tokens (official mobile app), FreshRSS
+  `greader|fever|pshb.php`, or T3 Code `/api/`, `/ws`, `/.well-known/t3/`.
+  Keep web-only admin UIs fully protected: the TrueNAS UI and API (no official app), pgAdmin,
+  Kuma, n8n, LLDAP.
+- **Signup endpoints stay gated.** Put a `two_factor` rule for `^/api/users/register` (Mealie
+  with `ALLOW_SIGNUP`) or `^/api/v1/auth/signup` (Sure) *before* that host's bypass rule.
+  First match wins.
+- **Password endpoints that become reachable** (for example Proxmox `POST /api2/json/access/ticket`):
+  add a higher-priority Traefik router for just that method and path. Give it
+  `[authelia, rateLimit]` with `sourceCriterion.requestHeaderName: CF-Connecting-IP`. Traefik
+  delays requests up to a short max delay before it returns 429, so a burst may show as
+  throttling rather than 429s.
+- **Internal-only callers:** scope by domain + `networks: [<gateway>/32, <gateway-v6>/128]` (+ path
+  where possible). Never use the whole Docker subnet. Document that no tunnel hostname for those
+  hosts may point at Traefik. Better long term: point those apps at the LAN address.
+- **Drop leftover template paths** (for example MeshCentral `/meshagents`, `/control`,
+  `/identity` on every host). `/control` silently opened AdGuard's API.
+- **Audit:** extend the router audit to parse `access_control` (cut that section out first:
+  `{{ secret }}` templates break `yaml.safe_load`). Flag any bypass on a wildcard/apex domain
+  or with no domain, any `networks` entry wider than one address, and any host not on a
+  commented allowlist. Add a `--selftest` that feeds a blanket rule and expects it flagged.
+- **Apply:** back up the config, write a candidate file, then run
+  `authelia validate-config --config <candidate>` inside the container. Compare its warnings
+  with the live file's, then swap the files and restart. Verify:
+  - Protected UIs → 302; bypassed APIs → the app's own 401 or JSON.
+  - Hairpin source (`docker exec <app> curl https://<protected-host>/`) → 302.
+  - Internal callers' log lines are still 200, and Kuma is green.
 
 ## Rollback pattern
 Keep `*.bak-<date>-<agent>` beside every edited dynamic file, a tarball of the dynamic dir and
