@@ -10,6 +10,12 @@ Do not apply historical add-on paths or CLI pins to a migrated host. Inspect the
 
 For a `kagi-ken` missing-session error, use its supported `~/.kagi_session_token` credential file when the approved scoped Pass item supplies the session token. Render a host-local placeholder template with `pass-cli inject --out-file <native-token-file> --file-mode 0600 --force`; never print the rendered value. Verify live search and summarize after injection. A successful connect/tools-list check alone does not prove authentication. If the live server reads the file on each call, no gateway restart is needed.
 
+## Shared mcporter daemon and meaningful smoke tests
+
+Align Hermes' explicit `mcp_servers.mcporter.env.MCPORTER_DAEMON_DIR` with the verified live daemon directory when the shell works but MCP reports `Previous daemon exited unexpectedly`. Hermes filters unlisted subprocess environment variables, so shell-only daemon selectors can send its MCP child to stale state under a different directory. Compare daemon status, metadata PIDs, process existence and configured selectors before recovery; preserve ownership checks and use supported configuration/daemon commands, never delete keys or blindly kill transports. Set the inspected directory through `hermes config set`, read it back, then require `hermes mcp test mcporter` and live tool calls. Do not assume a changed config has refreshed an existing gateway connection.
+
+Require actual search results with titles and URLs, not merely exit status zero, a discovered tool, or a `Results for search query` header. If a broad control query also returns only a header, inspect bounded HTTP metadata with credentials kept in memory: a successful response redirected to a landing page is not a successful search. Check summarize separately; it can work while search is unusable. If the native credential file already matches the approved vault field, do not repeatedly overwrite it or claim credential renewal succeeded.
+
 ## Historical add-on layout
 
 Container-specific hygiene only:
