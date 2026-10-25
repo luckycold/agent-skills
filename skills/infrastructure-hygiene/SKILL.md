@@ -101,7 +101,7 @@ Keep the **SSH & Web Terminal add-on disabled by default**. Luke enables it temp
 
 ## Other references
 
-`references/index.md` has the full descriptions. Also: `references/hermes-harness-boundary.md`, `references/laptop-lan-recon.md`, `references/netbird-bmc-work-pc-dual-homed.md`, `references/unifi-port-forwarding-via-api.md`, `references/unifi-dhcp-dns-via-api-and-ip-diagnostics.md`, `references/rpi-otbr-docker-appliance.md`, and `references/application-mcp-transport-and-placement.md`.
+`references/index.md` has the full descriptions. Also: `references/hermes-harness-boundary.md`, `references/laptop-lan-recon.md`, `references/netbird-bmc-work-pc-dual-homed.md`, `references/unifi-port-forwarding-via-api.md`, `references/unifi-dhcp-dns-via-api-and-ip-diagnostics.md`, `references/unifi-split-horizon-dns.md` (forward domains, wildcard A not blocking AAAA, Cloudflare ECH/IPv6 off), `references/rpi-otbr-docker-appliance.md`, and `references/application-mcp-transport-and-placement.md`.
 
 ## Self-maintenance
 
