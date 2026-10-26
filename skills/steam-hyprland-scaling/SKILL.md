@@ -1,73 +1,39 @@
 ---
 name: steam-hyprland-scaling
 description: >
-  Fix Steam client UI scale on Hyprland/Omarchy mixed-DPI, especially when
-  the store URL bar is tiny next to the desktop bar. Triggers: Steam too
-  small or too big, GDK_SCALE, -forcedesktopscaling, STEAM_FORCE_DESKTOPUI_SCALING,
-  XWayland force_zero_scaling, Accessibility UI Scale, steam-launch, CEF
-  --force-device-scale-factor, SteamRT3 experimental client.
+  Steam client UI scale on Hyprland/Omarchy. The CEF scale restarter was
+  removed. Triggers: Steam too small or too big, GDK_SCALE, steam-launch,
+  --force-device-scale-factor, steamwebhelper SIGTRAP, g_pipe_pid.
 author: Luke
 ---
 
-# Steam HiDPI on Hyprland
+# Steam on Hyprland
 
-Steam's desktop UI is XWayland CEF. On Hyprland with `xwayland.force_zero_scaling`,
-it paints physical pixels and must self-scale. Current Steam public beta does
-not honor the old launch flags.
+The CEF scale helper was removed from the dotfiles. Do not bring it back.
 
-## What actually sizes the chrome
+`steam-launch --sync` patched `--force-device-scale-factor` into Steam's
+webhelper wrapper and sent SIGTERM to every process whose argv[0] was
+`./steamwebhelper`. On the SteamRT3 client (`steamrt64/steamwebhelper.sh`)
+a child between fork and exec still has that argv[0]. SIGTERM in that window
+runs CEF's inherited shutdown handler and aborts with
+`Check failed: g_pipe_pid == getpid()` (SIGTRAP). The restart loop produced
+hundreds of `steamwebhelper` core dumps.
 
-Compare Steam's URL bar / `STORE` / `LIBRARY` text to the compositor bar
-(clock, media widget). Window-relative density is misleading: the same 2x UI
-looks oversized in Omarchy's 1100x700 Steam box and tiny in a ~90% monitor
-window.
-
-The working control is Chromium's `--force-device-scale-factor`, set to the
-Hyprland monitor scale the Steam window occupies (2 on a 2x laptop, 1.5 on a
-1.5x 4K panel, 1 on a 1x 1440p). The personal `steam-launch` wrapper injects
-that flag into `ubuntu12_64/steamwebhelper_sniper_wrap.sh` only after the CEF
-browser parent is running. Restore the stock exec line before a fresh Steam
-launch: patching during update verification can cause repeated repair updates.
-Wait through updates with a bounded guard, then patch and restart only the
-browser parent. Match its NUL-delimited `argv[0]` exactly as `./steamwebhelper`;
-a substring search also matches wrapper/container command lines and can kill
-the runtime. Verify the exact scale flag in the live process, not a cached
-"applied scale" file. Release the guard lock before leaving Steam running.
+`steam-launch` now only unsets `GDK_SCALE`, `GDK_DPI_SCALE`, and
+`STEAM_FORCE_DESKTOPUI_SCALING`, and preloads `/usr/lib32/libextest.so` when
+that library is installed. `--sync` exits without touching Steam.
+`hypr/steam.lua` only sets window size.
 
 ## Dead ends
 
+- Do not SIGTERM `steamwebhelper`, or any argv[0] match, to apply scale.
+- Do not patch `steamwebhelper.sh` or `steamwebhelper_sniper_wrap.sh`.
 - Do not set a global `GDK_SCALE` / `GDK_DPI_SCALE`. That integer cannot be
   right on mixed-DPI, and Omarchy's monitor-scaling keybind persists it onto
   every GTK/X11 app.
 - Do not trust `-forcedesktopscaling` or `STEAM_FORCE_DESKTOPUI_SCALING`.
   Valve removed them when the Accessibility UI Scale slider landed.
 - Do not expect `config.vdf` `UI.display.Current.ScaleFactor` to persist.
-  Steam rewrites that block on startup and often keeps the last docked
-  1440p `AutoScaleFactor` (~0.95), which is why HiDPI chrome stays tiny.
-- Desktop file overrides should only change `Exec=` to `steam-launch`. They
-  are not a scale mechanism.
-- SteamRT3 ("experimental SteamRT3 Steam Client") is a 64-bit containerized
-  client, not native Wayland. It will not fix scale by itself and may move
-  the wrap path.
-
-## Launch and resync
-
-Launch through `steam-launch`. `--sync` restarts only CEF when the window
-lands on a different monitor scale, and restores its previous workspace and
-monitor. Empty workspaces can disappear while CEF restarts; restoring only
-the workspace number recreates it on the focused monitor and can cause a
-scale loop. Do not restart while `steam_app_*` game windows exist. After Hyprland Lua timer debounce, disable the previous timer
-with `set_enabled(false)` — `cancel()` is not a method on 0.56 `hl.timer`.
-
-Hyprland workspace rules are static: they place newly opened windows and do
-not prevent manual moves afterward. Prefer a persistent class rule with
-`workspace = "9 silent"` over a boot-only timer: a monitor-triggered config
-reload destroys the timer and recreates a disabled rule before startup apps
-finish. Match Brave web apps by their own classes, not their shared process.
-Use Lua dispatch syntax on Lua-configured Hyprland, including from wrappers.
-
-Keep a large Steam window (monitor-relative). The 1100x700 Omarchy default is
-a 1x-era size and makes any correct scale look cramped.
 
 ## Self-maintenance
 
