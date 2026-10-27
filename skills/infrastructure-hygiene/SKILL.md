@@ -56,6 +56,10 @@ See `references/hermes-harness-boundary.md` for the incident that established th
 
 Before booting an appliance whose filesystem you staged from a desktop, restore its filesystem root to the owner the appliance expects (normally `root:root`). Change only that directory, not games or user data. A `Detected unsafe path transition` error from systemd-tmpfiles is the signature. Prefer the shipped tmpfiles/mount-unit repair over custom startup scripts. See `references/appliance-storage-ownership.md`.
 
+## SteamOS application updates
+
+Discover's unattended updates depend on KDE Desktop Mode. For a machine mostly used in Gaming Mode with Decky already installed, Apps Manager supports scheduled updates of system/user Flatpaks and Gear Lever-managed AppImages. Prefer its native settings over a custom timer; see [SteamOS application updates](references/steamos-application-updates.md) for installation, verification, and coverage limits.
+
 ## Hermes container (Home Assistant add-on)
 
 - **Weekly maintenance:** treat `/config` as home. Inspect before changing anything. Never print secrets. Never run `npm update -g`; install pinned versions instead (`kagi-cli@0.12.0` on glibc 2.36, `mcporter@0.13.8` on Node 22). Don't create or edit cron during unattended runs. Be conservative with `hermes update` and gateway restarts. Fix `UU`/conflict markers in core files before relying on tools. Full rules and follow-up checklists: `references/hermes-container-weekly-maintenance.md`.
