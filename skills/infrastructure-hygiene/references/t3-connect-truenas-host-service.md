@@ -19,6 +19,36 @@ loginctl enable-linger root
 systemctl --user enable t3code.service
 ```
 
+## Desktop-to-service handoff on SteamOS
+
+For access while Gaming Mode is active, use the same official `t3 service install`
+path with the desktop's existing T3 home. The desktop-installed CLI can be at
+`~/.t3/bin/t3` even when it is absent from a non-interactive shell's PATH. The
+installer downloads and verifies a standalone runtime; keep provider CLIs on the
+service's PATH through a normal systemd drop-in when the user manager lacks
+`~/.local/bin`. Verify lingering with `loginctl show-user "$USER" -p Linger`.
+
+In T3 0.1.3, installation beside a running desktop leaves the launcher active but
+idle after the child receives the state-directory-owned exit code. It does not
+automatically retry when the desktop closes: stop the desktop owner and then
+restart `t3code.service`. Never run two backends against the same home or mistake
+`ActiveState=active` for a serving backend.
+
+For an authorized migration from the connected desktop itself, prepare the
+service first, then arrange a one-time manager-owned handoff after the agent turn
+finishes. Stop only the verified T3 desktop units, preserve its settings, set
+`localEnvironmentEnabled=false` in `userdata/desktop-settings.json` after the
+desktop exits, and restart the official service. This keeps later desktop
+launches from competing with it. Expect a brief T3 reconnect; Steam and games do
+not need to restart. Keep a local backup of changed settings.
+
+Retain the existing LAN port, signing keys, and userdata so previously paired LAN
+clients still work. Verify `/health`, the runtime descriptor, and the backend
+PID's cgroup under `t3code.service`, plus enablement and lingering. LAN health does
+not establish off-LAN T3 Connect access: its CLI desired/authenticated/link state
+and managed relay reachability require separate verification. Desktop sign-in
+does not establish CLI sign-in. Do not print credential values or pairing URLs.
+
 ## Native dependency failure on the TrueNAS host
 
 `npx t3 service install` can fail while building `node-pty` when the appliance host lacks `make` or a compiler. Do not add an unmanaged host build toolchain merely to complete the install.
