@@ -10,7 +10,7 @@ Luke-authored skills are writable procedural memory. A skill is personal when it
 
 Luke authorizes safe, verified updates to `luckycold/agent-skills` without asking each time. Push only after the safety scan passes. Name every changed skill and the pushed commit in the final response.
 
-Where skills live, how to refresh them, and what must never be committed are in `AGENTS.md`. This skill is the maintenance procedure.
+The working agreement is `~/.agents/AGENTS.md` from Luke's dotfiles. Installation (skills.sh) is in this repository's `README.md`. This skill is the maintenance procedure.
 
 ## When to learn
 
@@ -21,7 +21,7 @@ Update or create a personal skill when at least one is true:
 - Luke corrected the approach or stated a durable preference.
 - A loaded personal skill is materially wrong, incomplete, stale, or overly narrow.
 
-Do not write a skill for a one-off result, transient status, speculation, or information the agent has not verified. Create a new skill only when no existing Luke-authored skill is a natural home.
+Do not write a skill for a one-off result, transient status, speculation, or information the agent has not verified. Do not write down anything an agent could discover on its own from `--help`, man pages, official docs, or a quick look at the system (Luke, 2026-10-29). Keep only Luke's choices, decisions, and non-obvious gotchas. Create a new skill only when no existing Luke-authored skill is a natural home.
 
 ## Workflow
 
@@ -59,7 +59,7 @@ Set `PROTON_PASS_AGENT_REASON` for that read. Follow `proton-pass-cli` for viewe
 
 ## Curation
 
-Do not auto-delete a personal skill only because it looks unused. If two personal skills overlap, consolidate when the current task shows that is safe, and repair relative links.
+If a skill's content is straightforward to discover on its own, drop the whole skill; if only a few gotchas or choices are not, trim it to those (Luke, 2026-10-29). Repair links and indexes that point at a dropped skill. Do not auto-delete a personal skill only because it looks unused. If two personal skills overlap, consolidate when the current task shows that is safe, and repair relative links.
 
 ## Self-maintenance
 

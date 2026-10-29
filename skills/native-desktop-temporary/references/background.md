@@ -44,7 +44,7 @@ overwrite existing work. This is runtime state, not a permanent config edit.
 Record the rule handle so it can be disabled after use. Scope to a dedicated
 workspace/class and do not accidentally affect the user's normal browser.
 Verify the property with `hyprctl getprop address:<window-address> render_unfocused`.
-Legacy `hyprctl setprop` returned `unknown request` on the tested version.
+`hyprctl setprop` is still a recognized request on 0.56.2 (it needs at least three arguments); the scoped `hl.window_rule` above is the verified path.
 
 Get the target's `stableId` from `hyprctl -j clients`, then:
 
