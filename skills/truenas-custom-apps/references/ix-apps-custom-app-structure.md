@@ -34,12 +34,11 @@ Contains app identity, version, and ix-apps bookkeeping. Run this after skeleton
 Defines the Docker service(s). Common top-level structure includes a "services" map or direct service block.
 
 **proton-bridge example patterns (local email service):**
-- image: shenxn/protonmail-bridge:latest
-- ports:
-  - "127.0.0.1:1143:1143"   # IMAP for other containers on the NAS
-  - "127.0.0.1:1025:1025"   # SMTP
+- image: a local build `FROM shenxn/protonmail-bridge` (tag pinned to the Bridge version)
+- ports: socat frontends are container `143` (IMAP) and `25` (SMTP). Map `127.0.0.1:1143:143` and `127.0.0.1:1025:25` for NAS containers; the public `993→143` / `587→25` mapping is in the public-exposure reference.
 - volumes:
-  - "/mnt/Apps/Applications/proton-bridge/data:/root/.config/protonmail-bridge"
+  - "/mnt/Apps/Applications/proton-bridge/data:/root"
+  - Traefik cert dir read-only at `/certs` when Bridge serves IMAP SSL
 - The image uses /protonmail/entrypoint.sh which handles socat port forwarding + the bridge binary.
 - After start: interactive init via `docker exec -it proton-bridge /protonmail/entrypoint.sh init`
 

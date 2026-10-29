@@ -7,7 +7,7 @@ _Moved verbatim from `SKILL.md` on 2026-10-08 during the size refactor; the skil
 
 See `references/proton-bridge-pass-automation.md` for secure PTY login, Pass secret-reference/TOTP handling, relay-credential refresh, and initial-sync locking. See `references/proton-bridge-locked-vault-credential-recovery.md` for read-only recovery of an already-generated relay password when `info 0` is blocked by the initial-sync lock. See `references/proton-bridge-public-mail-client-exposure.md` for standard `993/587` mappings, certificate import, DNS-only mail records, NAT, external verification, ordinary protocol diagnosis, and initial-sync monitor/finalizer behavior.
 
-- Image: shenxn/protonmail-bridge:latest (unofficial but maintained headless image with socat + entrypoint).
+- Image: a local derivative built `FROM shenxn/protonmail-bridge` (unofficial headless image with socat + entrypoint); the build files live beside the app data.
 - Ports: local Bridge backends are IMAP 1143 and SMTP 1025. The image's `socat` frontends are container 143 and 25. For conventional public clients, map host `993→143` after enabling Bridge IMAP SSL, and host `587→25` while leaving Bridge SMTP on STARTTLS; see the public-exposure reference.
 - Volume: data dir → `/root` for this image so Bridge config, cache, GPG/pass state, and vault persist together.
 - Pass item: locate the Proton account/Bridge **login** item through the scoped Proton Pass agent; use `--filter-type login` so alias items are not mistaken for credentials. Do not record usernames, TOTP seeds, relay passwords, SMTP passwords, item IDs, or vault IDs in the skill.

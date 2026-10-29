@@ -38,7 +38,7 @@ Then retry `docker compose pull`.
 
 - `network_mode: host`
 - `privileged: true` (or equivalent caps + `/dev` access) on a dedicated appliance
-- `BACKBONE_IF=eth0` for Ethernet-only Pi
+- `BACKBONE_IF=eth0` for Ethernet-only Pi (`eth0.<vlan>` when the Pi sits on a tagged VLAN subinterface)
 - `DEVICE=/dev/serial/by-id/<stick>`
 - `OTBR_REST_PORT=8081`
 - Persist Thread state under a host bind such as `/opt/otbr/data` → `/data/thread`
@@ -74,7 +74,7 @@ Keep the appliance hands-off with two mechanisms:
 
 Do not add Watchtower unless there is a concrete need; a oneshot timer matches a single-compose appliance and avoids another long-running container.
 
-3. **Radio / REST recovery:** keep a systemd path unit on `/dev/serial/by-id` that force-recreates the compose service on hotplug, plus a 1-minute health timer: if an RCP is present but `http://127.0.0.1:8081/node` fails, force-recreate. The OTBR process can die on USB I/O errors while the container stays "Up".
+3. **Radio / REST recovery:** keep a short health timer (a few minutes): if an RCP is present but `http://127.0.0.1:8081/node` fails, force-recreate. The OTBR process can die on USB I/O errors while the container stays "Up".
 
 ## Operations
 

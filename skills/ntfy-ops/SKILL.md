@@ -42,7 +42,6 @@ ssh root@${NAS_IP} 'docker exec ix-ntfy-ntfy-1 sh -c "ls -la /etc/ntfy; grep -E 
 ## Known publishers (verify live)
 
 - FreshRSS webhook notifications. Luke's preference: show only the feed name and an article preview on one line, no category label (`{feed_name}`, not `{notify_source}`). A dedicated Traefik dynamic file handles a mark-read callback.
-- The Immich watchdog script (NAS root cron) notifies on state changes with a cooldown.
 - Apprise (TrueNAS app) can fan out to ntfy.
 - Agent cron jobs that are "silent unless signal" should notify through ntfy only on real findings.
 

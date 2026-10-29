@@ -17,7 +17,7 @@ Luke treats the Proxmox nodes, TrueNAS, and the PBS VM as his machines. Stow **`
 
 - A Pass session can say `Already authenticated` while `info` fails with `Error reading local key file` / `non-existent session`. `logout --force`, move the session dir aside, recreate it at mode `700`, then `login` from the copied `agent.env`.
 - After the Grok installer prepends `~/.grok/bin` (so `agent` becomes Grok), append `PATH` again with `~/.local/bin` first. Keep `cursor-agent` as the Cursor binary name.
-- On a Stow-linked Proxmox root, set `CODEX_HOME=$HOME/.local/share/codex` and put the Codex binary under `~/.local/share/agent-tools/bin`. Do not write `auth.json` into the stowed `~/.codex` tree.
+- If `~/.codex` is itself a Stow link, point `CODEX_HOME` outside the checkout and never write `auth.json` into the stowed tree. Check how the host installs CLIs (official installer, mise shims) before adding another copy.
 - A replacement hypervisor may have no `git`. Official Cursor/Grok installers are enough; rsync `common/.agents` from the workstation if the GitHub clone is behind local skill edits.
 - The Home Assistant Advanced SSH add-on is not an install target. Dropbear wedges if leftover SSH sessions stay `ESTABLISHED`, and copying a large CLI binary into `addon_configs` hangs.
 - Reuse the same scoped viewer `agent.env` host-to-host. Do not create a new Pass agent from an existing PAT session.
