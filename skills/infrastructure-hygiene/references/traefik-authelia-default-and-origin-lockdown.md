@@ -86,8 +86,8 @@ their own auth.
   internet. Never bypass those hosts publicly.
 - **Per-host path bypass only when** a real client uses the path **and** the app enforces its own
   auth on it. Examples: an API key or token (*arr, Tautulli, Mealie, Kavita, Sure, Seerr),
-  Proxmox `/api2/json/` tickets or API tokens (official mobile app), FreshRSS
-  `greader|fever|pshb.php`, or T3 Code `/api/`, `/ws`, `/.well-known/t3/`.
+  Proxmox `/api2/json/` tickets or API tokens (official mobile app), and FreshRSS
+  `greader|fever|pshb.php`.
   Keep web-only admin UIs fully protected: the TrueNAS UI and API (no official app), pgAdmin,
   Kuma, n8n, LLDAP.
 - **Signup endpoints stay gated.** Put a `two_factor` rule for `^/api/users/register` (Mealie

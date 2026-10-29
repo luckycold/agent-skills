@@ -1,6 +1,6 @@
 ---
 name: native-desktop-temporary
-description: Temporary native Wayland desktop and browser control from a CLI agent on Omarchy. Distinguish the user's actual desktop from T3 Code's collaborative preview browser; inspect screenshots and operate existing desktop utilities.
+description: Temporary native Wayland desktop and browser control from a CLI agent on Omarchy. Inspect screenshots, operate existing desktop utilities, and do not unstow a live Hyprland session.
 author: Luke
 ---
 
@@ -25,15 +25,10 @@ because support is announced or a partial replacement exists.
 
 ## Choose the correct surface
 
-- T3 Code `preview_*` tools operate its collaborative browser, with its own
-  tabs and authentication state. They do not operate the user's native browser
-  or prove that the user is signed out there.
 - For an explicit request to use the native browser or desktop, use the local
   machine's existing tools when the session permits them. A disabled native API
   in one browser integration does not by itself establish that shell-based
   desktop automation is unavailable. Respect actual session restrictions.
-- For T3 preview work, use its tools and normal status/open/snapshot workflow.
-  Do not silently substitute a different browser or profile.
 - Native tools need access to the running Wayland session. SSH or another host's
   shell alone does not establish desktop access.
 - A browser tab handle, DOM snapshot, tab screenshot, or reported selected tab
@@ -126,6 +121,14 @@ before closing any agent-created window. Read the reference's
 [finish procedure](references/background.md#finish) for transfer limits and cleanup.
 
 For a dedicated Omarchy browser profile, see [Cua and Brave](references/cua-brave-profile.md).
+
+## Live Stow and retired helpers
+
+Do not unstow an entire active persona to relocate one subset. Required files disappear between commands and Hyprland reloads can fail (missing `hypr.autostart`). Prepare the replacement, relink the narrow paths without a gap, then run `hyprctl reload` and `hyprctl configerrors`.
+
+Editing a headless host's dotfiles checkout does not update the desktop. Change the desktop checkout, verify the Stow link and a dry run before any restow, reload, and inspect the loaded binding. If the desktop is unreachable, report the saved change separately from deployment.
+
+Do not reintroduce `wg-home-auto`. Luke retired the periodic Proton/home WireGuard SSID auto-switcher (30s systemd timer and `/usr/local/bin/wg-home-auto`). It is gone from the dotfiles repo. If a leftover timer remains, disable it and delete the unit and script. Leave existing `/etc/wireguard/*.conf` tunnels unless he asks to remove those too.
 
 ## Self-maintenance
 

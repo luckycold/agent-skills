@@ -44,7 +44,7 @@ Radar often returns several legitimate routes for the same page. A generic Git r
    - the complete persistent extensions tree;
    - FreshRSS `data/config.php`;
    - a PostgreSQL custom-format dump (`pg_dump -Fc`).
-3. Stage and lint every PHP/PHTML file inside the live FreshRSS container; the Hermes container may not have PHP.
+3. Stage and lint every PHP/PHTML file inside the live FreshRSS container; the agent host may not have PHP.
 4. Install under `/mnt/Apps/Applications/freshrss/extensions/<extension>` with ownership/modes matching existing extensions. Leave genuinely local extensions unmanaged by Extension Manager rather than inventing an upstream source marker.
 5. Enable it in the **system** `extensions_enabled` map and configure the internal/LAN RSSHub base URL plus access mode. Pass secrets through stdin or another non-logging channel, not command arguments or tool output.
 6. Verification must cover:

@@ -16,7 +16,7 @@ Use this for a completed PS3 torrent that is a multipart scene archive and shoul
    - Keep the original torrent files in place so qBittorrent can continue seeding.
 
 3. **Extract to disposable staging under the media pool.**
-   - Use a unique staging directory on the same pool, e.g. `/mnt/Media/downloads/.hermes-stage-<title-id>-$$`.
+   - Use a unique staging directory on the same pool, e.g. `/mnt/Media/downloads/.romm-stage-<title-id>-$$`.
    - Extract with `7z x -y -o<stage> <first-volume.rar>`.
    - Require `<title-id>/PS3_DISC.SFB` and `<title-id>/PS3_GAME/PARAM.SFO` before conversion.
    - Use a trap/finalizer to remove only the unique staging directory after success or failure.

@@ -1,45 +1,16 @@
-# UniFi DHCP DNS + TrueNAS dual-IP diagnostics
+# UniFi DHCP DNS and controller API
 
-This reference captures the concrete commands, failure modes, and verification that resolved "internal domains only resolve on VPN" for Luke's network. The root cause was the Ubiquiti UniFi router handing out the wrong primary DNS via DHCP on the main LAN, despite AdGuard rewrites being correct.
+The router is DNS (2026-10-29). LAN DHCP hands out the gateway, not AdGuard and not a public resolver. AdGuard is opt-in for devices Luke names. Local names are UniFi records. `${NAS_IP}` is the TrueNAS UI. `${REVERSE_PROXY_IP}` is Traefik. Neither is the DNS listener.
 
-## IP Roles on TrueNAS (br0)
+Phones that resolve internal names only on VPN are usually getting a DHCP DNS server or search domain that does not match the router. Resolve private domain names from `~/.agents/private-context.md`.
 
-Current live state as of 2026-07-09:
+## Checks
 
-- ${NAS_IP}/23 — TrueNAS primary / NAS UI. **Not currently listening on DNS :53** after the AdGuard bind move; queries to `${NAS_IP}:53` refuse.
-- ${REVERSE_PROXY_IP}/23 — secondary alias on the same interface. This is the Traefik/web-service target for the private app wildcard and the **current AdGuard DNS listener**.
-
-AdGuard (Docker app `ix-adguard-home-adguard-1`) inside binds to 0.0.0.0:53, but the container's current port publish is explicit:
-`53/tcp -> ${REVERSE_PROXY_IP}:53`
-`53/udp -> ${REVERSE_PROXY_IP}:53`
-
-Historical note: the original phone DNS incident was diagnosed when AdGuard only answered on `${NAS_IP}` and `${REVERSE_PROXY_IP}:53` refused. Later the stack was intentionally moved/forwarded so LAN DHCP can hand out `${REVERSE_PROXY_IP}` as DNS. Always verify with `ss -tulpen | grep :53` and `docker inspect ix-adguard-home-adguard-1` before changing DHCP.
-
-## Client Symptoms
-
-Historical private-service issue: phones could not resolve internal names on Wi-Fi unless the VPN profile forced the then-correct DNS server. The underlying class is DHCP handing clients a DNS server/search domain that does not match the resolver that actually has AdGuard rewrites.
-
-In the observed search-domain issue, UniFi advertised a private device domain while AdGuard had only the older private namespace. Clients expanding a short NAS name through DHCP therefore received NXDOMAIN. Resolve both private domains from `~/.agents/private-context.md`.
-
-## Repro / Diagnostic Commands (run from Hermes container or any LAN host)
 ```bash
-# Verify which IP currently answers DNS
-ssh -i "$NAS_SSH_KEY" -o StrictHostKeyChecking=yes \
-  -o UserKnownHostsFile="$NAS_KNOWN_HOSTS" "$NAS_SSH_TARGET" 'ss -tulpen | grep :53'
-ssh -i "$NAS_SSH_KEY" -o StrictHostKeyChecking=yes \
-  -o UserKnownHostsFile="$NAS_KNOWN_HOSTS" "$NAS_SSH_TARGET" \
-  'docker inspect ix-adguard-home-adguard-1 --format "{{json .NetworkSettings.Ports}}"'
-
-# Current positive controls
-nslookup tr ${REVERSE_PROXY_IP}
-nslookup "$PRIVATE_NAS_HOST" ${REVERSE_PROXY_IP}
-
-# Current failing search-domain FQDN, unless a rewrite/zone was added
-nslookup "$PRIVATE_SEARCH_HOST" ${REVERSE_PROXY_IP}
-nslookup "$PRIVATE_SEARCH_HOST" ${GATEWAY_IP}
-
-# Confirm the service itself works if DNS is forced to the target
-curl -kI --resolve "$PRIVATE_SEARCH_HOST:443:${NAS_IP}" "https://$PRIVATE_SEARCH_HOST/"
+dig +time=3 +tries=1 +short @${GATEWAY_IP} "$PRIVATE_SEARCH_HOST" A
+dig +time=3 +tries=1 +short @${GATEWAY_IP} "$PRIVATE_SEARCH_HOST" AAAA
+# Traefik route, separate from which server answered DNS:
+curl -kI --resolve "$PRIVATE_SEARCH_HOST:443:${REVERSE_PROXY_IP}" "https://$PRIVATE_SEARCH_HOST/"
 ```
 
 ## Fixing the Router (UniFi Controller REST API)
@@ -106,34 +77,18 @@ Router/DNS changes are instantaneous for new lookups, but existing clients may r
 - Flush browser/OS DNS cache where possible.
 - If LAN split DNS matters, avoid public DNS as a DHCP secondary unless you accept occasional NXDOMAIN/leakage from clients that race/select the public server.
 
-For current state, clients should receive the intended primary DNS, and AdGuard should contain or forward every DHCP search-domain FQDN expected in use.
+Clients should receive the router as primary DNS, with no public secondary. A public secondary produces NXDOMAIN or Cloudflare answers when a client selects it. Split-horizon record shape is [unifi-split-horizon-dns.md](unifi-split-horizon-dns.md). TrueNAS and Docker resolver recovery is [lan-dns.md](lan-dns.md).
 
-## Search-domain / rewrite failure pattern
+## Search domain
 
-If a private search-domain FQDN fails while an older private namespace still works, check three separate layers:
+If a private search-domain FQDN fails while an older name still works:
 
-1. **UniFi DHCP handoff:** inspect the advertised `domain_name` and DNS addresses.
-2. **Active DNS listener:** verify `${REVERSE_PROXY_IP}:53` vs `${NAS_IP}:53`; as of 2026-07-09 AdGuard answers on `.0.2`, while `.1.157:53` refuses.
-3. **AdGuard rewrites/forwarding:** verify that the current private search domain is forwarded or has the required exact records, not only records for an older namespace.
+1. Read the DHCP `domain_name` and DNS addresses from `networkconf`.
+2. Confirm the missing name exists as a UniFi static or device-local record, not only under a retired namespace.
+3. Renew client leases after the change. Forget the Wi-Fi network and rejoin when the phone keeps the old options.
 
-Preferred fixes depend on the namespace intent:
+Do not mask the device zone with a wildcard that hides UniFi hostnames. An app wildcard belongs on the app zone and still has to pass the AAAA/HTTPS checks in the split-horizon note.
 
-### If the private domain is a machine/device hostname zone
-- Treat UniFi gateway DNS as authoritative-ish for DHCP/local device names under that zone.
-- If clients use AdGuard as universal DNS, configure domain-specific forwarding to UniFi instead of masking the whole zone with an AdGuard wildcard.
-- Avoid broad rewrites unless app wildcarding is explicitly desired; they can hide UniFi device hostnames.
-- Keep exact overrides only where necessary.
+## Cross references
 
-### If the private domain is an app/Traefik wildcard zone
-- Add an explicit AdGuard rewrite for the required host first.
-- Add a controlled wildcard only when all unknown names should land on Traefik.
-
-General hygiene:
-- Or change UniFi `domain_name` back to the namespace that already has internal DNS records and renew client DHCP leases.
-- Remove public DNS (`1.1.1.1`) from LAN DHCP if split-horizon names must be reliable; public secondaries can produce NXDOMAIN when clients race or select them.
-
-## Cross References
-- `truenas-adguard-dns-and-traefik-ips.md` (the TrueNAS side of the same IP distinction)
-- `proton-pass-cli` skill (REASON discipline, session repair, viewer role write limitations, redaction rules)
-
-This pattern (proton-pass discovery → direct one-shot API mutation on router → host-level + docker diagnostics for IP binding) is reusable for any future "LAN clients can't see internal rewrites or services" incidents.
+- `proton-pass-cli` for viewer role, reason length, and redaction when reading the UniFi API key.

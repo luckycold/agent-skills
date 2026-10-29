@@ -1,6 +1,6 @@
 ---
 name: minecraft-steam-gamescope
-description: Diagnose Minecraft Java low FPS under Steam Gaming Mode and configure a windowed PolyMC instance to follow Steam's virtual display resolution. Use for Gamescope fullscreen retry loops and dynamic window sizing, not Steam client UI scaling.
+description: Diagnose Minecraft Java low FPS under Steam Gaming Mode and configure a windowed PolyMC instance to follow Steam's virtual display resolution. Also SteamOS Gaming Mode application updates through Decky, and restoring appliance filesystem ownership before boot. Not Steam client UI scaling.
 author: Luke
 ---
 
@@ -56,6 +56,12 @@ Exercise the shell command inside the existing Flatpak on a temporary copy of `o
 - [SDL X11 synchronization timeout](https://github.com/libsdl-org/SDL/blob/main/src/video/x11/SDL_x11window.c)
 - [PolyMC pre-launch argument parsing](https://github.com/PolyMC/PolyMC/blob/develop/launcher/launch/steps/PreLaunchCommand.cpp)
 - [PolyMC INI escaping](https://github.com/PolyMC/PolyMC/blob/develop/launcher/settings/INIFile.cpp)
+
+## SteamOS notes that do not belong on the Hyprland desktop
+
+Discover's unattended updates do not run in Gaming Mode. Decky Apps Manager covers Flatpaks and Gear Lever AppImages: [SteamOS application updates](references/steamos-application-updates.md).
+
+An appliance filesystem staged from a desktop must be `root:root` again before boot. `Detected unsafe path transition` is that failure: [appliance storage ownership](references/appliance-storage-ownership.md).
 
 ## Self-maintenance
 

@@ -26,7 +26,7 @@ check_output() {
   return 1
 }
 
-# 1) Local (Hermes tunnel or local bridge)
+# 1) Local listener (loopback or a forwarded port)
 out="$(imap_probe 127.0.0.1 "$LOCAL_PORT")"
 if check_output "$out"; then
   exit 0

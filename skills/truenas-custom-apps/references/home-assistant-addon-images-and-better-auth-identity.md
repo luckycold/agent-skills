@@ -59,8 +59,8 @@ Safe sequence:
 Use the Bridge-generated relay credential—not the Proton account password and not the Authelia password. Retrieve it at runtime through the audited Proton Pass wrapper/field, keep it in process memory, and send it only in the application's authenticated credential-creation request.
 
 1. Inspect the application's actual manual-IMAP input parser and persistence path before submitting credentials. Typical fields are email/display name, IMAP host/port/security mode, IMAP username, app password, and Inbox/Sent/Drafts folder names. Do not assume the UI exposes SMTP fields: some applications infer SMTP from the IMAP host and default to port 587 + STARTTLS.
-2. Prove the Bridge endpoint from the intended consumer path. A working client on the Hermes host does not prove a TrueNAS app container can reach the same NAS-local bind address. Prefer the routable TLS hostname already used by a known-good client, verify DNS and certificate authorization from the consumer container, and match protocol mode exactly (implicit TLS on 993 versus STARTTLS on another port).
-3. Run a bounded authenticated mailbox probe (for example Himalaya) before storing credentials. Open ports and TLS handshakes alone do not establish a usable mailbox.
+2. Prove the Bridge endpoint from the intended consumer path. A working client on another host does not prove a TrueNAS app container can reach the same NAS-local bind address. Prefer the routable TLS hostname already used by a known-good client, verify DNS and certificate authorization from the consumer container, and match protocol mode exactly (implicit TLS on 993 versus STARTTLS on another port).
+3. Run a bounded authenticated mailbox probe before storing credentials. Open ports and TLS handshakes alone do not establish a usable mailbox.
 4. Submit the credential through the application's authenticated API/UI. Expect some email automation apps to synchronize their current labels by creating provider folders as part of account creation; this is a real mailbox side effect and should be reported.
 5. Correlate account-status results by immutable account ID. Some status endpoints return only `{id, status, statusMessage}` rather than provider/email metadata, so matching again by email will falsely report failure even though the account is connected.
 6. Verify all of:
@@ -75,37 +75,6 @@ Security details:
 - Prefer an application that encrypts the stored relay credential with a persistent application key. Inspect the storage implementation when uncertain; never print the encrypted blob or compare it by exposing plaintext.
 - Pipe secrets over stdin or keep them in process memory. Do not place relay credentials in compose YAML, options JSON, shell argv, logs, skills, memory, or summaries.
 - SMTP `verify()` is the preferred non-destructive send-path test; do not send a test message unless the user asks or approves a recipient.
-
-## Wiring an app's Streamable HTTP MCP into Hermes
-
-Use this when the deployed application exposes an authenticated HTTP MCP endpoint (for example `/mcp`) and the user asks Hermes itself to consume it.
-
-1. Confirm the runtime endpoint and bearer-header format from the application's own documentation or settings page. Test the app and database health before diagnosing MCP.
-2. Keep the generated MCP token out of `config.yaml`. Save it in the active Hermes profile's `.env` as a scoped name such as `MCP_<SERVER>_API_KEY`, enforce `0600`, and reference it from the server config as `Authorization: Bearer ${MCP_<SERVER>_API_KEY}`. Hermes resolves these placeholders from the active profile's secret scope.
-3. Add the server under `mcp_servers.<name>` as a URL transport. For a trusted local mailbox app, explicitly disable server-initiated sampling unless it is required:
-   ```yaml
-   mcp_servers:
-     mailbox_app:
-       url: http://<app-host>:<port>/mcp
-       headers:
-         Authorization: Bearer ${MCP_<SERVER>_API_KEY}
-       connect_timeout: 60
-       timeout: 180
-       sampling:
-         enabled: false
-       enabled: true
-   ```
-4. Prefer `hermes config set ...` or the MCP CLI over direct writes to Hermes security-sensitive config. Use the Hermes config helper for `.env` secret writes rather than echoing or printing the token.
-5. Verify in increasing depth:
-   - `hermes config check` validates the profile;
-   - `hermes mcp list` shows the server enabled;
-   - `hermes mcp test <name>` completes authentication and tool discovery;
-   - invoke one harmless read-only tool with an intentionally non-matching query to prove a real MCP call, not just discovery.
-6. New Hermes sessions load the tools automatically. An existing gateway conversation needs `/reload-mcp` and its confirmation because the tool schema/prompt cache changes; do not claim the current conversation has hot-loaded the tools merely because a separate `hermes mcp test` process succeeded.
-
-Modern MCP Python SDK note: `streamable_http_client()` may reject a `headers=` keyword. Create an `httpx.AsyncClient(headers=..., follow_redirects=True)` and pass it as `http_client=` instead. This is useful for a direct verification call, but the native Hermes MCP configuration remains the durable path.
-
-Never retain the literal MCP bearer token in references, memory, logs, or summaries. Record only the environment-variable name, endpoint, tool names, and verification outcome.
 
 ## Security and rollback
 

@@ -1,7 +1,7 @@
 # Native hidden-workspace keyboard control
 
 Verified on Hyprland 0.56.2 with a native Wayland Chromium browser. This uses
-the user's existing browser process/profile, unlike T3's preview browser or a
+the user's existing browser process/profile, unlike a
 nested desktop with its own profile. Do not put live addresses, account names,
 screenshots, or monitor identifiers into the skill repository.
 

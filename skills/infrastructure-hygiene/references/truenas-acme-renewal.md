@@ -70,6 +70,12 @@ for j in jobs:
 PY'
 ```
 
+## Copy renewed certs into Traefik
+
+TrueNAS stores issued certs under `/etc/certificates/`. Traefik reads `/mnt/Apps/Applications/traefik/certs/`. A sync script should copy a file only when that basename is already in the Traefik cert directory, so unrelated TrueNAS certs are not exposed. Use `cmp -s` and skip unchanged files. After a change, set the owner and mode the Traefik mount expects, then touch the dynamic YAML so the file provider reloads.
+
+Issuing a hostname that is outside the current wildcard is `midclt call -j certificate.create` (`CERTIFICATE_CREATE_ACME`) after a CSR. `certificate.create` and `certificate.delete` are jobs; without `-j` the call returns a job id only. Delete temporary CSRs with `certificate.delete <id> false`.
+
 ## Cloudflare IP-restricted token failure
 
 Observed failure signature:

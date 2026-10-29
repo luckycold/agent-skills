@@ -1,8 +1,8 @@
 # Luke's Agent Skills
 
-Luke-authored portable skills for infrastructure, automation, authentication, and agent workflow maintenance. This is a **public** repository: procedures use placeholders, while private operational values remain in an ignored local `~/.agents/private-context.md`.
+Luke-authored portable skills for infrastructure, authentication, and agent workflow maintenance. This is a **public** repository: procedures use placeholders, while private operational values remain in an ignored local `~/.agents/private-context.md`.
 
-First-class consumers include Labby (Cursor home-lab bot), Codex, Cursor, Claude Code, OpenCode, OpenClaw, and Hermes (historical Home Assistant add-on agent). Prefer portable skills; Hermes-specific HA-addon paths stay in `infrastructure-hygiene` references.
+Consumers include Labby (Cursor home-lab bot), Codex, Cursor, Claude Code, OpenCode, and Grok Bot. Prefer portable skills over agent-specific paths.
 
 ## Canonical checkout
 
@@ -20,30 +20,22 @@ DISABLE_TELEMETRY=1 npx --yes skills@latest add luckycold/agent-skills \
   --agent codex --agent claude-code --agent cursor --agent opencode
 ```
 
-Hermes (historical HA add-on) can also load the checkout as an external directory:
-
-```bash
-hermes config set skills.external_dirs '["~/.agents/skills"]'
-hermes skills tap add luckycold/agent-skills
-```
-
-`skills.external_dirs` makes the checked-out packages available to Hermes and writable in place. The tap adds the GitHub repository as a discovery/install source; it does not replace the writable checkout.
+Generic Proton Pass CLI instructions are not stored here. `pass-cli agent instructions` prints them. Luke-specific limits stay in `proton-pass-cli`.
 
 ## Skills
 
-- `direct-action-preferences`
-- `infrastructure-hygiene`
+- `direct-action-preferences` — package source order, AUR review, Omarchy TPM/PCR 7, ask before custom glue
+- `infrastructure-hygiene` — UniFi, Traefik/Authelia lockdown, TrueNAS DNS and storage, qbit_manage, RomM, HA SSH add-on
 - `minecraft-steam-gamescope`
 - `native-desktop-temporary`
 - `ntfy-ops`
 - `personal-skill-maintenance`
-- `proton-pass-cli`
+- `proton-pass-cli` — Luke-specific Pass CLI facts; generic usage comes from `pass-cli agent instructions`
 - `proxmox-homelab`
 - `steam-frame-linux-networking`
 - `steam-hyprland-scaling`
-- `tasker-automation`
-- `temporary-support-watcher-cleanup`
 - `truenas-custom-apps`
+- `uptime-kuma`
 
 ## Safety and validation
 

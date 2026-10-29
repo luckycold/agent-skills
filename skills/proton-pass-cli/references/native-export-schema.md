@@ -121,7 +121,7 @@ userHandle                 standard Base64 bytes
 creationData?              { osName, osVersion, deviceName, appVersion }
 ```
 
-`content`, `userId`, `credentialId`, and `userHandle` are decoded with `Uint8Array.fromBase64()` before protobuf serialization. `content` is Proton-specific MessagePack: a versioned wrapper (currently version 1) containing serialized COSE/private-key state. Treat a Proton passkey object as opaque and preserve it byte-for-byte. Bitwarden FIDO2 JSON is not a drop-in replacement; conversion requires validated PKCS#8→COSE/MessagePack transformation plus real relying-party authentication.
+`content`, `userId`, `credentialId`, and `userHandle` are decoded with `Uint8Array.fromBase64()` before protobuf serialization. `content` is Proton-specific MessagePack: a versioned wrapper (currently version 1) containing serialized COSE/private-key state. Treat a Proton passkey object as opaque and preserve it byte-for-byte. Another password manager's FIDO2 JSON is not a drop-in replacement; conversion requires a validated PKCS#8 to COSE/MessagePack transformation plus real relying-party authentication.
 
 Sources: `packages/pass/types/protobuf/item-v1.ts:25-101,119-150`; `packages/pass/lib/items/item-proto.transformer.ts:66-75,200-212`; `packages/pass/lib/passkeys/utils.ts:11-17`; `proton-pass-common/src/passkey/passkey_handling.rs:17-27,73-95`.
 

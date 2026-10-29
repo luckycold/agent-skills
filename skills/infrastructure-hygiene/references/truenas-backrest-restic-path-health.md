@@ -117,14 +117,13 @@ Multi-day `repository is already locked` on forget/prune (seen on **futo-notes**
 
 ## Stale repos after app delete
 
-Remove matching plans/repos from `config.json` after deleting apps (Dockge/MinIO). Bump `modno`, backup JSON, chmod 0600.
+Remove matching plans/repos from `config.json` after deleting an app. Bump `modno`, backup JSON, chmod 0600.
 
 ## What is worth adding
 
 | Priority | App | Notes |
 |---|---|---|
 | High | `futo-notes` | user notes |
-| High | `odysseus` | often missing from plans |
 | High | HA tarballs | `/mnt/Apps/backups/hass` local-only unless planned |
 | High | Immich | fix Media mount; don't duplicate plan |
 | High | `proton-bridge` | after IMAP init healthy |

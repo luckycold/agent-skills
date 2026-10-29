@@ -5,7 +5,7 @@ Prefer checks that prove the app's **dependencies** work (DB, upstream, auth), n
 ## Field names (socket `add` / `editMonitor` payloads)
 
 - HTTP status: `type=http`, `url`, `accepted_statuscodes` (e.g. `["200-299"]`, `["401"]`), `maxredirects`, `ignoreTls`, `expiryNotification` (TLS cert expiry).
-- Keyword: `type=keyword`, `keyword`, `invertKeyword`. Plain substring of the first part of the body. Login pages often don't contain the product name (AdGuard `login.html` → `<title>Login</title>`; VueTorrent UI never says qBittorrent). **Verify the keyword with curl first.**
+- Keyword: `type=keyword`, `keyword`, `invertKeyword`. Plain substring of the first part of the body. Login pages often don't contain the product name (a login page whose title is `Login`; VueTorrent UI never says qBittorrent). **Verify the keyword with curl first.**
 - JSON: `type=json-query`, `jsonPath` (JSONata), `expectedValue` (string), `jsonPathOperator` (`==`, `!=`, `contains`, ...). Example `$ in ['leader','router','child']` with expected `true`.
 - DNS: `type=dns`, `hostname`, `dns_resolve_server`, `port=53`, `dns_resolve_type`, `conditions` = **list** `[{"type":"expression","andOr":"and","variable":"record","operator":"equals","value":"<ip>"}]`. Sending a JSON string double-encodes it → `conditions.forEach is not a function`.
 - Port/ping: `type=port` (`hostname`, `port`), `type=ping`.
@@ -25,7 +25,7 @@ Prefer checks that prove the app's **dependencies** work (DB, upstream, auth), n
 | n8n | `/healthz/readiness` status ok | DB connected |
 | Jellyfin | `/health` = Healthy | |
 | ntfy | `/v1/health` healthy=true | |
-| Home DNS (router or AdGuard) | `type=dns` against the resolver: a local record equals its LAN IP (e.g. NAS host, proxy wildcard) + an external name | local records + upstream |
+| Home DNS (the router) | `type=dns` against the router: a local record equals its LAN IP (e.g. NAS host, proxy wildcard) + an external name | local records + upstream |
 | cloudflared | host push: container IP `:20241/ready` readyConnections ≥ 1 | tunnel connected |
 | Public path | host push: `curl --resolve host:443:<ip from 1.1.1.1>` | Cloudflare → home works (bypasses home DNS) |
 | Thread OTBR on isolated VLAN | host push via `qm guest exec <vmid> -- curl 127.0.0.1:8081/node/state` | border router role |
