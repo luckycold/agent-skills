@@ -44,6 +44,13 @@ Treat its success as a prerequisite check, not proof of an established link.
   appropriate; discover the existing launcher/service and preserve its flags.
   Do not create a restart wrapper or change release channels without need.
 
+For Ethernet-first internet with ordinary Wi-Fi fallback, or a disconnected
+adapter stuck on `CTRL-EVENT-SCAN-FAILED ret=-16`, see
+[route priority and scan recovery](references/route-priority-and-scan-recovery.md).
+Recheck live association immediately before activating a connection: Steam may
+have connected during an intervening user reply, and another activation can
+tear down a working stream.
+
 ## Connected adapter, SteamVR still waiting
 
 If the dedicated association succeeds but Steam times out waiting for VR,
