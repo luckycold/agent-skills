@@ -16,7 +16,7 @@ Prefer checks that prove the app's **dependencies** work (DB, upstream, auth), n
 
 | App | Check | Proves |
 |---|---|---|
-| Immich | `/api/server/ping` res=pong; `/api/server/config` keyword `trashDays`; version via Traefik | server + DB-backed config + TLS route |
+| Immich | `/api/server/ping` res=pong; `/api/server/config` keyword `trashDays`; public URL `/api/server/version`; DB-dump push | server + DB-backed config + public route + backups. Sole Immich monitor (watchdog retired); crashes need a manual restart |
 | FreshRSS | `/i/` keyword `tree-folder category`; `/api/greader.php` = OK; push: newest `<user>_entry.id` (µs) < 6 h | UI renders categories from DB; client API; feeds actually refresh |
 | Plex | `/identity` keyword = expected `machineIdentifier` | right, claimed server |
 | Home Assistant | `/manifest.json` keyword; `/api/` expects 401 | frontend + core API (200 needs a long-lived token) |

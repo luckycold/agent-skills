@@ -1,6 +1,6 @@
 ---
 name: infrastructure-hygiene
-description: Luke's lab procedures that are easy to get wrong — UniFi port forward, DHCP/DNS, split-horizon, and IoT allowlist; Traefik/Authelia lockdown; TrueNAS ACME, pool space, ZFS dataset delete, Backrest, qbit_manage orphans, and RomM; HA SSH add-on off by default; tool approval versus chat approval; agent CLIs on LAN hosts. The router is DNS.
+description: Luke's lab procedures that are easy to get wrong — UniFi port forward, DHCP/DNS, split-horizon, and IoT allowlist; Traefik/Authelia lockdown; TrueNAS ACME, pool space, ZFS dataset delete, Backrest, qbit_manage orphans, and RomM; HA SSH add-on (left on intentionally); tool approval versus chat approval; agent CLIs on LAN hosts. The router is DNS.
 author: Luke
 category: devops
 ---
@@ -43,13 +43,13 @@ Changes go through the Network API, not SSH on the gateway.
 
 ## Home Assistant
 
-Keep the SSH & Web Terminal add-on disabled by default. Agent tokens cannot manage add-ons through the Supervisor API. Ask Luke to enable it for `/config` work and to disable it afterward. HA is not a TrueNAS app. See [temporary SSH access](references/ha-ssh-addon-temporary-access.md).
+The SSH & Web Terminal add-on is intentionally left running; use it for `/config` work and don't stop it. Agent tokens cannot manage add-ons through the Supervisor API, so its state is Luke's call in the UI. HA is not a TrueNAS app. See [SSH access](references/ha-ssh-addon-temporary-access.md).
 
 `<ha-hostname>.local` stuck renaming upward (`homeassistant8`) on a multi-VLAN host: see [mDNS hostname conflict](references/ha-mdns-hostname-conflict.md).
 
 ## Agent CLIs on LAN hosts
 
-On Proxmox, TrueNAS, and the PBS VM, stow `common` then `personal`. Keep binaries and auth outside Stow. Do not install glibc CLIs into the Alpine SSH add-on or onto the HAOS root. See [agent CLIs](references/agent-clis-lan-hosts.md).
+Headless Proxmox nodes stow `common` then `agent`; the praxis desktop VM keeps `personal`. On every host, skills install and refresh through skills.sh (`npx skills add luckycold/agent-skills`), which `update-agent-skills` wraps. Keep binaries and auth outside Stow. Do not install glibc CLIs into the Alpine SSH add-on or onto the HAOS root. See [agent CLIs](references/agent-clis-lan-hosts.md).
 
 Local Proton mail on an Arch agent host (packaged Bridge user service plus Himalaya; verify the actual sent message, not a pre-send Sent copy): see [local Proton mail on Arch](references/local-proton-mail-arch.md).
 
