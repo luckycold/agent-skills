@@ -48,7 +48,7 @@ Never print either value.
 
 ## Native export schema
 
-When a native ZIP/JSON archive has to be validated, use the commit-pinned schema in [native export schema](references/native-export-schema.md). Vault IDs, item IDs, and pin state are not restored. Passkey objects stay opaque.
+To validate a native ZIP/JSON archive, read the schema from [ProtonMail/WebClients](https://github.com/ProtonMail/WebClients) (authoritative for native JSON) and record the commit inspected. Vault IDs, item IDs, and pin state are not restored. Passkey objects stay opaque.
 
 ## Self-maintenance
 
