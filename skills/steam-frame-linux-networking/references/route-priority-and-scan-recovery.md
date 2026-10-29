@@ -57,3 +57,33 @@ not proof that every scan failure shares this cause.
 
 Do not patch the helper or switch Wi-Fi backends solely because of `-19`.
 Preserve the original feature state for rollback if the targeted test fails.
+
+## Connected adapter with an inactive streaming path
+
+Association and VR transport are separate. After a disconnect/reconnect, an
+observed session with `driver_vrlink.allowMultipleLinks=false` retained its
+home-network path; the connected adapter carried only small control traffic.
+SteamVR reported video-reset bursts and measurable packet loss on that path.
+
+Check `driver_vrlink.txt` for the interfaces bound by `SVLDataLinkTransferUDP`.
+Compare `iw dev "$adapter_interface" link` counters over time with the runtime's
+link activity and quality. In the inspected Steam UI, `streamingStore.vrLinkStatus`
+reported type `2` for the dedicated adapter and type `3` for the home-network
+path; confirm installed mappings before relying on these numeric values.
+
+The supported live recovery was:
+
+```bash
+"$steamvr_dir/bin/linux64/vrcmd" --background \
+  --set-settings-bool driver_vrlink.allowMultipleLinks 1
+"$steamvr_dir/bin/linux64/vrcmd" --background \
+  --settings-bool driver_vrlink.allowMultipleLinks
+```
+
+Within seconds the runtime bound the adapter again, adapter transmit counters
+increased rapidly, and reported packet loss reached zero. This avoids another
+Wi-Fi reconnection or a Steam restart. It allows simultaneous streaming paths;
+ordinary internet route metrics continue to prefer Ethernet. Keep the original
+setting for rollback and verify sustained traffic and headset video. Disabling
+multiple links may be useful for other faults, but does not enforce adapter-only
+streaming and can prevent a recovered adapter from rejoining the current session.

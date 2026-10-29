@@ -106,7 +106,7 @@ Valve adapter's interface is connected to the headset and reports the dedicated
 frequency. Then ask for headset-side status and an actual streaming test; host
 association alone does not prove streaming works.
 
-## Disable simultaneous streaming links
+## Control simultaneous streaming links
 
 SteamVR's vrlink settings schema maps **Allow multiple links** to
 `driver_vrlink.allowMultipleLinks`, which defaults to `true`. The shipped
@@ -124,6 +124,14 @@ Discover `steamvr_dir` from the installed runtime. Setting names use
 then verify the host's active user `steamvr.vrsettings` stores the same value;
 the disk write can lag briefly. Reconnect streaming to establish a single link.
 Keep global Wi-Fi enabled so the USB adapter remains usable.
+
+`false` does not pin the session to the adapter. An observed session retained
+its home-network streaming path after the adapter reconnected, with the adapter
+associated but inactive for VR. Live-setting this value to `1` immediately
+added the adapter, restored video traffic on it, and cleared measured packet
+loss. See [stream-path recovery](references/route-priority-and-scan-recovery.md#connected-adapter-with-an-inactive-streaming-path)
+before assuming a connected radio means SteamVR is using it. Select the setting
+from observed behavior and the user's request; do not blindly prefer `false`.
 
 If `vrcmd` reports `VRInitError_Driver_WirelessHmdNotConnected`, the live setting
 has not changed. Restore a functioning SteamVR session before retrying. A file
