@@ -7,9 +7,9 @@ category: devops
 
 # Proxmox Home Lab
 
-Proxmox is the primary entry point into Luke's home. Any agent (Labby, Codex, Cursor, Claude, OpenCode, Hermes) can follow this skill. Resolve every real host, address, VMID, storage ID, and node name from the ignored `~/.agents/private-context.md` (section **Proxmox home lab**). This public skill uses placeholders only.
+Proxmox is the primary entry point into Luke's home. Labby, Codex, Cursor, Claude, OpenCode, and Grok Bot can follow this skill. Resolve every real host, address, VMID, storage ID, and node name from the ignored `~/.agents/private-context.md` (section **Proxmox home lab**). This public skill uses placeholders only.
 
-Load with: `infrastructure-hygiene` (general rules, Hermes boundary), `proton-pass-cli` (SSH agent), `truenas-custom-apps` (NAS side), and `ntfy-ops` (notifications).
+Load with: `infrastructure-hygiene` (UniFi, DNS, Traefik lockdown), `proton-pass-cli` (SSH agent and Luke-specific Pass limits), `truenas-custom-apps` (NAS apps and the TrueNAS dump scripts), and `ntfy-ops` (notifications).
 
 ## Rules
 
@@ -68,7 +68,7 @@ For a read-only drive health/speed/port audit across hosts, run `scripts/drive-i
 - To move a VM with USB passthrough (radio sticks) to another node, or to cap ZFS ARC before adding guests, follow [references/usb-passthrough-migration.md](references/usb-passthrough-migration.md).
 - To fix enterprise-repo 401s and remove the subscription nag (the community post-pve-install script, by hand, without its HA/upgrade/reboot steps), follow [references/repos-and-nag.md](references/repos-and-nag.md).
 - When a node freezes silently (the journal just stops and it needs a power cycle), follow [references/silent-hang-diagnosis.md](references/silent-hang-diagnosis.md): timeline from boots, pstore, oops reading, Zen idle-state fixes, lockup panics and a hardware watchdog.
-- Removing a dead node (`pvecm delnode`) and fixing expected votes are cluster changes that need Luke's approval and a quorum plan (see `infrastructure-hygiene/references/proxmox-cluster-ceph.md`).
+- Removing a dead node (`pvecm delnode`) and fixing expected votes need Luke's approval and a quorum plan. Proxmox root SSH keys live in pmxcfs (`/etc/pve/priv/authorized_keys`); stopping `pve-cluster` on a survivor can lock root SSH even when the key is correct. Restore quorum by recovering a member, not by taking pmxcfs down. `pvecm add --fingerprint` is the API TLS certificate fingerprint, not an SSH host key.
 
 ## Notifications
 

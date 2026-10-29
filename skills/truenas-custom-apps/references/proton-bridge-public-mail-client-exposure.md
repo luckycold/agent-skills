@@ -117,7 +117,7 @@ When one client fails, prove the layers independently before changing Bridge:
 2. Use a certificate-verifying SMTP client against `mail.example.com:587`, issue STARTTLS, and require authenticated login.
 3. Only after both direct tests pass, inspect the failing client's exact username, password source, server, ports, and protection modes.
 
-A common migration failure is **stale client credential plumbing**. If direct authentication with the newly recovered relay credential succeeds but Himalaya reports `no such user`, inspect all four settings: `backend.login`, `message.send.backend.login`, `backend.auth.cmd`, and `message.send.backend.auth.cmd`. Both auth commands may still call an old Proton Pass custom field even after the visible login fields were updated. Point them at the approved current secret source, keep the helper output password-only, and rerun `himalaya folder list --output json`; do not blame Bridge merely because one wrapper is stale.
+A common failure is **stale client credential plumbing**. If direct authentication with the newly recovered relay credential succeeds but the mail client reports `no such user`, inspect every login and auth-command setting, including the send path. An auth command can still read an old Proton Pass field after the visible login was updated. Point it at the current secret, keep the helper output password-only, and list folders again. Do not blame Bridge because one wrapper is stale.
 
 For Spark and similar mobile clients, force manual/private-IMAP setup and use:
 

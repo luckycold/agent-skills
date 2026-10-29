@@ -17,7 +17,7 @@ Luke wants the **SSH & Web Terminal add-on kept disabled by default**. Enable it
 This keeps exposure minimal and matches Luke's explicit request for "keep the SSH mode disabled... enable it as needed."
 
 ## API / Token Scope Limitation
-The tokens available to the Hermes container only permit regular Home Assistant REST API access.
+A long-lived Home Assistant token only permits regular REST API access.
 
 Tested endpoints (2026-06):
 - Success: `GET /api/config` (returns version 2026.5.4, components, etc.), states, services (including automation.*), ha_list_services, ha_get_state, ha_call_service for non-hassio domains.
@@ -29,7 +29,7 @@ Tested endpoints (2026-06):
 
 ## Additional Context from Recon
 - Home Assistant is **not** one of the TrueNAS Apps on ${NAS_IP} (absent from `midclt call app.query` results; earlier `docker ps` on the NAS showed no matching containers).
-- From the Hermes container, `homeassistant` resolves to ${HOME_ASSISTANT_IP} (internal DNS).
+- `homeassistant` resolves to ${HOME_ASSISTANT_IP} on the lab DNS (the router).
 - The add-on is the documented, supported path for direct config file access on most HA installs. Direct SSH to the underlying host/VM/LXC (if separately enabled) is an alternative only if the user has set it up outside the add-on.
 
 ## Verification Commands (for diagnosing token scope)
@@ -74,10 +74,10 @@ _Moved verbatim from `SKILL.md` on 2026-10-08 during the size refactor; the skil
 
 Luke's explicit preference is to keep the **SSH & Web Terminal add-on disabled by default** and only enable it temporarily ("as needed") when direct read/write access to files under `/config` (e.g. automations.yaml and split files, configuration.yaml includes, etc.) is required.
 
-See `references/ha-ssh-addon-temporary-access.md` for the detailed workflow and the key limitation discovered in this session: the tokens available to Hermes (long-lived HASS_TOKEN and SUPERVISOR_TOKEN/HASSIO_TOKEN) only allow regular HA API access. Supervisor/hassio addon management endpoints return 401 Unauthorized or 403 Forbidden. `ha_call_service` for the hassio domain is blocked. Therefore the agent cannot self-enable the add-on via API — the user must perform the UI toggle when file work is needed, then disable it afterward.
+Supervisor and hassio add-on endpoints return 401 or 403 to a normal HA token, and hassio service calls are blocked. The agent cannot enable this add-on through the API. Luke toggles it in the UI, then disables it afterward.
 
 Additional notes:
-- HA itself is not running as a TrueNAS app (no entry in `midclt call app.query` on ${NAS_IP}; resolves to ${HOME_ASSISTANT_IP} from the Hermes container).
+- HA is not a TrueNAS app (no `app.query` entry). It resolves to ${HOME_ASSISTANT_IP}.
 - Prefer the temporary manual enable pattern over persistent authorized keys or always-on SSH.
 
 This is a hygiene rule for the HA portion of the stack.

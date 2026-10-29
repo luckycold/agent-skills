@@ -6,7 +6,7 @@
 # in $OUT/<app>/, which an off-site Backrest/restic plan must include.
 # Cleanup is MANIFEST-BASED: only files this script wrote (<dir>/.labby-pgdump.manifest) are deleted after KEEP_DAYS.
 # Never glob-delete in a shared dump folder (a glob cleanup once removed older dumps another tool had written).
-# See references/backup-health.md section 6 (consistent DB dumps).
+# See proxmox-homelab/references/backup-health.md section 6 (consistent DB dumps).
 set -u -o pipefail
 OUT=${OUT:-/mnt/<apps-pool>/Applications/db-dumps}
 KEEP_DAYS=30

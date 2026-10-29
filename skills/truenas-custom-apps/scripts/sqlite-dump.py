@@ -4,7 +4,7 @@ Runs from TrueNAS cron as root: 02:45 all jobs, 05:40 `hass` (newest HA automati
 and copied with the SQLite online-backup API, then PRAGMA integrity_check'ed, zstd'ed, sha1'ed into
 $OUT/<app>/ (apps:apps 0600, latest-* symlinks). Small config files go into files_<app>_<ts>.tar.zst.
 zstd --rsyncable keeps restic dedup working across days. Cleanup is MANIFEST-BASED (<dir>/.labby-dump.manifest): only files this script wrote are deleted, after keep_days.
-Usage: labby-sqlitedump.py [app ...]   See references/backup-health.md section 6."""
+Usage: labby-sqlitedump.py [app ...]   See proxmox-homelab/references/backup-health.md section 6."""
 import os, re, sys, sqlite3, subprocess, hashlib, time, glob, shutil, syslog, urllib.parse, pwd, grp
 OUT = "/mnt/<apps-pool>/Applications/db-dumps"; A = "/mnt/<apps-pool>/Applications"; M = "/mnt/.ix-apps/app_mounts"
 PLEX = f"{A}/plex/config/Library/Application Support/Plex Media Server"

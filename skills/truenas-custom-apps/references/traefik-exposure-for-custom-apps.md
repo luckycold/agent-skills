@@ -36,7 +36,7 @@ http:
 
 ## Template (HTTPS + Authelia — browser admin UIs)
 
-Match `routes.yml` / `odysseus.yml` pattern when only humans use a browser:
+Match an existing browser-admin route when only humans use a browser:
 
 ```yaml
 http:
@@ -62,7 +62,7 @@ http:
 | Client | Authelia on route? |
 |--------|-------------------|
 | Mobile/desktop app with server password or API token | **No** — Authelia breaks non-browser auth flows |
-| Browser-only admin UI Luke expects behind SSO | **Yes** — consistent with apprise, odysseus, etc. |
+| Browser-only admin UI Luke expects behind SSO | **Yes** — same pattern as other browser admin UIs such as Apprise. |
 
 When Authelia is skipped, rely on app auth + TLS; mention that in the handoff to Luke.
 

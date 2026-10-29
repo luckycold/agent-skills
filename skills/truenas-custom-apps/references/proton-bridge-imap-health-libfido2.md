@@ -1,11 +1,11 @@
 # Proton Bridge IMAP health, libfido2, and midclt lifecycle (TrueNAS custom app)
 
-Condensed from morning-email cron sessions where `proton-bridge` reported RUNNING and `nc -z 127.0.0.1 1143` succeeded, but Himalaya `envelope list` hung until timeout and no mail could be scanned.
+`proton-bridge` can report RUNNING and accept TCP on `127.0.0.1:1143` while IMAP never completes a greeting. A mail client then hangs and no mailbox can be read.
 
 ## Symptoms
 
 - TrueNAS: `midclt call app.query` → `proton-bridge` state `RUNNING`; `ss -tlnp` shows `127.0.0.1:1143` via `docker-proxy`.
-- Hermes (often via SSH tunnel to NAS `1143`): `himalaya envelope list` stalls; `RUST_LOG=info himalaya folder list` logs only `executing list folders command` then hangs.
+- A mail client stalls after connect: the log shows the list command starting and then nothing.
 - An IMAP probe returns **no greeting** (empty stdout) even though TCP connect succeeds **when the probe matches the configured encryption mode**:
   ```bash
   printf 'a0 CAPABILITY\r\n' | timeout 5 nc 127.0.0.1 1143
@@ -18,7 +18,7 @@ Condensed from morning-email cron sessions where `proton-bridge` reported RUNNIN
 - Minimal bridge data under volume (e.g. `ls` shows only `.` / `..`, or a lone config file under `bridge-v3`) → full Proton login / vault never completed. Logs may show `Could not load/create vault key` and `no keychain` even while socat listens on 1143.
 - **`midclt call app.stop` + `app.start` does not populate an empty data dir** — IMAP stays silent until a human completes Proton password init (see `proton-bridge-pass-automation.md`).
 
-**Do not treat `nc -z` alone as “bridge OK”.** Always run a CAPABILITY probe (on the NAS host or through the tunnel) before calling Himalaya in cron.
+**Do not treat `nc -z` alone as “bridge OK”.** Run `scripts/probe-bridge-imap.sh` (or a CAPABILITY probe in the same TLS mode the client uses) before treating the mailbox as readable.
 
 ## libfido2 (temporary vs durable)
 
@@ -32,7 +32,7 @@ ssh -o IdentityAgent=none -o BatchMode=yes -o StrictHostKeyChecking=yes \
 ```
 Then confirm the library exists: `docker exec proton-bridge ls /usr/lib/x86_64-linux-gnu/libfido2.so.1`.
 
-**Cron pitfall (Jun 2026 morning-email scan, confirmed Jun 27):** installing `libfido2-1` via `docker exec`, then calling **`midclt call app.stop` + `app.start`** in the same run **recreates the container from the image and removes the hotfix**. With an **empty** data volume (`ls` → only `.` / `..`), restart still leaves CAPABILITY empty and logs show welcome shell + `Could not load/create vault key` — autonomous cron should stop after probe failure and document that state. Either reinstall libfido2 after every midclt recreate, or prefer **`docker restart proton-bridge`** on the NAS (keeps the same container filesystem until the next midclt redeploy) when only the Bridge process needs a kick — note some Hermes harnesses may require approval for `docker restart`. **Never** midclt stop/start as a “retry” after a successful apt install unless you plan to apt install again immediately after `RUNNING`. **Order for autonomous cron:** run `scripts/probe-bridge-imap.sh` (or CAPABILITY) first; if `imap_no_response`, do **not** chain midclt restart → libfido2 → long `himalaya` — report incomplete unless a human Proton login is imminent. Relay password from `get-himalaya-bridge-pass` succeeding does not change this.
+**Lifecycle pitfall:** installing `libfido2-1` via `docker exec`, then calling **`midclt call app.stop` + `app.start`**, recreates the container from the image and removes the hotfix. With an **empty** data volume (`ls` → only `.` / `..`), restart still leaves CAPABILITY empty and logs show the welcome shell plus `Could not load/create vault key`. Stop after a failed probe and say the mailbox is incomplete. Either reinstall libfido2 after every midclt recreate, or `docker restart proton-bridge` when only the process needs a kick (that keeps the container filesystem until the next midclt redeploy). **Never** midclt stop/start as a retry after a successful apt install unless you apt install again immediately after `RUNNING`. Run `scripts/probe-bridge-imap.sh` first. If it reports `imap_no_response`, do not chain a restart into a long mail-client read. A Pass field that holds the relay password does not change this.
 
 **Durable fix (preferred):** bake `libfido2-1` into the custom app (custom image FROM shenxn + `RUN apt-get install -y libfido2-1`, or an entrypoint hook that installs once per start before launching Bridge). A manual `docker exec apt-get` does **not** survive `midclt call app.stop` + `app.start` because the container is recreated from the image.
 
@@ -73,11 +73,10 @@ From the same network/container path as the intended consumer:
 
 1. Determine the endpoint's real protocol from a known-good client or Bridge configuration. For plaintext/STARTTLS, probe with `openssl s_client -connect <host>:<port> -starttls imap`; for implicit TLS, use `openssl s_client -connect <host>:<port> -servername <hostname> -verify_hostname <hostname>` and then issue CAPABILITY inside the TLS session.
 2. Verify DNS and certificate authorization from the consumer container, not only from the NAS host. NAS-local loopback binds may be unreachable from sibling app containers.
-3. Run an authenticated client request such as `timeout 60 himalaya envelope list --output json --page-size 15`. A successful bounded authenticated list outweighs an ambiguous empty raw greeting probe.
+3. Run one bounded authenticated IMAP command from the real client. A successful list outweighs an ambiguous empty raw greeting probe.
 
-If the correctly matched authenticated probe fails or times out, cron email scans should **not** classify mail; report scan incomplete per `himalaya` → `references/automated-email-importance-scans.md` (no NTFY unless important mail was actually read).
+If that probe fails or times out, report the mailbox incomplete. Do not classify mail as empty.
 
 ## Related
 
-- `scripts/probe-bridge-imap.sh` — SSH + CAPABILITY probe from Hermes.
-- `himalaya/references/automated-email-importance-scans.md` — cron behavior when list fails.
+- `scripts/probe-bridge-imap.sh` — CAPABILITY probe. No secrets printed.

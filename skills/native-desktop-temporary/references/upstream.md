@@ -17,8 +17,8 @@ installed support or a release schedule.
   a user service, and MCP tools. A VM demonstration does not prove native
   installed-host support.
 - [Omarchy Agent Desktops proposal](https://github.com/omacom/omarchy/pull/10594):
-  separate background Hyprland desktops, viewer, MCP controls, and optional T3
-  chat. Still open at this checkpoint; no confirmed shipping date. Its separate
+  separate background Hyprland desktops, viewer, and MCP controls.
+  Still open at this checkpoint; no confirmed shipping date. Its separate
   browser profiles differ from operating an existing signed-in native browser.
 - [omabox](https://github.com/diogochaves/omabox): community project with nested
   headless Hyprland instances and separate desktop/session state. This is a

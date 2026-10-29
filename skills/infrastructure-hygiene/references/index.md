@@ -1,19 +1,20 @@
-# infrastructure-hygiene reference index (detailed descriptions)
+# infrastructure-hygiene references
 
-_Moved verbatim from `SKILL.md` on 2026-10-08 during the size refactor; the skill keeps a short summary that links here._
-
-- `references/hermes-container-weekly-maintenance.md` — concrete execution log + recipes from cron runs on the HAOS Hermes container (inspection commands, npm prefix update, **kagi-cli glibc pin**, Kagi MCP wrapper+HOME + auth sync, summarize MCP vs subscriber CLI, smoke tests, caches, hermes-update/gateway approval behavior, git dirty handling, no-sudo observation, final report template). **2026-07-05 follow-up execution:** Luke-directed fix of cron report items (jobs.json paths, linuxbrew tmp reclaim, update+cherry-pick, MCP adapter, add-on gateway restart). **2026-07-05 cron run:** 0.14.1 glibc break → pin 0.11.0; `hermes mcp add` for config.yaml. **2026-06-21:** native typed schemas; `file_safety.py` conflict fix.
-- `references/kagi-mcp-schema-probe.py` — Tirith-safe schema probe script (no shell pipes); exit 1 if the five required tools lack typed properties.
-- See `references/hermes-harness-boundary.md` for the specific incident that established the Hermes harness rule.
-- See `references/proxmox-readonly-recon.md` for read-only Proxmox reconnaissance without persisting live topology.
-- See `references/proxmox-cluster-ceph.md` for generic cluster join, major-version upgrade, Ceph retirement, local-ZFS replication, HAOS placement, and PBS recovery patterns.
-- `references/agent-clis-lan-hosts.md` — Cursor/Grok/Codex/Pass on Proxmox, TrueNAS, PBS, and Hermes; `common`+`personal` Stow; vendored Stow when `apt` is disabled.
-- `references/truenas-backrest-restic-path-health.md` — Backrest/restic: empty `_backrest-view` ix-app-mounts stub; Immich Media mount failure (top-level `additional_storage` ignored; use `storage.additional_storage`); host-eval secrets + `docker exec restic` (no python3 in image); midclt app.update Extra inputs pitfall; plan gaps (odysseus, HA); FUTO restore drill; NFSv4 ACL for uid 568.
-- `references/truenas-apps-pool-space-reclaim.md` — Apps pool near full: Docker image prune first; karakeep/plex-stage leftovers; legacy Immich `app_mounts` destroy only after live mounts verified; snapshot holdback.
-- `references/netbird-bmc-work-pc-dual-homed.md` — generic diagnosis for NetBird routed-network instability when Wi‑Fi and Ethernet are both active.
-- `references/hermes-cron-creation.md` — correct `hermes cron create` usage, flags, deliver=local pattern, skill attachment, self-contained prompts, and the generic-cronjob-tool pitfall (for hygiene/monitoring/maintenance jobs). Cross-references the himalaya email-scan example.
-- `references/rpi-otbr-docker-appliance.md` — standalone Raspberry Pi OTBR Docker appliance for Home Assistant (host-network REST on 8081, Trixie docker-cli split, ghcr IPv4 pull pitfall). Resolve host/IP from private context.
-- `references/hermes-addon-to-host-migration.md` — moving Hermes from the HA add-on to a host install: guest-agent access, backup/import pitfalls, path rewrites, hook re-consent, and re-pointing the `hermes_conversation` integration.
-- `references/traefik-authelia-default-and-origin-lockdown.md` — Authelia-by-default for Traefik (per-router + audit, file overrides for Docker label routers without fail-open), hidden holes (Cloudflare Tunnel ingress straight to origin, Docker hairpin source = gateway, Authelia path/network bypasses), Cloudflare-only ipAllowList at entrypoints, and outside verification.
-- `references/unifi-split-horizon-dns.md` — UniFi split-horizon DNS: Forward Domain (NS) records and the REFUSED loop when the target host itself queries, wildcard A not blocking AAAA/HTTPS, device Local DNS records vs static records, and retiring a forward safely by turning Cloudflare ECH and IPv6 Compatibility off first.
-- `references/unifi-iot-internet-allowlist-via-api.md` — UniFi IoT VLAN internet default-deny with an address-group allowlist via the legacy firewall API: LAN_IN order, NTP when the gateway does not serve it, IPv6 rules needing group sources (Thread OMR/AIL prefixes), temporary-/32 block testing, and app steps to allow a new device.
+- [lan-dns.md](lan-dns.md) — the router is DNS; AdGuard is opt-in; no public secondary; stale Docker `ExtServers`.
+- [unifi-port-forwarding-via-api.md](unifi-port-forwarding-via-api.md) — idempotent WAN port forwards.
+- [unifi-dhcp-dns-via-api-and-ip-diagnostics.md](unifi-dhcp-dns-via-api-and-ip-diagnostics.md) — DHCP DNS, static records, VLAN and IoT audit.
+- [unifi-split-horizon-dns.md](unifi-split-horizon-dns.md) — forward domains, wildcard A versus AAAA/HTTPS, ECH and IPv6.
+- [unifi-iot-internet-allowlist-via-api.md](unifi-iot-internet-allowlist-via-api.md) — IoT default-deny plus allowlist.
+- [unifi-port-native-network.md](unifi-port-native-network.md) — wired port native network.
+- [traefik-authelia-default-and-origin-lockdown.md](traefik-authelia-default-and-origin-lockdown.md) — Authelia by default and origin lockdown.
+- [truenas-acme-renewal.md](truenas-acme-renewal.md) — `certificate.renew_certs` and the Cloudflare token-location error.
+- [truenas-apps-pool-space-reclaim.md](truenas-apps-pool-space-reclaim.md) — Apps pool space.
+- [truenas-zfs-dataset-busy-delete.md](truenas-zfs-dataset-busy-delete.md) — dataset busy on delete.
+- [truenas-backrest-restic-path-health.md](truenas-backrest-restic-path-health.md) — Backrest and restic.
+- [truenas-qbit-manage-retention-and-orphan-forensics.md](truenas-qbit-manage-retention-and-orphan-forensics.md) — tracker retention and orphan audit.
+- [truenas-romm-ps3-imports.md](truenas-romm-ps3-imports.md) — RomM PS3 imports.
+- [romm-multifile-folder-ingest.md](romm-multifile-folder-ingest.md) — RomM multi-file folders.
+- [ha-ssh-addon-temporary-access.md](ha-ssh-addon-temporary-access.md) — SSH add-on off by default.
+- [agent-clis-lan-hosts.md](agent-clis-lan-hosts.md) — Cursor, Grok, Codex, and Pass on LAN hosts.
+- [netbird-bmc-work-pc-dual-homed.md](netbird-bmc-work-pc-dual-homed.md) — dual-homed NetBird.
+- [rpi-otbr-docker-appliance.md](rpi-otbr-docker-appliance.md) — Raspberry Pi OTBR.

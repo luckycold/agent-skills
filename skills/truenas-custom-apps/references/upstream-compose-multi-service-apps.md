@@ -22,7 +22,7 @@ Pattern for projects that ship `docker-compose.production.yml` (or similar) and 
    - `user_config.yaml` with `services:` map, `version: "3.0"`
    - Duplicate identical content to `versions/1.0.0/templates/rendered/docker-compose.yaml`
    - `metadata.yaml` at app root, `app.yaml`, `README.md`
-   - Multi-service blocks: copy `healthcheck` / `depends_on` from odysseus (e.g. `condition: service_healthy`)
+   - Multi-service blocks: copy `healthcheck` / `depends_on` from a known-good app (e.g. `condition: service_healthy`)
 6. **Register** — `midclt call app.metadata.generate` then `midclt call app.query` → `custom_app: true`, state often `STOPPED`.
 7. **Start + recovery** — `midclt call app.start <name>`; poll until `RUNNING`. If state stays `STOPPED` and **no** `ix-<name>-*` containers exist:
    ```bash
@@ -38,7 +38,7 @@ Pattern for projects that ship `docker-compose.production.yml` (or similar) and 
 | Use case | Host bind |
 |----------|-----------|
 | Container-to-container only (bridge, internal API) | `127.0.0.1:<port>` |
-| Traefik / LAN backend (odysseus, apprise, sync APIs) | `${NAS_IP}:<port>` or `0.0.0.0:<port>` per existing app |
+| Traefik / LAN backend (Apprise, sync APIs) | `${NAS_IP}:<port>` or `0.0.0.0:<port>` per existing app |
 
 Do not assume every service is `127.0.0.1` — match the consumer (Traefik hits NAS IP).
 
