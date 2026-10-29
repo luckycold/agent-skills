@@ -44,4 +44,4 @@ Check `type -a codex`, `readlink -f "$(command -v codex)"`, `codex --version`, a
 
 The Advanced SSH add-on is Alpine/musl. Official Cursor, Grok, and Pass CLI builds are glibc and fail there even with `gcompat`. Do not disable protection mode to reach Docker. HAOS itself is not the install target: the OS root is appliance-managed. Install these CLIs on Proxmox, TrueNAS, and the PBS VM. A secondary Proxmox node that is offline is not a setup failure; retry when it is reachable.
 
-The SSH add-on stays off unless Luke enables it for `/config` file work. See `ha-ssh-addon-temporary-access.md`.
+The SSH add-on is intentionally left running for `/config` file work, but it is still not an install target. See `ha-ssh-addon-temporary-access.md`.

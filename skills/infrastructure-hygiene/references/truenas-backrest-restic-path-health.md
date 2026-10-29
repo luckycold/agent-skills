@@ -140,7 +140,7 @@ grep -Ei 'task failed|does not exist' /mnt/.ix-apps/app_mounts/backrest/data/pro
 
 ## Immich and auto-update
 
-Immich sometimes stayed down after `truenas-auto-update`; Docker `unless-stopped` does not restart a TrueNAS **app** left STOPPED/unhealthy. Immich and Backrest are in the updater's `EXCLUDE_APPS`; upgrade them manually. A watchdog script remains at `/mnt/Apps/config/scripts/immich-watchdog.sh` but is not scheduled; recovery after a manual upgrade is a manual check (`/api/server/ping`).
+Immich sometimes stayed down after `truenas-auto-update`; Docker `unless-stopped` does not restart a TrueNAS **app** left STOPPED/unhealthy. Immich and Backrest are in the updater's `EXCLUDE_APPS`; upgrade them manually. A watchdog script remains at `/mnt/Apps/config/scripts/immich-watchdog.sh`; it is not currently scheduled.
 
 ## Pitfalls
 
