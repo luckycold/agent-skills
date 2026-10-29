@@ -41,13 +41,17 @@ Changes go through the Network API, not SSH on the gateway.
 - qbit_manage: mirror the tracker-tag convention. Never raise the orphan threshold or delete orphans without a read-only manifest and hard-link audit. [Orphan forensics](references/truenas-qbit-manage-retention-and-orphan-forensics.md).
 - RomM PS3 imports and multi-file folders: [PS3 imports](references/truenas-romm-ps3-imports.md), [folder ingest](references/romm-multifile-folder-ingest.md).
 
-## Home Assistant SSH add-on
+## Home Assistant
 
 Keep the SSH & Web Terminal add-on disabled by default. Agent tokens cannot manage add-ons through the Supervisor API. Ask Luke to enable it for `/config` work and to disable it afterward. HA is not a TrueNAS app. See [temporary SSH access](references/ha-ssh-addon-temporary-access.md).
+
+`<ha-hostname>.local` stuck renaming upward (`homeassistant8`) on a multi-VLAN host: see [mDNS hostname conflict](references/ha-mdns-hostname-conflict.md).
 
 ## Agent CLIs on LAN hosts
 
 On Proxmox, TrueNAS, and the PBS VM, stow `common` then `personal`. Keep binaries and auth outside Stow. Do not install glibc CLIs into the Alpine SSH add-on or onto the HAOS root. See [agent CLIs](references/agent-clis-lan-hosts.md).
+
+Local Proton mail on an Arch agent host (packaged Bridge user service plus Himalaya; verify the actual sent message, not a pre-send Sent copy): see [local Proton mail on Arch](references/local-proton-mail-arch.md).
 
 ## Other
 
