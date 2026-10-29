@@ -60,13 +60,7 @@ docker ps -q | xargs -r docker inspect | \
   python3 -c 'import json,sys; ...'  # or manual inspect of target app
 ```
 
-Known Luke-stack reclaim candidates (verify still unused each time):
-
-| Path | Typical size | Notes |
-|---|---|---|
-| `/mnt/Apps/backups/karakeep-*` (dated precluster/restore dirs) | tens of GB | One-off migration; live Karakeep uses `/mnt/Apps/Applications/karakeep/` |
-| `/mnt/Apps/home/lucky/plex-stage` | tens of GB | Staging Plex tree; live Plex is `/mnt/Apps/Applications/plex/config` |
-| `Apps/ix-apps/app_mounts/immich` (legacy ixVolume tree) | ~20 G | **Not** live Immich if server mounts `Applications/immich` + `/mnt/Media/Photos` |
+Past reclaim candidates were dated migration copies under `/mnt/Apps/backups`, staging trees under home dirs, and legacy `ix-apps/app_mounts/<app>` datasets left after an app moved to host paths. Those found in 2026 are already gone; re-check with `zfs list -o name,used -s used` and `du`.
 
 ### Legacy Immich app_mounts destroy
 

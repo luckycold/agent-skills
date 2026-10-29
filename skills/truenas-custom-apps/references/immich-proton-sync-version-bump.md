@@ -90,7 +90,7 @@ never drive deletion/restore mirroring. `in_proton` should stay at the 3 kept
 standalone clips whose stills Luke deleted in Proton. Separate live-photo
 originals (iPhone `.MOV`) still upload unpaired.
 
-Since 0.1.14 (deployed: 0.1.15), uploads go through the thumbnail-capable fork
+Since 0.1.14, uploads go through the thumbnail-capable fork
 when config `proton_cli_thumbs` = `/usr/local/bin/proton-drive-thumbs` (a
 wrapper that sets XDG dirs to `/state/thumbs-cli` and execs
 `proton-drive-labby`, build `external-drive-labby_photos@1.0.0-stable+cli090.thumbs3`;

@@ -11,7 +11,7 @@ push() { local tok=${!1:-}; [ -z "$tok" ] && return
 
 # Quorum
 q=$(pvecm status 2>&1); tv=$(awk -F: '/Total votes/{gsub(/ /,"",$2);print $2}' <<<"$q"); ev=$(awk -F: '/Expected votes/{gsub(/ /,"",$2);print $2}' <<<"$q")
-grep -q 'Quorate: *Yes' <<<"$q" && push T_PVE_QUORUM up "quorate, votes $tv/$ev (zero margin while pve2 is offline)" || push T_PVE_QUORUM down "NOT quorate: votes ${tv:-?}/${ev:-?}"
+grep -q 'Quorate: *Yes' <<<"$q" && push T_PVE_QUORUM up "quorate, votes $tv/$ev" || push T_PVE_QUORUM down "NOT quorate: votes ${tv:-?}/${ev:-?}"
 
 # ZFS on pve and pvel
 zmsg=""; zok=1

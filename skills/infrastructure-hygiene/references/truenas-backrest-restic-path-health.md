@@ -8,7 +8,7 @@ Use when Luke asks whether Backrest is healthy, why backups failed, which apps t
 - Config: `/mnt/.ix-apps/app_mounts/backrest/config/config.json` (mode 0600; never print repo passwords).
 - Oplog: `/mnt/.ix-apps/app_mounts/backrest/data/oplog.sqlite` — `operations.status` **3** ≈ success with snapshot, **4** ≈ fail, **1** ≈ pending/scheduled.
 - Destinations: `rclone:pcloud:/Server Backups/TrueNAS/restic/<repo-id>` (**pCloud** via rclone; do not confuse with Proton Drive).
-- Typical schedule: staggered **04:xx** local daily backups; prune **Sun 05:00**; structure-only check monthly.
+- Typical schedule: staggered early-morning local daily backups; prune **Sun 05:00**; structure-only check monthly.
 - Process log: `/mnt/.ix-apps/app_mounts/backrest/data/processlogs/backrest.log`
 - Runtime user: **568:568** (`apps`). Host paths must be readable by uid 568.
 - Backrest image has **restic**, not **python3** — parse `config.json` on the host; pass `RESTIC_*` via `docker exec -e`.
@@ -121,14 +121,7 @@ Remove matching plans/repos from `config.json` after deleting an app. Bump `modn
 
 ## What is worth adding
 
-| Priority | App | Notes |
-|---|---|---|
-| High | `futo-notes` | user notes |
-| High | HA tarballs | `/mnt/Apps/backups/hass` local-only unless planned |
-| High | Immich | fix Media mount; don't duplicate plan |
-| High | `proton-bridge` | after IMAP init healthy |
-| Medium | Backrest config, `minecraft-modded` | if still wanted |
-| Low/skip | cloudflared, unpackerr, littlelink, truenas-auto-update, rsshub, glance | rebuildable |
+Compare each running app's data path against the plan list; anything with user data and no plan is a gap. Rebuildable apps (cloudflared, unpackerr, rsshub, glance, truenas-auto-update) can skip.
 
 ## Disaster-recovery (summary)
 
@@ -145,21 +138,9 @@ sqlite3 /mnt/.ix-apps/app_mounts/backrest/data/oplog.sqlite \
 grep -Ei 'task failed|does not exist' /mnt/.ix-apps/app_mounts/backrest/data/processlogs/backrest.log | tail -20
 ```
 
-## Immich post-upgrade self-heal (host watchdog)
+## Immich and auto-update
 
-Immich sometimes stays down after `truenas-auto-update` (daily ~04:00 UTC). Docker `unless-stopped` does not restart a TrueNAS **app** left STOPPED/unhealthy.
-
-| Item | Path / fact |
-|---|---|
-| Script | `/mnt/Apps/config/scripts/immich-watchdog.sh` |
-| Cron | root `*/10 * * * *` |
-| Health | `http://127.0.0.1:30041/api/server/ping` contains `pong` |
-| Action | after 2 consecutive fails: `app.start` or stop+start; wait ~4m; ntfy on recover/still-down |
-| Cooldown | 15 minutes |
-| Disable | `touch /mnt/Apps/config/immich-watchdog.disable` |
-| State dir | `/var/lib/immich-watchdog/` |
-
-Optional: `EXCLUDE_APPS=immich` on auto-update; upgrade Immich manually (watchdog still covers failures).
+Immich sometimes stayed down after `truenas-auto-update`; Docker `unless-stopped` does not restart a TrueNAS **app** left STOPPED/unhealthy. Immich and Backrest are in the updater's `EXCLUDE_APPS`; upgrade them manually. A watchdog script exists at `/mnt/Apps/config/scripts/immich-watchdog.sh`, but it is not scheduled (check TrueNAS cron tasks before relying on it).
 
 ## Pitfalls
 

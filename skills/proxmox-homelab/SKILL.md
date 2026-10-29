@@ -1,6 +1,6 @@
 ---
 name: proxmox-homelab
-description: Access, inventory, and health-check Luke's Proxmox VE home lab (cluster nodes, guests, ZFS/PBS storage, backups, replication, notifications) from a remote agent over WireGuard with the Proton Pass SSH agent. Use for any Proxmox, PBS, vzdump, guest, or "learn/check the home lab" task.
+description: Access, inventory, and health-check Luke's Proxmox VE home lab (cluster nodes, guests, ZFS/PBS storage, backups, replication, notifications) from a remote agent over Tailscale (or home WireGuard) with the Proton Pass SSH agent. Use for any Proxmox, PBS, vzdump, guest, or "learn/check the home lab" task.
 author: Luke
 category: devops
 ---
@@ -20,7 +20,7 @@ Load with: `infrastructure-hygiene` (UniFi, DNS, Traefik lockdown), `proton-pass
 
 ## Access recipe
 
-1. **Tunnel.** From an off-LAN box, bring up the home WireGuard interface (`<home-wg-iface>`). Check `ip -br a` and `sudo wg show`. If it's down, run `sudo wg-quick up <home-wg-iface>`. The peer's AllowedIPs cover only the home LAN; check the latest handshake.
+1. **Tunnel.** From an off-LAN box, use Tailscale: the primary node and the NAS are tailnet nodes (`tailscale status`), and other LAN hosts are reached through the primary node. The home WireGuard interface (`<home-wg-iface>`, `sudo wg show`) is a fallback where it exists.
 2. **Pass session.** Load the box's Pass CLI env file, if one exists (path in private context), then run `pass-cli info`. If it's unauthenticated, stop and ask Luke. Never start an interactive login from automation.
 3. **SSH agent.** Reuse a running agent if there is one (`pgrep -af 'pass-cli ssh-agent'`, socket path in private context). Otherwise run:
    `pass-cli ssh-agent start --socket-path <sock> --vault-name Main --refresh-interval 30` (or `ssh-agent daemon start …`).
