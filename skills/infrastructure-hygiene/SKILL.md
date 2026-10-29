@@ -49,7 +49,7 @@ The SSH & Web Terminal add-on is intentionally left running; use it for `/config
 
 ## Agent CLIs on LAN hosts
 
-On Proxmox, TrueNAS, and the PBS VM, stow `common` then `personal`. Keep binaries and auth outside Stow. Do not install glibc CLIs into the Alpine SSH add-on or onto the HAOS root. See [agent CLIs](references/agent-clis-lan-hosts.md).
+Headless Proxmox nodes stow `common` then `agent`; the praxis desktop VM keeps `personal`. On `agent` hosts, skills come from the git clone at `~/.local/share/agent-skills`, refreshed by `update-dotfiles --yes`. Keep binaries and auth outside Stow. Do not install glibc CLIs into the Alpine SSH add-on or onto the HAOS root. See [agent CLIs](references/agent-clis-lan-hosts.md).
 
 Local Proton mail on an Arch agent host (packaged Bridge user service plus Himalaya; verify the actual sent message, not a pre-send Sent copy): see [local Proton mail on Arch](references/local-proton-mail-arch.md).
 

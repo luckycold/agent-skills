@@ -2,7 +2,7 @@
 
 Use this when Luke wants the same Cursor Agent, Grok, Proton Pass, and personal-skill setup that already exists on the TrueNAS root home. Resolve SSH targets from `~/.agents/private-context.md`.
 
-Luke treats the Proxmox nodes, TrueNAS, and the PBS VM as his machines. Stow **`common` then `personal`** there (`stow -t ~ common && stow -t ~ personal`). Do not stow `root/` onto these appliances. If `common` already owns `~/.bashrc.d` or `~/.config/hypr` as a whole-directory symlink, stowing `personal` folds those dirs so both packages can contribute. Keep host-local `zz-agent-tools.bash` in the folded `~/.bashrc.d`, never inside the checkout. Do not unstow a live desktop session to do this; that procedure is `native-desktop-temporary`.
+Luke treats the Proxmox nodes, TrueNAS, and the PBS VM as his machines. Headless Proxmox nodes (pve, pvel, pve2) stow **`common` then `agent`**; praxis, the desktop VM, keeps `personal`. On `agent` hosts, skills come from the git clone at `~/.local/share/agent-skills`, refreshed by `update-dotfiles --yes`. Do not stow `root/` onto these appliances. If `common` already owns `~/.bashrc.d` or `~/.config/hypr` as a whole-directory symlink, stowing the second package (`agent` or `personal`) folds those dirs so both packages can contribute. Keep host-local `zz-agent-tools.bash` in the folded `~/.bashrc.d`, never inside the checkout. Do not unstow a live desktop session to do this; that procedure is `native-desktop-temporary`.
 
 ## Shared pattern
 
