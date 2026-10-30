@@ -19,10 +19,15 @@ runs CEF's inherited shutdown handler and aborts with
 `Check failed: g_pipe_pid == getpid()` (SIGTRAP). The restart loop produced
 hundreds of `steamwebhelper` core dumps.
 
-`steam-launch` now only unsets `GDK_SCALE`, `GDK_DPI_SCALE`, and
-`STEAM_FORCE_DESKTOPUI_SCALING`, and preloads `/usr/lib32/libextest.so` when
-that library is installed. `--sync` exits without touching Steam.
-`hypr/steam.lua` only sets window size.
+The remaining `steam-launch` wrapper, user desktop-entry overrides, autostart,
+and `hypr/steam.lua` window rules were also removed. Launch Steam with the
+package-provided `steam.desktop`; use Steam's Accessibility UI Scale slider.
+There is no custom environment cleanup or libextest preload in the launcher.
+
+When removing a Stow-managed launcher, remove its deployed symlinks as well
+as the tracked files so no dangling user desktop entry shadows the package.
+Refresh the user desktop database and verify that `steam.desktop` resolves
+to the package-provided file. Validate Hyprland after removing Lua requires.
 
 ## Dead ends
 
