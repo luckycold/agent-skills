@@ -1,20 +1,14 @@
-# Home Assistant SSH Add-on and Config File Access Patterns (Temporary Enable)
+# Home Assistant SSH Add-on and Config File Access Patterns
 
-## User Preference (Standing Rule)
-Luke wants the **SSH & Web Terminal add-on kept disabled by default**. Enable it only "as needed" and only for the duration of direct filesystem work on HA configuration files (`/config/automations.yaml`, split files under `/config/automations/`, `configuration.yaml` includes, scripts, etc.).
+## Current state (Luke's choice, 2026-10-29)
+The **SSH & Web Terminal add-on is intentionally left running.** Use it for direct filesystem work on HA configuration files (`/config/automations.yaml`, split files under `/config/automations/`, `configuration.yaml` includes, scripts, etc.). Don't stop it, and don't ask Luke to disable it after a task. Changing its state is Luke's call in the HA UI.
 
-**Do not**:
-- Set up persistent authorized_keys that leave SSH always available.
-- Leave the add-on running with SSH exposed after the task.
-- Assume API-driven enable/disable is available.
+Workflow:
+1. Get the configured username and port from private context or Luke.
+2. Connect with the established key.
+3. Read (`cat`, `ls`, `grep`), apply edits, verify.
 
-**Intended workflow**:
-1. User manually enables the add-on in the HA UI when file edits are requested (and provides the configured username + the port the add-on exposes).
-2. Agent connects via the terminal tool using the established key or password method for that session only.
-3. Agent reads (`cat`, `ls`, `grep`), proposes or applies edits (via write_file/patch in the session context or direct commands), verifies.
-4. User disables the add-on immediately after.
-
-This keeps exposure minimal and matches Luke's explicit request for "keep the SSH mode disabled... enable it as needed."
+Earlier guidance kept the add-on disabled by default and enabled it only per task. That rule is superseded.
 
 ## API / Token Scope Limitation
 A long-lived Home Assistant token only permits regular REST API access.
@@ -25,7 +19,7 @@ Tested endpoints (2026-06):
 - Failure (403 Forbidden): direct `http://supervisor/addons` and similar.
 - `ha_call_service` domain="hassio" is explicitly blocked in the tool for security.
 
-**Conclusion**: Cannot use the API to read current add-on options or toggle the SSH feature programmatically. Manual UI action by the user is required for any enable/disable.
+**Conclusion**: Cannot use the API to read current add-on options or toggle the SSH feature programmatically. Any enable/disable is a manual UI action by Luke.
 
 ## Additional Context from Recon
 - Home Assistant is **not** one of the TrueNAS Apps on ${NAS_IP} (absent from `midclt call app.query` results; earlier `docker ps` on the NAS showed no matching containers).
@@ -61,23 +55,21 @@ curl -s -w "\nHTTPSTATUS:%{http_code}\n" -H "Authorization: Bearer $SUPERVISOR_T
 ## Related Skills and References
 - `proton-pass-cli` (if the add-on config itself stores secrets or keys).
 - `truenas-custom-apps` and the broader infrastructure-hygiene stack (for when HA storage paths or related services on TrueNAS are involved).
-- Use only for the duration of the file task; always have the user disable afterward.
 
 Update this reference with any new token scope discoveries, alternative file-access add-ons (File Editor, Studio Code Server), or changes in how the add-on exposes its SSH port/username.
 
 ## Session Origin
-Derived from investigation after the user asked whether the agent could "modify SSH access in the SSH add-on" and "enable it yourself" via the API (June 2026 session). The preference for disabled-by-default was stated explicitly.
+Derived from investigation after the user asked whether the agent could "modify SSH access in the SSH add-on" and "enable it yourself" via the API (June 2026 session). The disabled-by-default preference stated then was replaced on 2026-10-29: the add-on stays on.
 
 ## Rule summary (formerly in SKILL.md)
 
 _Moved verbatim from `SKILL.md` on 2026-10-08 during the size refactor; the skill keeps a short summary that links here._
 
-Luke's explicit preference is to keep the **SSH & Web Terminal add-on disabled by default** and only enable it temporarily ("as needed") when direct read/write access to files under `/config` (e.g. automations.yaml and split files, configuration.yaml includes, etc.) is required.
+The add-on is intentionally left running (see Current state).
 
-Supervisor and hassio add-on endpoints return 401 or 403 to a normal HA token, and hassio service calls are blocked. The agent cannot enable this add-on through the API. Luke toggles it in the UI, then disables it afterward.
+Supervisor and hassio add-on endpoints return 401 or 403 to a normal HA token, and hassio service calls are blocked. The agent cannot enable this add-on through the API. Only Luke toggles it, in the UI.
 
 Additional notes:
 - HA is not a TrueNAS app (no `app.query` entry). It resolves to ${HOME_ASSISTANT_IP}.
-- Prefer the temporary manual enable pattern over persistent authorized keys or always-on SSH.
 
 This is a hygiene rule for the HA portion of the stack.

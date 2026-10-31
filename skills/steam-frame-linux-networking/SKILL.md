@@ -13,18 +13,7 @@ during connection tests.
 
 ## Inspect before changing
 
-Discover the Steam installation, adapter interface, and current versions:
-
-```bash
-uname -r
-lsusb
-nmcli radio
-rfkill list wifi
-nmcli -f DEVICE,TYPE,STATE device
-iw reg get
-```
-
-Check Steam's `logs/remote_connections.txt` and `logs/client_networkmanager.txt`,
+Discover the Steam installation, the adapter interface, radio and rfkill state, the regulatory domain, and current versions with the usual `nmcli`, `rfkill`, `iw`, and `lsusb` reads. Check Steam's `logs/remote_connections.txt` and `logs/client_networkmanager.txt`,
 plus recent NetworkManager and Wi-Fi backend journal messages. Avoid displaying
 secrets or preserving live SSIDs, addresses, identifiers, or raw logs in skills.
 

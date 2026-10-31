@@ -39,14 +39,8 @@ because support is announced or a partial replacement exists.
 ## Verified foreground workflow
 
 Load the Omarchy skill and its capture reference before desktop capture or
-window-management work. Discover binaries and current state first:
-
-```bash
-command -v wlrctl wtype grim hyprctl
-hyprctl -j clients
-hyprctl -j monitors
-hyprctl -j activewindow
-```
+window-management work. Discover the installed tools (`wlrctl`, `wtype`, `grim`,
+`hyprctl`) and the current clients, monitors, and active window first.
 
 Do not assume `wlrctl` is installed; if it is missing, focus with
 `hyprctl dispatch 'hl.dsp.focus({window = "address:<window-address>"})'`.
@@ -58,13 +52,7 @@ relaunch it without the port when finished. Don't `pkill -f` a pattern that also
 appears in your own command line, because it kills the calling shell.
 
 Select the native browser's actual app ID from the client list; do not infer it
-from the executable's name. Focus it, then verify the active window before input:
-
-```bash
-wlrctl toplevel focus "app_id:$browser_app_id"
-hyprctl -j activewindow
-```
-
+from the executable's name. Focus it, then verify the active window before input.
 `wlrctl` window focusing succeeded in the verified workflow, but its rapid
 keyboard input lost characters. Use the installed `wtype` for paced typing and
 explicit keys. Open a new tab, allowing the browser to process the shortcut

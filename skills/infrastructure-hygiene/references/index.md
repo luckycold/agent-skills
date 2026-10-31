@@ -14,7 +14,7 @@
 - [truenas-qbit-manage-retention-and-orphan-forensics.md](truenas-qbit-manage-retention-and-orphan-forensics.md) — tracker retention and orphan audit.
 - [truenas-romm-ps3-imports.md](truenas-romm-ps3-imports.md) — RomM PS3 imports.
 - [romm-multifile-folder-ingest.md](romm-multifile-folder-ingest.md) — RomM multi-file folders.
-- [ha-ssh-addon-temporary-access.md](ha-ssh-addon-temporary-access.md) — SSH add-on off by default.
+- [ha-ssh-addon-temporary-access.md](ha-ssh-addon-temporary-access.md) — SSH add-on (intentionally left running) and config file access.
 - [ha-mdns-hostname-conflict.md](ha-mdns-hostname-conflict.md) — `.local` hostname-conflict loop from a reflected mDNS answer.
 - [agent-clis-lan-hosts.md](agent-clis-lan-hosts.md) — Cursor, Grok, Codex, and Pass on LAN hosts.
 - [local-proton-mail-arch.md](local-proton-mail-arch.md) — Proton Bridge and Himalaya on an Arch agent host.

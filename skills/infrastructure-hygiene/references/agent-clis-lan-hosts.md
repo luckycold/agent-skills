@@ -2,7 +2,7 @@
 
 Use this when Luke wants the same Cursor Agent, Grok, Proton Pass, and personal-skill setup that already exists on the TrueNAS root home. Resolve SSH targets from `~/.agents/private-context.md`.
 
-Luke treats the Proxmox nodes, TrueNAS, and the PBS VM as his machines. Stow **`common` then `personal`** there (`stow -t ~ common && stow -t ~ personal`). Do not stow `root/` onto these appliances. If `common` already owns `~/.bashrc.d` or `~/.config/hypr` as a whole-directory symlink, stowing `personal` folds those dirs so both packages can contribute. Keep host-local `zz-agent-tools.bash` in the folded `~/.bashrc.d`, never inside the checkout. Do not unstow a live desktop session to do this; that procedure is `native-desktop-temporary`.
+Luke treats the Proxmox nodes, TrueNAS, and the PBS VM as his machines. Headless Proxmox nodes (pve, pvel, pve2) stow **`common` then `agent`**; praxis, the desktop VM, keeps `personal`. Skills install and refresh through the skills.sh CLI (`skills add luckycold/agent-skills`), run by the dotfiles `update-agent-skills`, which `update-dotfiles --yes` also runs (since dotfiles PR #38). There is no agent-skills git clone on these hosts. Do not stow `root/` onto these appliances. If `common` already owns `~/.bashrc.d` or `~/.config/hypr` as a whole-directory symlink, stowing the second package (`agent` or `personal`) folds those dirs so both packages can contribute. Keep host-local `zz-agent-tools.bash` in the folded `~/.bashrc.d`, never inside the checkout. Do not unstow a live desktop session to do this; that procedure is `native-desktop-temporary`.
 
 ## Shared pattern
 
@@ -18,7 +18,7 @@ Luke treats the Proxmox nodes, TrueNAS, and the PBS VM as his machines. Stow **`
 - A Pass session can say `Already authenticated` while `info` fails with `Error reading local key file` / `non-existent session`. `logout --force`, move the session dir aside, recreate it at mode `700`, then `login` from the copied `agent.env`.
 - After the Grok installer prepends `~/.grok/bin` (so `agent` becomes Grok), append `PATH` again with `~/.local/bin` first. Keep `cursor-agent` as the Cursor binary name.
 - If `~/.codex` is itself a Stow link, point `CODEX_HOME` outside the checkout and never write `auth.json` into the stowed tree. Check how the host installs CLIs (official installer, mise shims) before adding another copy.
-- A replacement hypervisor may have no `git`. Official Cursor/Grok installers are enough; rsync `common/.agents` from the workstation if the GitHub clone is behind local skill edits.
+- A replacement hypervisor may have no `git`. Official Cursor/Grok installers are enough. skills.sh needs Node.js 22.20+ and npm, or mise; without them `update-agent-skills` says so and the on-disk skills stay as they are.
 - The Home Assistant Advanced SSH add-on is not an install target. Dropbear wedges if leftover SSH sessions stay `ESTABLISHED`, and copying a large CLI binary into `addon_configs` hangs.
 - Reuse the same scoped viewer `agent.env` host-to-host. Do not create a new Pass agent from an existing PAT session.
 - Sync the checkout with rsync and **exclude** `common/.config/Cursor/` (~1.9G workstation cache, not a tracked Stow input).
@@ -44,4 +44,4 @@ Check `type -a codex`, `readlink -f "$(command -v codex)"`, `codex --version`, a
 
 The Advanced SSH add-on is Alpine/musl. Official Cursor, Grok, and Pass CLI builds are glibc and fail there even with `gcompat`. Do not disable protection mode to reach Docker. HAOS itself is not the install target: the OS root is appliance-managed. Install these CLIs on Proxmox, TrueNAS, and the PBS VM. A secondary Proxmox node that is offline is not a setup failure; retry when it is reachable.
 
-The SSH add-on stays off unless Luke enables it for `/config` file work. See `ha-ssh-addon-temporary-access.md`.
+The SSH add-on is intentionally left running for `/config` file work, but it is still not an install target. See `ha-ssh-addon-temporary-access.md`.

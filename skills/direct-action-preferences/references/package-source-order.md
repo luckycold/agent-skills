@@ -15,6 +15,8 @@ Use this whenever software needs to be installed on Luke's Arch/Omarchy machines
 
 If AUR only offers a source build, skip it and continue to the next step. Use mise rather than compiling.
 
+Omarchy 4 ships an ALPM hook (`00-omarchy-update-guard.hook`) that aborts a direct `pacman -Syu` / `--sync --sysupgrade`. Run system upgrades through `omarchy update`; plain installs are not blocked. `OMARCHY_ALLOW_DIRECT_PACMAN=1` bypasses the guard; do not use it without Luke.
+
 ## Python command-line applications
 
 When the upstream Linux distribution is a Python package, check mise's built-in `pypi:` backend even if `mise registry` has no short name. `mise use -g pypi:<distribution>@latest` manages an isolated environment through uv when available. See the [official backend documentation](https://mise.jdx.dev/dev-tools/backends/pypi.html).

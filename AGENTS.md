@@ -1,56 +1,9 @@
-# Luke's Agent Working Agreement
+# agent-skills repository note
 
-This repository is the canonical, public, cross-agent library for Luke-authored skills. Project-specific instructions take precedence when they conflict.
+This is Luke's public library of portable Agent Skills (`skills/<name>/SKILL.md`, frontmatter `author: Luke`). It holds only the knowledge an agent could not work out on its own: Luke's choices, decisions, and non-obvious gotchas. Drop or trim anything that `--help`, man pages, official docs, or a quick look at the system would tell an agent.
 
-## Core preferences
-
-- Prefer functional programming where practical: pure functions, immutability, composition, and explicit data flow.
-- Satisfy the type checker. Ask Luke before choosing a complicated, brittle workaround.
-- Follow each repository's existing style and architecture. Do not refactor unrelated code.
-- Inspect current state before acting. Ask only when required information is external, destructive, sensitive, or depends on a material user choice.
-- Prefer supported first-class configuration over custom wrappers or bespoke glue unless Luke explicitly requests that implementation.
-- Load `direct-action-preferences` before installing software or writing a wrapper, helper binary, systemd unit, or other glue. The ask-before-custom-glue rule and the package-source order live in that skill.
-
-## Skill freshness
-
-At the start of each new run — once per session, not every turn — refresh installed portable skills with the skills.sh CLI before other work.
-
-Non-interactive shells do not load Luke's bash functions. In the same command:
-
-```bash
-source "${DOTFILES_DIR:-$HOME/dotfiles}/common/.bashrc.d/dotfiles_management.bash"
-update-agent-skills
-```
-
-That is the skills.sh (`skills`) CLI: `add luckycold/agent-skills --skill '*' --global --yes` for Codex, Claude Code, Cursor, and OpenCode. If this session already ran it, skip. If Node.js or npm is missing, report that and continue with on-disk skills. After a refresh that changed files, re-read `~/.agents/AGENTS.md` and the skills this task needs.
-
-## Personal skills
-
-Luke-authored personal skills are canonical under `~/.agents/skills/` and have top-level `author: Luke` frontmatter.
-
-- Keep each skill under `skills/<skill-name>/` with a valid `SKILL.md` entrypoint.
-- Keep `SKILL.md` focused. `scripts/check_skill_size.py` (run by `scripts/check-public-safety.py` and CI) fails any `skills/*/SKILL.md` over 200 lines and warns above 100. Move detail into linked `references/`. The maintenance procedure is `personal-skill-maintenance`.
-- Load the relevant personal skill before acting on Luke's infrastructure, authentication, automation, or agent-maintenance work.
-- Use `personal-skill-maintenance` when creating, correcting, consolidating, or extending personal skills.
-- Never self-modify third-party, bundled, system, or project-owned skills.
-- Consumers of this library are first-class peers: Labby (Luke's Cursor home-lab bot; Proxmox-primary), Codex, Cursor, Claude Code, OpenCode, and Grok Bot. Prefer portable procedures over agent-specific paths.
-
-## Private context and public-repository safety
-
-This repository is public. It must contain portable procedures, not Luke's live environment values.
-
-- Never commit passwords, tokens, private keys, session material, recovery data, secret-manager IDs, auth files, callback payloads, or rendered private context.
-- Never commit private hostnames, private domains, RFC1918 addresses, emails, MAC/device IDs, account aliases, or detailed live infrastructure topology.
-- Use descriptive placeholders such as `<nas-ssh-target>` or environment variables such as `${NAS_IP}` when exact values are required at runtime.
-- Resolve approved private operational values from the local, ignored `~/.agents/private-context.md` only when a task needs them. Never quote, commit, log, or copy that file.
-- Keep `private-context.md`, `private-context.template.md`, exports, logs, archives, and credential material ignored.
-- Run `python3 scripts/check-public-safety.py` before every commit. Treat a failure as blocking; fix or deliberately generalize the content rather than weakening the check.
-
-## Self-learning and Git
-
-- When to update or create a skill, the safety filter, the size check, and the Pass-backed Git push are in `personal-skill-maintenance`.
-- Make the smallest evidence-backed edit. Do not store transient state or infer a durable preference from one request.
-- Review the full diff and validate every changed skill before committing.
-- Luke has authorized this agent to commit and push safe personal-skill updates to `luckycold/agent-skills` without asking each time.
-- Never push when the safety scan or validation fails. Do not rewrite published history unless Luke explicitly authorizes it for incident response.
-- Always state in the user-facing final response when a skill was created or updated. Name every changed skill and include the resulting pushed commit; never leave a skill change implicit.
+- **Install and refresh:** skills.sh, for example `npx skills add luckycold/agent-skills --skill '*' --global --yes`. See `README.md`.
+- **Agent rules:** the canonical working agreement is `~/.agents/AGENTS.md`, stowed from Luke's dotfiles repository (`common/.agents/AGENTS.md`). This file is only a note about this repository; it does not override that agreement.
+- **Maintenance:** follow the `personal-skill-maintenance` skill.
+- **Before every commit:** run `python3 scripts/check-public-safety.py`. It rejects secrets, private keys, private network addresses, private domains, emails, and tracked private-context files, and it runs `scripts/check_skill_size.py`, which fails any `skills/*/SKILL.md` over 200 lines. A failure blocks the commit; generalize the content instead of weakening the check.
+- **Public repository:** use placeholders such as `<nas-ssh-target>`; exact values belong in the ignored local `~/.agents/private-context.md`, which is never committed or quoted.

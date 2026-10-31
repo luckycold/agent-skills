@@ -74,7 +74,7 @@ Keep the appliance hands-off with two mechanisms:
 
 Do not add Watchtower unless there is a concrete need; a oneshot timer matches a single-compose appliance and avoids another long-running container.
 
-3. **Radio / REST recovery:** keep a short health timer (a few minutes): if an RCP is present but `http://127.0.0.1:8081/node` fails, force-recreate. The OTBR process can die on USB I/O errors while the container stays "Up".
+3. **Radio / REST recovery:** a systemd health timer runs about every 2 minutes (the chosen design; there is no separate hotplug watcher): if an RCP is present but `http://127.0.0.1:8081/node` fails, force-recreate. The OTBR process can die on USB I/O errors while the container stays "Up".
 
 ## Operations
 

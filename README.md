@@ -4,21 +4,17 @@ Luke-authored portable skills for infrastructure, authentication, and agent work
 
 Consumers include Labby (Cursor home-lab bot), Codex, Cursor, Claude Code, OpenCode, and Grok Bot. Prefer portable skills over agent-specific paths.
 
-## Canonical checkout
+## Install
 
-Clone this repository as the shared cross-agent skills area:
-
-```bash
-git clone https://github.com/luckycold/agent-skills.git ~/.agents
-```
-
-Install or refresh with the Agent Skills CLI (Codex, Claude Code, Cursor, OpenCode):
+Install or refresh with skills.sh, the Agent Skills CLI (Codex, Claude Code, Cursor, OpenCode). On hosts with Luke's dotfiles, `update-agent-skills` wraps this:
 
 ```bash
 DISABLE_TELEMETRY=1 npx --yes skills@latest add luckycold/agent-skills \
   --skill '*' --global --yes \
   --agent codex --agent claude-code --agent cursor --agent opencode
 ```
+
+The canonical agent working agreement is `~/.agents/AGENTS.md` from Luke's dotfiles, not this repository; `AGENTS.md` here is only a repository note. Do not clone this repository over `~/.agents` on a host that stows the dotfiles.
 
 Generic Proton Pass CLI instructions are not stored here. `pass-cli agent instructions` prints them. Luke-specific limits stay in `proton-pass-cli`.
 

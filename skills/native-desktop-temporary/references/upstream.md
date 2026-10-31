@@ -29,3 +29,9 @@ Check `command -v cua-driver`, `cua-driver --version`, package metadata, and
 Hyprland plugin is loaded or background input is supported. No stable-release
 ETA was established by the sources above. Prefer supported package paths and
 route any MCP configuration through the user's canonical mcporter registry.
+
+## Checkpoint 2026-10-29
+
+- Omarchy stable is v4.0.5 (2026-10-18); v4.5.0-rc2 is a release candidate ([releases](https://github.com/omacom/omarchy/releases)). Whether the stable ring ships `cua-driver-bin` and `cua-hyprland-plugin` was not verified.
+- Cua announced its stable Omarchy driver on 2026-09-25, and its [Omarchy guide](https://cua.ai/docs/cua-sdk/guides/omarchy) still documents the edge image and calls the Hyprland plugin experimental. Check `hyprctl -j cua:status` as well as `hyprctl plugin list`.
+- The Cua desktop VM runs the edge channel (`omarchy-dev`) with Hyprland 0.56.2, `cua-driver-bin` 0.33.4 and `cua-hyprland-plugin` 0.33.2 loaded. That is edge, not proof of stable support on the laptop, which was offline for this check.

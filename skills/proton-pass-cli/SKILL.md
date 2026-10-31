@@ -1,6 +1,6 @@
 ---
 name: proton-pass-cli
-description: Luke-specific Proton Pass CLI facts — API Credential items, the Agents vault, viewer-role limits, REASON length, v2.5.0 web login and extra password, the note size limit, stale PAT recovery, and the native export schema. Generic CLI usage comes from pass-cli agent instructions.
+description: Luke-specific Proton Pass CLI facts — API Credential items, the Agents vault, viewer-role limits, REASON length, v2.5 web login and extra password, the note size limit, stale PAT recovery, and the native export schema. Generic CLI usage comes from pass-cli agent instructions.
 author: Luke
 ---
 
@@ -26,11 +26,11 @@ If a value must be used before Luke can save it, keep a root-only `0600` file, s
 
 Audited commands need `PROTON_PASS_AGENT_REASON`. Keep it specific and under 300 characters. Longer reasons are rejected before the operation runs.
 
-## CLI v2.5.0
+## CLI v2.5
 
-v2.5.0 (box, 2026-10-20) signs in through the web login only. There is no password prompt.
+From v2.5.0, `pass-cli login` defaults to the web login; there is no password prompt (checked on 2.5.1, 2026-10-29). Its `--pat` option would put the token in argv; use `PROTON_PASS_PERSONAL_ACCESS_TOKEN` instead. Hosts can lag (pve was still on 2.4.1 on 2026-10-29), so check `pass-cli --version`.
 
-The account has an extra password. Commands that need it read `PROTON_PASS_EXTRA_PASSWORD`. After `source ~/.config/proton-pass-cli/env`, set it from `PROTON_PASS_LOGIN_EXTRA`:
+The account has an extra password. Commands that need it read `PROTON_PASS_EXTRA_PASSWORD` (or `PROTON_PASS_EXTRA_PASSWORD_FILE`). After `source ~/.config/proton-pass-cli/env`, set it from `PROTON_PASS_LOGIN_EXTRA`:
 
 ```bash
 export PROTON_PASS_EXTRA_PASSWORD="$PROTON_PASS_LOGIN_EXTRA"
@@ -48,7 +48,7 @@ Never print either value.
 
 ## Native export schema
 
-When a native ZIP/JSON archive has to be validated, use the commit-pinned schema in [native export schema](references/native-export-schema.md). Vault IDs, item IDs, and pin state are not restored. Passkey objects stay opaque.
+To validate a native ZIP/JSON archive, read the schema from [ProtonMail/WebClients](https://github.com/ProtonMail/WebClients) (authoritative for native JSON) and record the commit inspected. Vault IDs, item IDs, and pin state are not restored. Passkey objects stay opaque.
 
 ## Self-maintenance
 
