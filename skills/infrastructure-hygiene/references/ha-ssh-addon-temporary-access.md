@@ -58,6 +58,14 @@ curl -s -w "\nHTTPSTATUS:%{http_code}\n" -H "Authorization: Bearer $SUPERVISOR_T
 - Use a validated HTTPS DNS response for public-record checks, enforce DNS status and record type, and compare the resulting A records with the current WAN address. Keep local service DNS and authenticated IMAP/SMTP checks separate.
 - After correcting a watchdog, execute the real script and read its persisted health state. Silent output alone may mean duplicate-error suppression, not health.
 
+## Voice research and ingress verification
+
+- A model's “test only” instruction does not isolate delivery tools. Before research tests, back up the touched configuration, replace the live delivery action with an inert stub, and read back the script before invoking any agent. Stub search results too when testing conversation control. Restore production actions afterward and run no further research questions against live delivery.
+- Use native script `mode: single` with `max_exceeded: silent` plus a persisted timestamp and a hash of the entire normalized request for a short dedupe window. Truncating the request before comparison makes different long requests collide. Verify duplicate, different-request, and expired-window cases while isolated; restore helper bookkeeping after tests.
+- Verify confirmation turns from `extended_openai_conversation.conversation.finished`: inspect only messages after the last user message. The event contains earlier tool calls in its conversation history; counting the whole history falsely attributes them to a later “yes”.
+- Test ingress using the intended non-admin account before proposing an admin grant or exposing an app port. A hidden sidebar entry is not proof ingress is forbidden. Check the actual Supervisor API responses and video playback; keep ingress sessions out of logs and revoke temporary logins.
+- Browser viewport and JavaScript heap measurements do not establish a satellite's free RAM or on-device behavior. Report those device checks separately.
+
 ## Related Skills and References
 - `proton-pass-cli` (if the add-on config itself stores secrets or keys).
 - `truenas-custom-apps` and the broader infrastructure-hygiene stack (for when HA storage paths or related services on TrueNAS are involved).
