@@ -71,6 +71,9 @@ curl -s -w "\nHTTPSTATUS:%{http_code}\n" -H "Authorization: Bearer $SUPERVISOR_T
 - Preserve search failure categories in the tool response: provider quota/payment failure, authentication, rate limit, timeout/unavailable, and genuinely unsourced results are different. A proxy's “no auth available” can wrap an upstream exhausted balance; inspect that cause before rotating credentials. An alternate route is only verified when it returns both an actual search call and usable citations; preserve explicitly chosen models until a switch is authorized.
 - For early voice cutoff, inspect the live finished-speaking selector and its history, then the actual microphone pipeline's STT/VAD event times and transcript. “Relaxed” is a silence tolerance, not a minimum listening duration. Read its mapping in the installed Core version rather than guessing, and verify with a fresh spoken test; text-only conversation tests cannot validate microphone endpointing.
 
+- Keep background-speech filtering below unambiguous stop/pause/cancel commands, even after a question on another topic. A rule accepting only same-topic replies can reject real controls. Music playback scripts may not supply playback controls: test the explicit control tool after a clarification question, and separately verify that clear TV/background speech still causes no action.
+- For Responses searches whose message annotations are absent, request `web_search_call.action.sources` and an inline citation. A URL in answer text is usable provenance only when it matches a source returned by the actual search call; do not accept arbitrary model-generated links or cite an unused search-result list.
+
 ## Related Skills and References
 - `proton-pass-cli` (if the add-on config itself stores secrets or keys).
 - `truenas-custom-apps` and the broader infrastructure-hygiene stack (for when HA storage paths or related services on TrueNAS are involved).
