@@ -73,6 +73,7 @@ curl -s -w "\nHTTPSTATUS:%{http_code}\n" -H "Authorization: Bearer $SUPERVISOR_T
 
 - Keep background-speech filtering below unambiguous stop/pause/cancel commands, even after a question on another topic. A rule accepting only same-topic replies can reject real controls. Music playback scripts may not supply playback controls: test the explicit control tool after a clarification question, and separately verify that clear TV/background speech still causes no action.
 - For Responses searches whose message annotations are absent, request `web_search_call.action.sources` and an inline citation. A URL in answer text is usable provenance only when it matches a source returned by the actual search call; do not accept arbitrary model-generated links or cite an unused search-result list.
+- On shared voice satellites, a wake word addresses the assistant but does not identify the speaker. Homeowner-specific prompt wording can cause guessed names even with `attach_username: false`. Use household-neutral wording, require an explicit current-conversation introduction before using a name, and test anonymous, introduced and fresh-conversation replies without device actions. Text tests verify the agent's assumptions, not physical wake-word detection.
 
 ## Related Skills and References
 - `proton-pass-cli` (if the add-on config itself stores secrets or keys).
