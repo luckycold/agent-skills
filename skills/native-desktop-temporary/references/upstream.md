@@ -29,3 +29,35 @@ Check `command -v cua-driver`, `cua-driver --version`, package metadata, and
 Hyprland plugin is loaded or background input is supported. No stable-release
 ETA was established by the sources above. Prefer supported package paths and
 route any MCP configuration through the user's canonical mcporter registry.
+
+## Diagnose a compositor update before reinstalling
+
+Inspect `pacman -Si cua-hyprland-plugin`, `hyprctl version`, and
+`hyprctl plugin list` independently. A removed plugin can leave a healthy
+`cua-driver-bin` package and daemon; reinstalling the driver does not repair
+an incompatible plugin. Never bypass the plugin's exact compositor/library
+dependencies or assume that a newer driver supplies a compatible plugin.
+
+An empty `list_windows` result also needs comparison with `hyprctl -j clients`.
+On Hyprland 0.57.0, an unused special workspace can omit its `id`, breaking
+Driver's monitor-reply parser ([upstream issue #6267](https://github.com/trycua/cua/issues/6267)).
+Desktop capture can still succeed. Check the current status of that fix and
+[plugin input support #6232](https://github.com/trycua/cua/issues/6232)
+separately before selecting an update. A successful screenshot does not prove
+window discovery or isolated input. Preserve the working desktop and ask
+before a graphics-stack rollback or an unreleased local patch/build.
+
+When the user chooses a different Omarchy channel, use
+`omarchy channel set <channel>`: it performs a downgrade-capable whole-system
+sync and swaps the Omarchy package pair. Inspect that channel's actual package
+database first, then reinstall its matching plugin through pacman. Run the
+packaged `profile_verify.py --consumer` check with `--kit` pointing to the
+provenance directory and `--kit-sha256` set to its `KIT-PROVENANCE.json` hash.
+This proves installed compatibility, not live activation; a replaced running
+Hyprland process still needs a session restart or reboot.
+
+For a service-launched shell without display variables, compare
+`systemctl --user show-environment` with the existing daemon's environment
+before changing its unit. Run diagnostics with the graphical session's
+selected display variables; a headless caller's warning alone does not prove
+that the desktop daemon lacks them. Do not print unrelated environment values.
