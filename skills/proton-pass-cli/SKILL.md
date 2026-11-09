@@ -46,6 +46,12 @@ Never print either value.
 
 `pass-cli info` can report `non-existent session` while `pass-cli login` says `Already authenticated`. See [stale PAT recovery](references/stale-pat-recovery.md). Do not rotate a working token for that.
 
+## SSH authentication and commit signing
+
+When Proton Pass backs SSH or Git signing, inspect the existing user login monitor and SSH agent services before requesting new credentials. On a desktop with a stopped login monitor, start that existing service: its stored token can restore both the CLI session and the SSH agent. Do not replace the token or disable commit signing just because the services are stopped.
+
+Use the configured Proton Pass socket for `SSH_AUTH_SOCK`. A socket file can outlive its process; require `ssh-add -l` to list identities before treating the agent as ready. Verify SSH authentication and the resulting commit signature after recovery. Keep shells pointed at the configured socket while the service starts so they can use it once ready.
+
 ## Native export schema
 
 When a native ZIP/JSON archive has to be validated, use the commit-pinned schema in [native export schema](references/native-export-schema.md). Vault IDs, item IDs, and pin state are not restored. Passkey objects stay opaque.
